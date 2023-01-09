@@ -15,9 +15,11 @@
 	#define DL_RIGHT XK_Right
 	#define DL_UP XK_Up
 	#define DL_DOWN XK_Down
-#elif defined(_win32) || defined(_win64)
+#elif defined(_WIN32) || defined(_WIN64)
 	#include<Windows.h>
 	#define DL_ESCAPE VK_ESCAPE
+#else
+	#define DL_ESCAPE 0
 #endif
 
 typedef struct winParam_t {
