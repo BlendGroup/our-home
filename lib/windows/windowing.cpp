@@ -1,78 +1,42 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<memory.h>
-#include<time.h>
 #include<Windows.h>
-#include<GL/glew.h>
-#include<FreeImage.h>
-#include"vmath.h"
-#include"../../include/glwindowing.h"
+#include<stdio.h>
+#include<gl/glew.h>
+#include<gl/GL.h>
+#include"../../include/vmath.h"
+#include"../../include/main.h"
 
 using namespace vmath;
 
-bool isClosed = false;
-winParam winSize;
-mat4 perspectiveMatrix;
+#pragma comment(lib, "user32.lib")
+#pragma comment(lib, "gdi32.lib")
+#pragma comment(lib, "glew32.lib")
+#pragma comment(lib, "opengl32.lib")
 
-static HGLRC gHGLRC;
-static HDC gHDC;
-static HWND gHWND;
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
-static keyboardfunc keyboardFunction;
-static mousefunc mouseFunction;
+enum {
+	DL_ATTRIB_POSITION = 0, 
+	DL_ATTRIB_COLOR,
+	DL_ATTRIB_NORMAL,
+	DL_ATTRIB_TEXTURE0
+};
 
-void toggleFullscreen(void) {
-	static bool bFullscreen = false;
-	static DWORD dwStyle_dl;
-	static WINDOWPLACEMENT wpPrev_dl = { sizeof(WINDOWPLACEMENT) };
-	MONITORINFO mi_dl = { sizeof(MONITORINFO) };
-	bFullscreen = !bFullscreen;
-	if (bFullscreen) {
-		SetWindowLong(gHWND, GWL_STYLE, dwStyle_dl | WS_OVERLAPPEDWINDOW);
-		SetWindowPlacement(gHWND, &wpPrev_dl);
-		SetWindowPos(gHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_FRAMECHANGED);
-	}
-	else {
-		dwStyle_dl = GetWindowLong(gHWND, GWL_STYLE);
-		GetWindowPlacement(gHWND, &wpPrev_dl);
-		GetMonitorInfo(MonitorFromWindow(gHWND, MONITORINFOF_PRIMARY), &mi_dl);
-		SetWindowLong(gHWND, GWL_STYLE, dwStyle_dl & ~WS_OVERLAPPEDWINDOW);
-		SetWindowPos(gHWND, HWND_TOP, mi_dl.rcMonitor.left, mi_dl.rcMonitor.top, mi_dl.rcMonitor.right - mi_dl.rcMonitor.left, mi_dl.rcMonitor.bottom - mi_dl.rcMonitor.top, SWP_NOZORDER | SWP_FRAMECHANGED);
-	}
-}
+HWND ghwnd_dl;
+HDC ghdc_dl;
+HGLRC ghrc_dl;
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
-	switch(iMsg) {
-	case WM_KEYDOWN:
-		if(keyboardFunction) {
-			keyboardFunction(wParam, 0);
-		}
-		break;
-	case WM_MOUSEMOVE:
-		if(mouseFunction) {
-			mouseFunction(LOWORD(lParam), HIWORD(lParam));
-		}
-		break;
-	case WM_SIZE:
-		winSize.w = LOWORD(lParam);
-		winSize.h = HIWORD(lParam);
-		glViewport(0, 0, winSize.w, winSize.h);
-		perspectiveMatrix = perspective(45.0f, winSize.w / winSize.h, 0.1f, 1000.0f);
-		break;
-	case WM_CLOSE:
-		isClosed = true;
-		break;
-	default:
-		break;
-	}
-	return DefWindowProc(hwnd, iMsg, wParam, lParam);
-}
+bool gbActive_dl;
+bool gbFullscreen_dl;
 
-void createOpenGLWindow(void) {
+int WINAPI WinMain(HINSTANCE hInst_dl, HINSTANCE hPrev_dl, LPSTR szCmdLine_dl, int iCmdShow_dl) {
+	void initWindow(void);
+	void uninitWindow(void);
+	void ToggleFullscreen(void);
+
 	WNDCLASSEX wnd_dl;
 	MSG msg_dl;
 	TCHAR szAppName[] = TEXT("Deep's App");
-
+	
 	wnd_dl.cbClsExtra = 0;
 	wnd_dl.cbWndExtra = 0;
 	wnd_dl.cbSize = sizeof(WNDCLASSEX);
@@ -80,21 +44,101 @@ void createOpenGLWindow(void) {
 	wnd_dl.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wnd_dl.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 	wnd_dl.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-	wnd_dl.hInstance = GetModuleHandle(NULL);
+	wnd_dl.hInstance = hInst_dl;
 	wnd_dl.lpfnWndProc = WndProc;
 	wnd_dl.lpszClassName = szAppName;
 	wnd_dl.lpszMenuName = NULL;
 	wnd_dl.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 	RegisterClassEx(&wnd_dl);
-	gHWND = CreateWindowEx(WS_EX_APPWINDOW, szAppName, TEXT("Programmable Pipeline Bluescreen"), WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE, 100, 100, 800, 600, NULL, NULL, GetModuleHandle(NULL), NULL);
-	ShowWindow(gHWND, SW_SHOW);
-	SetFocus(gHWND);
-	SetForegroundWindow(gHWND);
-	
+	ghwnd_dl = CreateWindowEx(WS_EX_APPWINDOW, szAppName, TEXT("Blend Final"), WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE, 100, 100, 800, 600, NULL, NULL, hInst_dl, NULL);
+	ShowWindow(ghwnd_dl, iCmdShow_dl);
+	SetFocus(ghwnd_dl);
+	SetForegroundWindow(ghwnd_dl);
+	initWindow();
+	ToggleFullscreen();
+	while(true) {
+		if(PeekMessage(&msg_dl, NULL, 0, 0, PM_REMOVE)) {
+			if(msg_dl.message == WM_QUIT) {
+				break;
+			} else {
+				TranslateMessage(&msg_dl);
+				DispatchMessage(&msg_dl);
+			}
+		} else {
+			render();
+			SwapBuffers(ghdc_dl);	
+		}
+	}
+	uninitWindow();
+	return msg_dl.wParam;
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
+	void Resize(int, int);
+	void ToggleFullscreen(void);
+
+	switch(iMsg) {
+	case WM_ACTIVATE:
+		gbActive_dl = !HIWORD(wParam);
+		break;
+	case WM_ERASEBKGND:
+		return 0;
+	case WM_SIZE:
+		winSize.w = LOWORD(lParam);
+		winSize.h = HIWORD(lParam);
+		break;
+	case WM_KEYDOWN:
+		switch(wParam) {
+		case VK_ESCAPE:
+			DestroyWindow(hwnd);
+			break;
+		}
+		break;
+	case WM_CHAR:
+		switch(wParam) {
+		case 'F': case 'f':
+			ToggleFullscreen();
+			break;
+		}
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	}
+	return DefWindowProc(hwnd, iMsg, wParam, lParam);
+}
+
+void ToggleFullscreen() {
+	static DWORD dwStyle_dl;
+	static WINDOWPLACEMENT wpPrev_dl = { sizeof(WINDOWPLACEMENT) };
+	MONITORINFO mi_dl = { sizeof(MONITORINFO) };
+	if (gbFullscreen_dl) {
+		SetWindowLong(ghwnd_dl, GWL_STYLE, dwStyle_dl | WS_OVERLAPPEDWINDOW);
+		SetWindowPlacement(ghwnd_dl, &wpPrev_dl);
+		SetWindowPos(ghwnd_dl, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_FRAMECHANGED);
+		ShowCursor(true);
+		gbFullscreen_dl = false;
+	}
+	else {
+		dwStyle_dl = GetWindowLong(ghwnd_dl, GWL_STYLE);
+		if (dwStyle_dl & WS_OVERLAPPEDWINDOW) {
+			if (GetWindowPlacement(ghwnd_dl, &wpPrev_dl) && GetMonitorInfo(MonitorFromWindow(ghwnd_dl, MONITORINFOF_PRIMARY), &mi_dl)) {
+				SetWindowLong(ghwnd_dl, GWL_STYLE, dwStyle_dl & ~WS_OVERLAPPEDWINDOW);
+				SetWindowPos(ghwnd_dl, HWND_TOP, mi_dl.rcMonitor.left, mi_dl.rcMonitor.top, mi_dl.rcMonitor.right - mi_dl.rcMonitor.left, mi_dl.rcMonitor.bottom - mi_dl.rcMonitor.top, SWP_NOZORDER | SWP_FRAMECHANGED);
+			}
+		}
+		ShowCursor(false);
+		gbFullscreen_dl = true;
+	}
+}
+
+void initWindow(void) {
+	void Resize(int, int);
+
 	PIXELFORMATDESCRIPTOR pfd_dl;
 	int iPixelFormatIndex_dl;
 
-	gHDC = GetDC(gHWND);
+	ghdc_dl = GetDC(ghwnd_dl);
 
 	ZeroMemory(&pfd_dl, sizeof(pfd_dl));
 	pfd_dl.nSize = sizeof(pfd_dl);
@@ -108,71 +152,43 @@ void createOpenGLWindow(void) {
 	pfd_dl.cAlphaBits = 8;
 	pfd_dl.cDepthBits = 32;
 
-	iPixelFormatIndex_dl = ChoosePixelFormat(gHDC, &pfd_dl);
-	SetPixelFormat(gHDC, iPixelFormatIndex_dl, &pfd_dl);
-	gHGLRC = wglCreateContext(gHDC);
-	wglMakeCurrent(gHDC, gHGLRC);
-	glewInit();
-}
-
-void setKeyboardFunc(keyboardfunc key) {
-	keyboardFunction = key;
-}
-
-void setMouseFunc(mousefunc mouse) {
-	mouseFunction = mouse;
-}
-
-void processEvents(void) {
-	static MSG msg;
-	if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-		if(msg.message == WM_QUIT) {
-			isClosed = true;
-		} else {
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-	}
-}
-
-bool isOpenGLWindowClosed() {
-	return isClosed;
-}
-
-void swapBuffers(void) {
-	SwapBuffers(gHDC);
-}
-
-void closeOpenGLWindow(void) {
-	CloseWindow(gHWND);
-	PostQuitMessage(0);
-}
-
-void destroyOpenGLWindow(void) {
-	if(gHGLRC) {
-		wglDeleteContext(gHGLRC);
-	}
-	if(gHDC) {
-		ReleaseDC(gHWND, gHDC);
-	}
-	if(gHWND) {
-		DestroyWindow(gHWND);
-	}
-}
-
-unsigned char* loadTexture(const char* filename, int* w, int* h) {
-	FREE_IMAGE_FORMAT fif;
-	fif = FreeImage_GetFileType(filename);
-	if(fif == FIF_UNKNOWN) {
-		fif = FreeImage_GetFIFFromFilename(filename);
-		if(fif == FIF_UNKNOWN) {
-			return NULL;
-		}
+	if ((iPixelFormatIndex_dl = ChoosePixelFormat(ghdc_dl, &pfd_dl)) == NULL) {
+		DestroyWindow(ghwnd_dl);
 	}
 
-	FIBITMAP* dib = FreeImage_Load(fif, filename);
-	*w = FreeImage_GetWidth(dib);
-	*h = FreeImage_GetHeight(dib);
+	if (SetPixelFormat(ghdc_dl, iPixelFormatIndex_dl, &pfd_dl) == FALSE) {
+		DestroyWindow(ghwnd_dl);
+	}
 
-	return FreeImage_GetBits(dib);
+	if ((ghrc_dl = wglCreateContext(ghdc_dl)) == NULL) {
+		DestroyWindow(ghwnd_dl);
+	}
+
+	if (wglMakeCurrent(ghdc_dl, ghrc_dl) == FALSE) {
+		DestroyWindow(ghwnd_dl);
+	}
+
+	GLenum glew_error_dl = glewInit();
+	if(glew_error_dl != GLEW_OK) {
+		DestroyWindow(ghwnd_dl);
+	}
+
+	init();
+}
+
+void uninitWindow(void) {
+	uninit();
+	if (wglGetCurrentContext() == ghrc_dl) {
+		wglMakeCurrent(NULL, NULL);
+	}
+
+	if (ghdc_dl) {
+		wglDeleteContext(ghrc_dl);
+		ghrc_dl = NULL;
+	}
+
+	if (ghdc_dl) {
+		ReleaseDC(ghwnd_dl, ghdc_dl);
+		ghdc_dl = NULL;
+	}
 }
