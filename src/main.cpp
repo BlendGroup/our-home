@@ -1,12 +1,20 @@
 #include<GL/glew.h>
 #include<GL/gl.h>
-#include"../include/glwindowing.h"
+#include<iostream>
 #include"../include/vmath.h"
+#include"../include/main.h"
 
+using namespace std;
 using namespace vmath;
 
-void init(void) {
+winParam winSize;
+
+void setupProgram(void) {
 	
+}
+
+void init(void) {
+
 }
 
 void render(void) {
@@ -15,28 +23,4 @@ void render(void) {
 
 void uninit(void) {
 
-}
-
-void keyboard(unsigned int key, int state) {
-	switch(key) {
-	case 'F': case 'f':
-		toggleFullscreen();
-		break;
-	case DL_ESCAPE:
-		closeOpenGLWindow();
-		break;
-	}
-}
-
-int main(void) {
-	setKeyboardFunc(keyboard);
-	createOpenGLWindow();
-	init();
-	while(!isOpenGLWindowClosed()) {
-		processEvents();
-		render();
-		swapBuffers();
-	}
-	uninit();
-	destroyOpenGLWindow();
 }

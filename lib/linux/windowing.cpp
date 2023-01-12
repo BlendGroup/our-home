@@ -1,7 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<memory.h>
-#include<time.h>
 
 #include<X11/Xlib.h>
 #include<X11/Xutil.h>
@@ -9,88 +8,79 @@
 #include<X11/keysym.h>
 #include<GL/glew.h>
 #include<GL/glx.h>
-#include<FreeImage.h>
 
-#include"../include/glwindowing.h"
+#include"../../include/main.h"
 
-bool isClosed = false;
-winParam winSize;
+Display *dl_gpDisplay = NULL;
+XVisualInfo *dl_gpXVisualInfo = NULL;
+Colormap dl_gColormap;
+Window dl_gWindow;
+GLXContext dl_gGlxContex;
+GLXFBConfig gGLXFBconfig;
 
-static keyboardfunc keyboardFunction;
-static mousefunc mouseFunction;
+GLuint vertShaderObj;
+GLuint fragShaderObj;
+GLuint programObj;
 
-static Display* gpDisplay;
-static XVisualInfo* gpXVisualInfo;
-static Window gWindow;
-static GLXContext gGlxContex;
-static Colormap gColormap;
-static uint64_t clockOffset = 0; 
-static const clockid_t currentclock = CLOCK_REALTIME;
-static const uint64_t frequency = 1000000000;
-static glcontext contextProp = { 3, 0, GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB, 0};
+typedef GLXContext(*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
+glXCreateContextAttribsARBProc glXCreateContextAttribARB = NULL;
 
-uint64_t getTimerValue() {
-	struct timespec ts;
-	clock_gettime(currentclock, &ts);
-	return (uint64_t)ts.tv_sec * frequency + (uint64_t)ts.tv_nsec;
-}
+int dl_giWindowWidth = 800;
+int dl_giWindowHeight = 600;
 
-void toggleFullscreen(void) {
-	static bool dl_bFullscreen = false;
-	
-	Atom dl_wm_state;
-	Atom dl_fullscreen;
-	XEvent dl_xev = {0};
+int main(void) {
+	void createWindow(void);
+	void toggleFullscreen(void);
+	void initWindow(void);
+	void uninitWindow(void);
 
-	dl_wm_state = XInternAtom(gpDisplay, "_NET_WM_STATE", False);
-	memset(&dl_xev, 0, sizeof(dl_xev));
+	bool dl_bDone = false;
 
-	dl_xev.type = ClientMessage;
-	dl_xev.xclient.window = gWindow;
-	dl_xev.xclient.message_type = dl_wm_state;
-	dl_xev.xclient.format = 32;
-	dl_xev.xclient.data.l[0] = dl_bFullscreen ? 0 : 1;
-	dl_fullscreen = XInternAtom(gpDisplay, "_NET_WM_STATE_FULLSCREEN", False);
-	dl_xev.xclient.data.l[1] = dl_fullscreen;
-	XSendEvent(gpDisplay, RootWindow(gpDisplay, gpXVisualInfo->screen), False, StructureNotifyMask, &dl_xev);
+	createWindow();
+	initWindow();
+	toggleFullscreen();
 
-	dl_bFullscreen = !dl_bFullscreen;
-}
+	XEvent dl_event;
+	KeySym dl_keysym;
 
-void setGLContextVersion(int majorVersion, int minorVersion) {
-	contextProp.glMajorVersion = majorVersion;
-	contextProp.glMinorVersion = minorVersion;
-}
-
-void setGLContextFlags(int flagBits) {
-	contextProp.glContextFlags = DL_NO_CONTEXT_BIT;
-	if(flagBits & DL_DEBUG_CONTEX_BIT) {
-		contextProp.glContextFlags |= GLX_CONTEXT_DEBUG_BIT_ARB;
+	while(!dl_bDone) {
+		while(XPending(dl_gpDisplay)) {
+			XNextEvent(dl_gpDisplay, &dl_event);
+			switch(dl_event.type) {
+			case KeyPress:
+				dl_keysym = XkbKeycodeToKeysym(dl_gpDisplay, dl_event.xkey.keycode, 0, 0);
+				switch(dl_keysym) {
+				case XK_Escape:
+					dl_bDone = true;
+					break;
+				case XK_F: case XK_f:
+					toggleFullscreen();
+					break;
+				default:
+					break;
+				}
+				break;
+			case ConfigureNotify:
+				winSize.w = dl_event.xconfigure.width;
+				winSize.h = dl_event.xconfigure.height;
+				break;
+			case ClientMessage:
+				dl_bDone = true;
+				break;
+			default:
+				break;
+			}
+		}
+		render();
+		glXSwapBuffers(dl_gpDisplay, dl_gWindow);
 	}
-	if(flagBits & DL_FORWARD_CONTEX_BIT) {
-		contextProp.glContextFlags |= GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
-	}
+	uninitWindow();
+	return 0;
 }
 
-void setGLContextProfile(int profile) {
-	switch(profile) {
-	case DL_CORE_CONTEXT:
-		contextProp.glContextProfile = GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
-		break;
-	case DL_ES_CONTEXT:
-		contextProp.glContextProfile = GLX_CONTEXT_ES_PROFILE_BIT_EXT;
-		break;
-	case DL_COMPATIBILTY_CONTEXT:
-		contextProp.glContextProfile = GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
-		break;
-	}
-}
+void createWindow(void) {
+	void uninitWindow(void);
 
-void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
-	fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n", ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ), type, severity, message);
-}
-
-void createOpenGLWindow(void) {
 	static int dl_frameBufferAttrib[] = {
 		GLX_DOUBLEBUFFER, True,
 		GLX_X_RENDERABLE, True,
@@ -111,21 +101,33 @@ void createOpenGLWindow(void) {
 	int numFBConfigs;
 	int dl_defaultScreen;
 	int dl_styleMask;
-	
-	clockOffset = getTimerValue();
 
-	gpDisplay = XOpenDisplay(NULL);
-	dl_defaultScreen = XDefaultScreen(gpDisplay);
-	gpXVisualInfo = (XVisualInfo *)malloc(sizeof(XVisualInfo));
+	dl_gpDisplay = XOpenDisplay(NULL);
+	if(dl_gpDisplay == NULL) {
+		printf("ERROR");
+		uninitWindow();
+		exit(1);
+	}
 
-	pGlxFBConfig = glXChooseFBConfig(gpDisplay, dl_defaultScreen, dl_frameBufferAttrib, &numFBConfigs);
+	dl_defaultScreen = XDefaultScreen(dl_gpDisplay);
+
+	dl_gpXVisualInfo = (XVisualInfo *)malloc(sizeof(XVisualInfo));
+
+	if(dl_gpXVisualInfo == NULL) {
+		printf("ERROR");
+		uninitWindow();
+		exit(1);
+	}
+
+	pGlxFBConfig = glXChooseFBConfig(dl_gpDisplay, dl_defaultScreen, dl_frameBufferAttrib, &numFBConfigs);
+	printf("Number Of FBConfigs Found = %d\n", numFBConfigs);
 	int bestFrameBufferConfig = -1, worstFrameBufferConfig = -1, bestNumOfSamples = -1, worstNumOfSamples = 999;
 	for(int i = 0; i < numFBConfigs; i++) {
-		pTempVisInfo = glXGetVisualFromFBConfig(gpDisplay, pGlxFBConfig[i]);
+		pTempVisInfo = glXGetVisualFromFBConfig(dl_gpDisplay, pGlxFBConfig[i]);
 		if(pTempVisInfo != NULL) {
 			int samplesBuffer, samples;
-			glXGetFBConfigAttrib(gpDisplay, pGlxFBConfig[i], GLX_SAMPLE_BUFFERS, &samplesBuffer);
-			glXGetFBConfigAttrib(gpDisplay, pGlxFBConfig[i], GLX_SAMPLES, &samples);
+			glXGetFBConfigAttrib(dl_gpDisplay, pGlxFBConfig[i], GLX_SAMPLE_BUFFERS, &samplesBuffer);
+			glXGetFBConfigAttrib(dl_gpDisplay, pGlxFBConfig[i], GLX_SAMPLES, &samples);
 			if(bestFrameBufferConfig < 0 || samplesBuffer && samples > bestNumOfSamples) {
 				bestFrameBufferConfig = i;
 				bestNumOfSamples = samples;
@@ -137,131 +139,136 @@ void createOpenGLWindow(void) {
 		XFree(pTempVisInfo);
 	}
 
-	GLXFBConfig gGLXFBconfig = pGlxFBConfig[bestFrameBufferConfig];
+	gGLXFBconfig = pGlxFBConfig[bestFrameBufferConfig];
 	XFree(pGlxFBConfig);
 
-	gpXVisualInfo = glXGetVisualFromFBConfig(gpDisplay, gGLXFBconfig);
+	dl_gpXVisualInfo = glXGetVisualFromFBConfig(dl_gpDisplay, gGLXFBconfig);
+
+	if(dl_gpXVisualInfo == NULL) {
+		printf("ERROR");
+		uninitWindow();
+		exit(1);
+	}
 
 	dl_winAttribs.border_pixel = 0;
 	dl_winAttribs.background_pixmap = 0;
-	dl_winAttribs.colormap = XCreateColormap(gpDisplay, RootWindow(gpDisplay, gpXVisualInfo->screen), gpXVisualInfo->visual, AllocNone);
-	gColormap = dl_winAttribs.colormap;
-	dl_winAttribs.background_pixel = BlackPixel(gpDisplay, dl_defaultScreen);
-	dl_winAttribs.event_mask = ExposureMask | VisibilityChangeMask | ButtonPressMask | KeyPressMask | Button1MotionMask | PointerMotionMask | StructureNotifyMask;
+	dl_winAttribs.colormap = XCreateColormap(dl_gpDisplay, RootWindow(dl_gpDisplay, dl_gpXVisualInfo->screen), dl_gpXVisualInfo->visual, AllocNone);
+	dl_gColormap = dl_winAttribs.colormap;
+	dl_winAttribs.background_pixel = BlackPixel(dl_gpDisplay, dl_defaultScreen);
+	dl_winAttribs.event_mask = ExposureMask | VisibilityChangeMask | ButtonPressMask | KeyPressMask | PointerMotionMask | StructureNotifyMask;
 	dl_styleMask = CWBorderPixel | CWBackPixel | CWEventMask | CWColormap;
 
-	gWindow = XCreateWindow(gpDisplay, RootWindow(gpDisplay, gpXVisualInfo->screen), 0, 0, 800, 600, 0, gpXVisualInfo->depth, InputOutput, gpXVisualInfo->visual, dl_styleMask, &dl_winAttribs);
+	dl_gWindow = XCreateWindow(dl_gpDisplay, RootWindow(dl_gpDisplay, dl_gpXVisualInfo->screen), 0, 0, dl_giWindowWidth, dl_giWindowHeight, 0, dl_gpXVisualInfo->depth, InputOutput, dl_gpXVisualInfo->visual, dl_styleMask, &dl_winAttribs);
 
-	XStoreName(gpDisplay, gWindow, "OpenGL Programmable Pipeline");
+	if(!dl_gWindow) {
+		printf("ERROR");
+	}
 
-	Atom dl_windowManagerDelete = XInternAtom(gpDisplay, "WM_DELETE_WINDOW", True);
-	XSetWMProtocols(gpDisplay, gWindow, &dl_windowManagerDelete, 1);
+	XStoreName(dl_gpDisplay, dl_gWindow, "OpenGL Programmable Pipeline");
 
-	XMapWindow(gpDisplay, gWindow);
-	
-	typedef GLXContext(*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
-	glXCreateContextAttribsARBProc glXCreateContextAttribARB = (glXCreateContextAttribsARBProc)glXGetProcAddressARB((const GLubyte*)"glXCreateContextAttribsARB");
-	
+	Atom dl_windowManagerDelete = XInternAtom(dl_gpDisplay, "WM_DELETE_WINDOW", True);
+	XSetWMProtocols(dl_gpDisplay, dl_gWindow, &dl_windowManagerDelete, 1);
+
+	XMapWindow(dl_gpDisplay, dl_gWindow);
+}
+
+void toggleFullscreen(void) {
+	static bool dl_bFullscreen = false;
+	Atom dl_wm_state;
+	Atom dl_fullscreen;
+	XEvent dl_xev = {0};
+
+	dl_wm_state = XInternAtom(dl_gpDisplay, "_NET_WM_STATE", False);
+	memset(&dl_xev, 0, sizeof(dl_xev));
+
+	dl_xev.type = ClientMessage;
+	dl_xev.xclient.window = dl_gWindow;
+	dl_xev.xclient.message_type = dl_wm_state;
+	dl_xev.xclient.format = 32;
+	dl_xev.xclient.data.l[0] = dl_bFullscreen ? 0 : 1;
+	dl_fullscreen = XInternAtom(dl_gpDisplay, "_NET_WM_STATE_FULLSCREEN", False);
+	dl_xev.xclient.data.l[1] = dl_fullscreen;
+	XSendEvent(dl_gpDisplay, RootWindow(dl_gpDisplay, dl_gpXVisualInfo->screen), False, StructureNotifyMask, &dl_xev);
+}
+
+void initWindow() {
+	void uninitWindow(void);
+	void Resize(int, int);
+
+	glXCreateContextAttribARB = (glXCreateContextAttribsARBProc)glXGetProcAddressARB((const GLubyte*)"glXCreateContextAttribsARB");
+	if(!glXCreateContextAttribARB) {
+		printf("ERROR: Function Not Found\n");
+		uninitWindow();
+		exit(1);
+	}
+
 	const int attribs[] = {
-		GLX_CONTEXT_MAJOR_VERSION_ARB, contextProp.glMajorVersion,	
-		GLX_CONTEXT_MINOR_VERSION_ARB, contextProp.glMinorVersion,
-		GLX_CONTEXT_FLAGS_ARB, contextProp.glContextFlags,
-		GLX_CONTEXT_PROFILE_MASK_ARB, contextProp.glContextProfile,
-		None	
+		GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
+		GLX_CONTEXT_MINOR_VERSION_ARB, 6,
+		GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+		None
 	};
 
-	gGlxContex =  glXCreateContextAttribARB(gpDisplay, gGLXFBconfig, 0, True, attribs);
-	glXMakeCurrent(gpDisplay, gWindow, gGlxContex);
-	glewInit();
-	glDebugMessageCallback(MessageCallback, 0);
-}
+	dl_gGlxContex =  glXCreateContextAttribARB(dl_gpDisplay, gGLXFBconfig, 0, True, attribs);
 
-void enableGLDebugging() {
-	glEnable(GL_DEBUG_OUTPUT);
-}
-
-void setKeyboardFunc(keyboardfunc key) {
-	keyboardFunction = key;
-}
-
-void setMouseFunc(mousefunc mouse) {
-	mouseFunction = mouse;
-}
-
-void processEvents(void) {
-	XEvent dl_event;
-	KeySym dl_keysym;
-	
-	while(XPending(gpDisplay)) {
-		XNextEvent(gpDisplay, &dl_event);
-		switch(dl_event.type) {
-		case KeyPress:
-			if(keyboardFunction) {
-				KeySym keysym = XkbKeycodeToKeysym(gpDisplay, dl_event.xkey.keycode, 0, 0);
-				keyboardFunction(keysym, dl_event.xkey.state);
-			}
-			break;
-		case MotionNotify:
-			if(mouseFunction) {
-				mouseFunction(dl_event.xmotion.x, dl_event.xmotion.y);
-			}
-			break;
-		case ButtonPress:
-			break;
-		case ConfigureNotify:
-			winSize.w = dl_event.xconfigure.width;
-			winSize.h = dl_event.xconfigure.height;
-			break;
-		case ClientMessage:
-			isClosed = true;
-			break;
-		default:
-			break;
-		}
+	if(!dl_gGlxContex) {
+		const int attribs[] = {
+			GLX_CONTEXT_MAJOR_VERSION_ARB, 1,
+			GLX_CONTEXT_MINOR_VERSION_ARB, 0,
+		};
+		dl_gGlxContex =  glXCreateContextAttribARB(dl_gpDisplay, gGLXFBconfig, 0, True, attribs);
+		printf("Couldn't Find OpenGL 4.6 defaulting to a lower version.\n");
+	} else {
+		printf("Found OpenGL 4.6 Supporting Context\n"); 
 	}
+
+	if(glXIsDirect(dl_gpDisplay, dl_gGlxContex)) {
+		printf("GLXContext supports Hardware Rendering\n");
+	} else {
+		printf("GLXContext doesn't support Hardware Rendering, defaulting to Software Rendering\n");
+	}
+
+	glXMakeCurrent(dl_gpDisplay, dl_gWindow, dl_gGlxContex);
+
+	if(glewInit() != GLEW_NO_ERROR) {
+		printf("GLEW Init Failed\n");
+		uninitWindow();
+		exit(1);
+	}
+
+	init();
 }
 
-bool isOpenGLWindowClosed() {
-	return isClosed;
-}
+void uninitWindow(void) {
+	GLXContext dl_currentContext;
 
-void swapBuffers(void) {
-	glXSwapBuffers(gpDisplay, gWindow);
-}
+	dl_currentContext = glXGetCurrentContext();
 
-void closeOpenGLWindow(void) {
-	XEvent ev;
-	memset(&ev, 0, sizeof (ev));
-	ev.xclient.type = ClientMessage;
-	ev.xclient.window = gWindow;
-	ev.xclient.message_type = XInternAtom(gpDisplay, "WM_PROTOCOLS", true);
-	ev.xclient.format = 32;
-	ev.xclient.data.l[0] = XInternAtom(gpDisplay, "WM_DELETE_WINDOW", false);
-	ev.xclient.data.l[1] = CurrentTime;
+	uninit();
 
-	XSendEvent(gpDisplay, gWindow, False, NoEventMask, &ev);			
-}
+	if(dl_currentContext == dl_gGlxContex) {
+		glXMakeCurrent(dl_gpDisplay, 0, 0);
+	}
 
-void destroyOpenGLWindow(void) {
-	if(gGlxContex) {
-		glXDestroyContext(gpDisplay, gGlxContex);
+	if(dl_gGlxContex) {
+		glXDestroyContext(dl_gpDisplay, dl_gGlxContex);
 	}
-	if(gWindow) {
-		XDestroyWindow(gpDisplay, gWindow);
-	}
-	if(gColormap) {
-		XFreeColormap(gpDisplay, gColormap);
-	}
-	if(gpXVisualInfo) {
-		free(gpXVisualInfo);
-		gpXVisualInfo = NULL;
-	}
-	if(gpDisplay) {
-		XCloseDisplay(gpDisplay);
-		gpDisplay = NULL;
-	}
-}
 
-double getTime() {
-	return (double)(getTimerValue() - clockOffset) / frequency;
+	if(dl_gWindow) {
+		XDestroyWindow(dl_gpDisplay, dl_gWindow);
+	}
+
+	if(dl_gColormap) {
+		XFreeColormap(dl_gpDisplay, dl_gColormap);
+	}
+
+	if(dl_gpXVisualInfo) {
+		free(dl_gpXVisualInfo);
+		dl_gpXVisualInfo = NULL;
+	}
+
+	if(dl_gpDisplay) {
+		XCloseDisplay(dl_gpDisplay);
+		dl_gpDisplay = NULL;
+	}
 }
