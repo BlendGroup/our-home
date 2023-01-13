@@ -1,5 +1,7 @@
 *.exe
 *.run
+*.app
 .vscode
 *.pdb
 .vs
+.DS_Store

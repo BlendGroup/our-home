@@ -1,15 +1,20 @@
 #ifndef __MAIN__
 #define __MAIN__
 
-void setupProgram(void);
-void init(void);
-void render(void);
-void uninit(void);
+#ifdef __cplusplus
+#define externdef extern "C"
+#else 
+#define externdef
+#endif
+externdef void setupProgram(void);
+externdef void init(void);
+externdef void render(void);
+externdef void uninit(void);
 
 struct winParam {
 	int w;
 	int h;
 };
-extern winParam winSize;
+extern struct winParam winSize;
 
 #endif

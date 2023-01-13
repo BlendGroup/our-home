@@ -1242,7 +1242,7 @@ static inline Tmat4<T> rotate(T angle, T x, T y, T z)
 {
     Tmat4<T> result;
 
-	Tvec3 n = normalize(Tvec3(x, y, z));
+	Tvec3<T> n = normalize(Tvec3<T>(x, y, z));
 
 	x = n[0];
 	y = n[1];
