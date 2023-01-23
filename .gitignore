@@ -5,3 +5,4 @@
 *.pdb
 .vs
 .DS_Store
+*.log

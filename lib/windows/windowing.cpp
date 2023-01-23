@@ -1,25 +1,11 @@
 #include<Windows.h>
 #include<stdio.h>
 #include<gl/glew.h>
+#include<gl/wglew.h>
 #include<gl/GL.h>
-#include"../../include/vmath.h"
 #include"../../include/main.h"
 
-using namespace vmath;
-
-#pragma comment(lib, "user32.lib")
-#pragma comment(lib, "gdi32.lib")
-#pragma comment(lib, "glew32.lib")
-#pragma comment(lib, "opengl32.lib")
-
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-
-enum {
-	DL_ATTRIB_POSITION = 0, 
-	DL_ATTRIB_COLOR,
-	DL_ATTRIB_NORMAL,
-	DL_ATTRIB_TEXTURE0
-};
 
 HWND ghwnd_dl;
 HDC ghdc_dl;
@@ -160,19 +146,33 @@ void initWindow(void) {
 		DestroyWindow(ghwnd_dl);
 	}
 
-	if ((ghrc_dl = wglCreateContext(ghdc_dl)) == NULL) {
+	HGLRC tempglrc;
+	if ((tempglrc = wglCreateContext(ghdc_dl)) == NULL) {
 		DestroyWindow(ghwnd_dl);
 	}
 
-	if (wglMakeCurrent(ghdc_dl, ghrc_dl) == FALSE) {
+	if (wglMakeCurrent(ghdc_dl, tempglrc) == FALSE) {
 		DestroyWindow(ghwnd_dl);
 	}
+
+	wglewInit();
+
+	const int attribs[] = {
+		WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+		WGL_CONTEXT_MINOR_VERSION_ARB, 6,
+		WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+		WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB | WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+		0
+	};
+	ghrc_dl = wglCreateContextAttribsARB(ghdc_dl, NULL, attribs);
+	wglMakeCurrent(ghdc_dl, ghrc_dl);
 
 	GLenum glew_error_dl = glewInit();
 	if(glew_error_dl != GLEW_OK) {
 		DestroyWindow(ghwnd_dl);
 	}
 
+	setupProgram();
 	init();
 }
 
