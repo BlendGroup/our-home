@@ -101,6 +101,7 @@ int main(int argc, char* argv[]) {
 	GLint swapInterval = 1;
 	[[self openGLContext] setValues : &swapInterval forParameter : NSOpenGLCPSwapInterval];
 	
+	setupProgram();
 	init();
 
 	CVDisplayLinkCreateWithActiveCGDisplays(&displayLink);

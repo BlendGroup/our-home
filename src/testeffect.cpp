@@ -15,8 +15,8 @@ void setupProgramTestEffect() {
 	glshader_dl vertexShader;
 	glshader_dl fragmentShader;
 
-	cout<<glshaderCreate(&vertexShader, GL_VERTEX_SHADER, "src/shaders/point.vert");
-	cout<<glshaderCreate(&fragmentShader, GL_FRAGMENT_SHADER, "src/shaders/point.frag");
+	cout<<glshaderCreate(&vertexShader, GL_VERTEX_SHADER, "src/shaders/point.vert", DL_SHADER_CORE, 410);
+	cout<<glshaderCreate(&fragmentShader, GL_FRAGMENT_SHADER, "src/shaders/point.frag", DL_SHADER_CORE, 410);
 
 	cout<<glprogramCreate(&testRenderProgram, "Render", {vertexShader, fragmentShader});
 
