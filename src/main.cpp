@@ -8,12 +8,10 @@
 
 #include"../include/testeffect.h"
 
-#include"../include/main.h"
+#include"../include/windowing.h"
 
 using namespace std;
 using namespace vmath;
-
-winParam winSize;
 
 void setupProgram(void) {
 	setupProgramTestEffect();
@@ -23,13 +21,28 @@ void init(void) {
 	initTestEffect();
 }
 
-void render(void) {
+void render(glwindow* window) {
 	glClearBufferfv(GL_COLOR, 0, vec4(0.5f, 1.0f, 0.2f, 1.0f));
-	glViewport(0, 0, winSize.w, winSize.h);
+	glViewport(0, 0, window->getWindowSize().width, window->getWindowSize().height);
 
 	renderTestEffect();
 }
 
 void uninit(void) {
 	uninitTestEffect();
+}
+
+int main(int argc, char **argv) {
+	glwindow* window = new glwindow();
+	init();
+	setupProgram();
+	window->toggleFullscreen();
+	while(!window->isClosed()) {
+		window->processEvents();
+		render(window);
+		window->swapBuffers();
+	}
+	uninit();
+	delete window;
+	return 0;
 }
