@@ -9,7 +9,7 @@
 #include<GL/glew.h>
 #include<GL/glx.h>
 
-#include"../../include/main.h"
+#include"../include/main.h"
 
 Display *gpDisplay = NULL;
 XVisualInfo *gpXVisualInfo = NULL;

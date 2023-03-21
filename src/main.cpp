@@ -1,7 +1,9 @@
 #include<iostream>
 
+#include<GL/glew.h>
+#include<GL/gl.h>
+
 #include"../include/vmath.h"
-#include"../include/commongl.h"
 #include"../include/glshaderloader.h"
 
 #include"../include/testeffect.h"

@@ -3,7 +3,8 @@
 
 #include<iostream>
 #include<vector>
-#include"commongl.h"
+#include<GL/glew.h>
+#include<GL/gl.h>
 
 #define DL_SHADER_ES 100
 #define DL_SHADER_CORE 101
