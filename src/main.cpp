@@ -5,9 +5,7 @@
 
 #include"../include/vmath.h"
 #include"../include/glshaderloader.h"
-
 #include"../include/testeffect.h"
-
 #include"../include/windowing.h"
 
 using namespace std;
