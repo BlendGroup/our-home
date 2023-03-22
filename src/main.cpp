@@ -39,7 +39,7 @@ void uninit(void) {
 }
 
 int main(int argc, char **argv) {
-	glwindow* window = new glwindow("Our Planet", 460);
+	glwindow* window = new glwindow("Our Planet", 0, 0, 1240, 1080, 460);
 	init();
 	setupProgram();
 	window->setKeyboardFunc(keyboard);

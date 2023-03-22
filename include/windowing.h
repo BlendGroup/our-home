@@ -25,7 +25,7 @@ private:
 	} windowSize;
 	glwindowkeyboardfunc keyboardFunc;
 public:
-	glwindow(std::string name, int glversion);
+	glwindow(std::string name, int x, int y, int width, int height, int glversion);
 	void toggleFullscreen(void);
 	void processEvents(void);
 	bool isClosed(void);

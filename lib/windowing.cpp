@@ -11,7 +11,7 @@
 
 using namespace std;
 
-glwindow::glwindow(string name, int version) {
+glwindow::glwindow(string name, int x, int y, int width, int height, int version) {
 	static int frameBufferAttrib[] = {
 		GLX_DOUBLEBUFFER, True,
 		GLX_X_RENDERABLE, True,
@@ -67,7 +67,7 @@ glwindow::glwindow(string name, int version) {
 	winAttribs.event_mask = ExposureMask | VisibilityChangeMask | ButtonPressMask | KeyPressMask | PointerMotionMask | StructureNotifyMask;
 	styleMask = CWBorderPixel | CWBackPixel | CWEventMask | CWColormap;
 
-	this->window = XCreateWindow(this->display, RootWindow(this->display, this->visualInfo->screen), 0, 0, 800, 600, 0, this->visualInfo->depth, InputOutput, this->visualInfo->visual, styleMask, &winAttribs);
+	this->window = XCreateWindow(this->display, RootWindow(this->display, this->visualInfo->screen), x, y, width, height, 0, this->visualInfo->depth, InputOutput, this->visualInfo->visual, styleMask, &winAttribs);
 	XStoreName(this->display, this->window, name.c_str());
 
 	Atom windowManagerDelete = XInternAtom(this->display, "WM_DELETE_WINDOW", True);
