@@ -26,14 +26,23 @@ void render(glwindow* window) {
 	renderTestEffect();
 }
 
+void keyboard(glwindow* window, int key) {
+	switch(key) {
+	case XK_Escape:
+		window->closeWindow();
+		break;
+	}
+}
+
 void uninit(void) {
 	uninitTestEffect();
 }
 
 int main(int argc, char **argv) {
-	glwindow* window = new glwindow();
+	glwindow* window = new glwindow("Our Planet", 460);
 	init();
 	setupProgram();
+	window->setKeyboardFunc(keyboard);
 	window->toggleFullscreen();
 	while(!window->isClosed()) {
 		window->processEvents();
