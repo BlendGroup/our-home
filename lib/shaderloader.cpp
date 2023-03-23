@@ -4,66 +4,66 @@
 
 using namespace std;
 
-string glshaderCreate(glshader_dl *shader, GLenum shaderType, string shaderFileName, GLuint shaderProfile, GLuint shaderVersion) {
-	string versionString = "#version " + to_string(shaderVersion);
-	if(shaderProfile == DL_SHADER_CORE) {
+unordered_map<string, GLuint> glshaderprogram::shaderMap = {};
+
+static unordered_map<string, GLenum> extensionMap = {
+	{"vert", GL_VERTEX_SHADER},
+	{"tesc", GL_TESS_CONTROL_SHADER},
+	{"tese", GL_TESS_EVALUATION_SHADER},
+	{"geom", GL_GEOMETRY_SHADER},
+	{"frag", GL_FRAGMENT_SHADER},
+	{"comp", GL_COMPUTE_SHADER},
+};
+
+glshaderprogram::glshaderprogram(initializer_list<std::string> shaderList, int version, int profile) {
+	this->programObject = glCreateProgram();
+	string versionString = "#version " + to_string(version);
+	if(profile == DL_SHADER_CORE) {
 		versionString += " core";
-	} else if(shaderProfile == DL_SHADER_ES) {
+	} else if(profile == DL_SHADER_ES) {
 		versionString += " es";
 	}
 
-	ifstream file(shaderFileName, ifstream::in);
-	if(!file.is_open()) {
-		return shaderFileName + ": file not found\n";
+	for(std::string shaderPath : shaderList) {
+		ifstream file(shaderPath, ifstream::in);
+		if(!file.is_open()) {
+			throw "error: [" + string(__FILE__) + " " + to_string(__LINE__) + "] : '" + shaderPath + "' file not found.";
+		}
+		string filestr(istreambuf_iterator<char>(file), (istreambuf_iterator<char>()));
+		
+		int findVersion = filestr.find("#version");
+		int findVersionCount = filestr.find('\n', findVersion) - findVersion;
+		filestr.replace(findVersion, findVersionCount, versionString);
+		
+		const char* source = filestr.c_str();
+		int flen = filestr.length();
+		GLuint shaderObject = glCreateShader(extensionMap[shaderPath.substr(shaderPath.find_last_of('.')+1)]);
+		glShaderSource(shaderObject, 1, &source, &flen);
+		glCompileShader(shaderObject);
+		
+		GLint compiledStatus;
+		glGetShaderiv(shaderObject, GL_COMPILE_STATUS, &compiledStatus);
+		if(!compiledStatus) {
+			char buffer[1024];
+			glGetShaderInfoLog(shaderObject, 1024, NULL, buffer);
+			string s(buffer);
+		}
+		glshaderprogram::shaderMap[shaderPath] = shaderObject;
+		glAttachShader(this->programObject, shaderObject);
 	}
-	shader->shaderObject = glCreateShader(shaderType);
-	string filestr(istreambuf_iterator<char>(file), (istreambuf_iterator<char>()));
-	int findVersion = filestr.find("#version");
-	int findVersionCount = filestr.find('\n', findVersion) - findVersion;
-	filestr.replace(findVersion, findVersionCount, versionString);
-	const char* source = filestr.c_str();
-	int flen = filestr.length();
-	glShaderSource(shader->shaderObject, 1, &source, &flen);
-	glCompileShader(shader->shaderObject);
-	GLint compiledStatus;
-	glGetShaderiv(shader->shaderObject, GL_COMPILE_STATUS, &compiledStatus);
-	if(!compiledStatus) {
-		char buffer[1024];
-		glGetShaderInfoLog(shader->shaderObject, 1024, NULL, buffer);
-		string s(buffer);
-		return shaderFileName + ": compilation failed.\n" + s + "\n";
-	}
-	return "";
-}
-
-void glshaderDestroy(glshader_dl *shader) {
-	glDeleteShader(shader->shaderObject);
-}
-
-string glprogramCreate(glprogram_dl *program, string programName, vector<glshader_dl> shaderList) {
-	program->programObject = glCreateProgram();
-	
-	if(shaderList.empty()) {
-		return programName + ": No shaders passed\n";
-	}
-	for(int i = 0; i < shaderList.size(); i++) {
-		glAttachShader(program->programObject, shaderList[i].shaderObject);
-	}
-	glLinkProgram(program->programObject);
+	glLinkProgram(this->programObject);
 	GLint linkedStatus;
-	glGetProgramiv(program->programObject, GL_LINK_STATUS, &linkedStatus);
+	glGetProgramiv(this->programObject, GL_LINK_STATUS, &linkedStatus);
 	if(!linkedStatus) {
 		char buffer[1024];
-		glGetProgramInfoLog(program->programObject, 1024, NULL, buffer);
+		glGetProgramInfoLog(this->programObject, 1024, NULL, buffer);
 		string s(buffer);
-		return programName + ": linking failed.\n" + s + "\n";
 	}
-	for(int i = 0; i < shaderList.size(); i++) {
-		glDetachShader(program->programObject, shaderList[i].shaderObject);
+	for(string shaderPath : shaderList) {
+		glDetachShader(this->programObject, glshaderprogram::shaderMap[shaderPath]);
 	}
-	return "";
 }
 
-void glprogramDestory(glprogram_dl *program) {
-	glDeleteProgram(program->programObject);
+glshaderprogram::~glshaderprogram() {
+
 }
