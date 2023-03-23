@@ -29,8 +29,8 @@ public:
 	void toggleFullscreen(void);
 	void processEvents(void);
 	bool isClosed(void);
-	void closeWindow(void);
-	windowsize_t getWindowSize(void);
+	void close(void);
+	windowsize_t getSize(void);
 	void swapBuffers(void);
 	void setKeyboardFunc(glwindowkeyboardfunc keyboardcallback);
 	~glwindow(void);
