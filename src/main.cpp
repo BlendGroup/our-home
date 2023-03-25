@@ -21,7 +21,7 @@ void init(void) {
 
 void render(glwindow* window) {
 	glClearBufferfv(GL_COLOR, 0, vec4(0.5f, 1.0f, 0.2f, 1.0f));
-	glViewport(0, 0, window->getWindowSize().width, window->getWindowSize().height);
+	glViewport(0, 0, window->getSize().width, window->getSize().height);
 
 	renderTestEffect();
 }
@@ -29,7 +29,7 @@ void render(glwindow* window) {
 void keyboard(glwindow* window, int key) {
 	switch(key) {
 	case XK_Escape:
-		window->closeWindow();
+		window->close();
 		break;
 	}
 }

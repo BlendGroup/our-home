@@ -140,11 +140,11 @@ void glwindow::toggleFullscreen(void) {
 	XSendEvent(this->display, RootWindow(this->display, this->visualInfo->screen), False, StructureNotifyMask, &xev);
 }
 
-glwindow::windowsize_t glwindow::getWindowSize(void) {
+glwindow::windowsize_t glwindow::getSize(void) {
 	return this->windowSize;
 }
 
-void glwindow::closeWindow(void) {
+void glwindow::close(void) {
 	XEvent ev;
 	memset(&ev, 0, sizeof (ev));
 	ev.xclient.type = ClientMessage;
