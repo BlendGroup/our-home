@@ -4,6 +4,11 @@
 #include<X11/Xlib.h>
 #include<X11/Xutil.h>
 #include<GL/glx.h>
+#include<iostream>
+
+class glwindow;
+
+typedef void (*glwindowkeyboardfunc)(glwindow* window, int key);
 
 class glwindow {
 private:
@@ -18,14 +23,17 @@ private:
 		float width;
 		float height;
 	} windowSize;
+	glwindowkeyboardfunc keyboardFunc;
 public:
-	glwindow();
+	glwindow(std::string name, int x, int y, int width, int height, int glversion);
 	void toggleFullscreen(void);
 	void processEvents(void);
 	bool isClosed(void);
-	windowsize_t getWindowSize();
+	void close(void);
+	windowsize_t getSize(void);
 	void swapBuffers(void);
-	~glwindow();
+	void setKeyboardFunc(glwindowkeyboardfunc keyboardcallback);
+	~glwindow(void);
 };
 
 #endif
