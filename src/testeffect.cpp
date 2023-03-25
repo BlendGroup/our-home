@@ -3,13 +3,14 @@
 #include"../include/glshaderloader.h"
 #include"../include/gltextureloader.h"
 #include"../include/vmath.h"
-
+#include"../include/Model.hpp"
 #include"../include/testeffect.h"
 
 using namespace std;
 
 static glprogram_dl testRenderProgram;
 static GLuint texture;
+static rvModel* model;
 
 void setupProgramTestEffect() {
 	glshader_dl vertexShader;
@@ -25,6 +26,11 @@ void setupProgramTestEffect() {
 }
 
 void initTestEffect() {
+
+	model = new rvModel();
+	model->initShaders(testRenderProgram.programObject);
+	model->loadModel("resources/vampire/dancing_vampire.dae");
+
 	glPointSize(480.0f);
 
 	GLuint tempVao;
