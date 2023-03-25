@@ -136,7 +136,7 @@ void rvModel::loadModel(const std::string& path)
     fprintf(pFile, "scene->HasTextures() : %s\n", hasTexture ? "True" : "False");
     if(hasTexture)
         fprintf(pFile, "scene->mNumTextures : %d\n", scene->mNumTextures);
-	fprintf(pFile, "scene->HasAnimations() 1: %s\n", hasAnimation ? "True" : "False");
+	fprintf(pFile, "scene->HasAnimations() : %s\n", hasAnimation ? "True" : "False");
     if(hasAnimation)
     {
         fprintf(pFile, "scene->mAnimations[0]->mNumChannels : %d\n", scene->mAnimations[0]->mNumChannels);
@@ -309,7 +309,7 @@ rvMesh rvModel::processMesh(aiMesh* mesh,const aiScene* scene)
 			std::string bone_name(mesh->mBones[boneIndex]->mName.data);
 
             
-            //fopen_s(&pFile,"AssimpModelLogFile.txt","a+");
+            //pFile = fopen("AssimpModelLogFile.txt","a+");
             //fprintf(pFile,"Model::Bone::Name  %s\n",mesh->mBones[boneIndex]->mName.data);
             //fclose(pFile);
 

@@ -36,6 +36,7 @@ void main(void)
         totalPosition += localPosition * a_weights[i];
     }
 
+    //gl_Position = u_Projection * u_View * u_Model * vec4(a_position,1.0f);
     gl_Position = u_Projection * u_View * u_Model * totalPosition;
     out_texcoord = a_texcoord;
 }

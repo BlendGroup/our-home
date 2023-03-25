@@ -1,3 +1,4 @@
+#include <X11/X.h>
 #include<iostream>
 
 #include<GL/glew.h>
@@ -20,10 +21,11 @@ void init(void) {
 }
 
 void render(glwindow* window) {
-	glClearBufferfv(GL_COLOR, 0, vec4(0.5f, 1.0f, 0.2f, 1.0f));
 	glViewport(0, 0, window->getWindowSize().width, window->getWindowSize().height);
 
-	renderTestEffect();
+	mat4 perspectiveMat = perspective(45.0f,(GLfloat) window->getWindowSize().width / window->getWindowSize().height, 0.01f, 100000.0f);
+
+	renderTestEffect(perspectiveMat);
 }
 
 void uninit(void) {
