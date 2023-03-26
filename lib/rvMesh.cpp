@@ -136,7 +136,48 @@ void rvMesh::Draw(GLuint program)
 
 void rvMesh::DrawInstanced(GLuint program, GLuint numOfInstance)
 {
+	GLint diffuseNr = 1;
+	GLuint specularNr = 1;
+	GLuint normalNr = 1;
+	GLuint heightNr = 1;
 
+	for(size_t i = 0; i < textures.size(); i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+
+		std::string name = this->textures[i].type;
+		std::string number;
+
+		if (name == "texture_diffuse")
+			number = std::to_string(diffuseNr++);
+		else if (name == "texture_specular")
+			number = std::to_string(specularNr++);
+		else if (name == "texture_normal")
+			number = std::to_string(normalNr++);
+		else if (name == "texture_height")
+			number = std::to_string(heightNr++);
+
+		glUniform1i(glGetUniformLocation(program, (name + number).c_str()), i);
+		glBindTexture(GL_TEXTURE_2D, this->textures[i].id);		
+	}
+
+	GLuint diffuse_mr = 1;
+	for (size_t i = 0; i < this->materials.size(); i++)
+	{
+		std::string type = materials[i].type;
+		if ((type == "material_ambient_animModel") || (type == "material_diffuse_animModel") || (type == "material_specular_animModel"))
+		{
+			glUniform3fv(glGetUniformLocation(program, type.c_str()), 1, materials[i].value);
+		}
+	}
+
+	glBindVertexArray(this->vao);
+	glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ebo);
+	glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(this->indices.size()), GL_UNSIGNED_INT, 0, numOfInstance);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }
 
 void rvMesh::setupMesh()

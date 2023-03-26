@@ -4,7 +4,7 @@
 #include"../include/glshaderloader.h"
 #include"../include/gltextureloader.h"
 #include"../include/vmath.h"
-#include"../include/Model.hpp"
+#include"../include/rvModel.hpp"
 #include"../include/testeffect.h"
 
 using namespace std;
@@ -43,6 +43,7 @@ void setupProgramTestEffect() {
 		string s(buffer);
 		cout << ": linking failed.\n" + s + "\n";
 	}
+	model->initShaders(testRenderProgram.programObject);
 	//glshaderDestroy(&vertexShader);
 	//glshaderDestroy(&fragmentShader);
 }
@@ -50,7 +51,6 @@ void setupProgramTestEffect() {
 void initTestEffect() {
 
 	model = new rvModel();
-	model->initShaders(testRenderProgram.programObject);
 	model->loadModel("resources/vampire/dancing_vampire.dae");
 
     glClearColor(0.0f,0.25f,0.25f,1.0f);
@@ -64,28 +64,6 @@ void initTestEffect() {
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(ErrorCallback,0);
 	//glPointSize(480.0f);
-
-	const GLfloat squareData[] = 
-    {
-        +1.0f,-1.0f,0.0f,1.0f,0.0f,1.0f,0.0f,1.0f,1.0f,0.0f,
-        -1.0f,-1.0f,0.0f,1.0f,1.0f,0.0f,0.0f,1.0f,0.0f,0.0,
-        +1.0f,+1.0f,0.0f,1.0f,0.0f,0.0f,1.0f,1.0f,1.0f,1.0f,
-        -1.0f,+1.0f,0.0f,1.0f,1.0f,0.0f,1.0f,1.0f,0.0f,1.0f
-    };
-	glGenVertexArrays(1, &tempVao);
-	glBindVertexArray(tempVao);
-	GLuint buffer;
-    glGenBuffers(1, &buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(squareData), squareData, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 40, (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 40, (void*)(4 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 40, (void*)(8 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
 }
 
 void renderTestEffect(mat4 perspective) {
@@ -96,7 +74,7 @@ void renderTestEffect(mat4 perspective) {
 	mat4 modelMatrix = mat4::identity();
     mat4 viewMatrix = mat4::identity();
 
-	modelMatrix *= vmath::translate(0.0f, -70.0f, -400.0f);
+	modelMatrix *= vmath::translate(0.0f, 0.0f, -5.0f);
     viewMatrix = vmath::lookat(vec3(0.0f,0.0f,5.0f),vec3(0.0f,0.0f,-1.0f) ,vec3(0.0f,1.0f,0.0f));
 
 	glUseProgram(testRenderProgram.programObject);
@@ -105,7 +83,7 @@ void renderTestEffect(mat4 perspective) {
     glUniformMatrix4fv(glGetUniformLocation(testRenderProgram.programObject,"u_Projection"), 1, GL_FALSE, perspective);
 	//glBindVertexArray(tempVao);
     //glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	model->draw(testRenderProgram.programObject,0.0f);
+	model->draw(testRenderProgram.programObject,t);
     glUseProgram(0);
 }
 

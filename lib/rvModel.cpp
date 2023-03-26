@@ -1,19 +1,4 @@
-#include <assert.h>
-// OpenGL Header Files
-#include<GL/glew.h> // this must be above gl.h
-#include<GL/gl.h>
-
-#include"vmath.h"
-using namespace vmath;
-
-// Image Loading Library
-#include"stb_image.h"
-
-#include <vector>
-#include <string>
-#include <map>
-
-#include"../include/Model.hpp"
+#include"../include/rvModel.hpp"
 
 rvModel::rvModel()
 {
@@ -65,7 +50,6 @@ void rvModel::draw(GLuint shader_program, double dt)
     {
         meshes[i].Draw(shader_program);
     }
-
 }
 
 void rvModel::drawInstanced(GLuint shader_program, double dt, GLint numOfInstances)
@@ -274,6 +258,7 @@ rvMesh rvModel::processMesh(aiMesh* mesh,const aiScene* scene)
         fprintf(pFile,"Material Name : %s\n",material->GetName().C_Str());
         fclose(pFile);
 
+		// Textures
 		//diffuse map
 		std::vector<rvTexture> diffuseMap = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
 		textures.insert(textures.end(), diffuseMap.begin(), diffuseMap.end());
@@ -290,6 +275,7 @@ rvMesh rvModel::processMesh(aiMesh* mesh,const aiScene* scene)
 		std::vector<rvTexture> emissiveMap = loadMaterialTextures(material, aiTextureType_EMISSIVE, "texture_emissive");
 		textures.insert(textures.end(), emissiveMap.begin(), emissiveMap.end());
 
+		// Materials
 		std::vector<rvMaterial> MaterialAmbient = loadMaterialColor(material, AI_MATKEY_COLOR_AMBIENT, "material_ambient_animModel");
 		mats.insert(mats.end(),MaterialAmbient.begin(), MaterialAmbient.end());
 
@@ -298,6 +284,7 @@ rvMesh rvModel::processMesh(aiMesh* mesh,const aiScene* scene)
 
 		std::vector<rvMaterial> MaterialSpecular = loadMaterialColor(material, AI_MATKEY_COLOR_SPECULAR, "material_specular_animModel");
 		mats.insert(mats.end(),MaterialSpecular.begin(), MaterialSpecular.end());
+
 	}
 
     // Loadbones
@@ -605,7 +592,7 @@ aiQuaternion rvModel::nlerp(aiQuaternion a, aiQuaternion b, float blend)
 	return result.Normalize();
 }
 
-unsigned int TextureFromFile(const char* path, const std::string& directory)
+GLuint TextureFromFile(const char* path, const std::string& directory)
 {
 	stbi_set_flip_vertically_on_load(true);
 	std::string filename = std::string(path);

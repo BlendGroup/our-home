@@ -1,0 +1,255 @@
+Loading Model
+Success::ASSIMP::MODEL::ReadFile Successs
+ASSIMP::MODEL:: Directory-> resources/vampire
+scene->mNumMeshes : 1
+scene->mNumMaterials : 1
+scene->HasTextures() : False
+scene->HasAnimations() : True
+scene->mAnimations[0]->mNumChannels : 52
+scene->mAnimations[0]->mDuration : 3433.332920
+scene->mAnimations[0]->mTicksPerSecond :  1000.000000
+	Name nodes : 
+Data : = RootNode
+Data : = Hips
+Data : = Spine
+Data : = Spine1
+Data : = Spine2
+Data : = Neck
+Data : = Head
+Data : = HeadTop_End
+Data : = LeftShoulder
+Data : = LeftArm
+Data : = LeftForeArm
+Data : = LeftHand
+Data : = LeftHandThumb1
+Data : = LeftHandThumb2
+Data : = LeftHandThumb3
+Data : = LeftHandThumb4
+Data : = LeftHandIndex1
+Data : = LeftHandIndex2
+Data : = LeftHandIndex3
+Data : = LeftHandIndex4
+Data : = LeftHandMiddle1
+Data : = LeftHandMiddle2
+Data : = LeftHandMiddle3
+Data : = LeftHandMiddle4
+Data : = LeftHandRing1
+Data : = LeftHandRing2
+Data : = LeftHandRing3
+Data : = LeftHandRing4
+Data : = LeftHandPinky1
+Data : = LeftHandPinky2
+Data : = LeftHandPinky3
+Data : = LeftHandPinky4
+Data : = RightShoulder
+Data : = RightArm
+Data : = RightForeArm
+Data : = RightHand
+Data : = RightHandThumb1
+Data : = RightHandThumb2
+Data : = RightHandThumb3
+Data : = RightHandThumb4
+Data : = RightHandIndex1
+Data : = RightHandIndex2
+Data : = RightHandIndex3
+Data : = RightHandIndex4
+Data : = RightHandMiddle1
+Data : = RightHandMiddle2
+Data : = RightHandMiddle3
+Data : = RightHandMiddle4
+Data : = RightHandRing1
+Data : = RightHandRing2
+Data : = RightHandRing3
+Data : = RightHandRing4
+Data : = RightHandPinky1
+Data : = RightHandPinky2
+Data : = RightHandPinky3
+Data : = RightHandPinky4
+Data : = LeftUpLeg
+Data : = LeftLeg
+Data : = LeftFoot
+Data : = LeftToeBase
+Data : = LeftToe_End
+Data : = RightUpLeg
+Data : = RightLeg
+Data : = RightFoot
+Data : = RightToeBase
+Data : = RightToe_End
+Data : = Vampire
+Mesh Data : Vampire-lib, Num Vertices : 10567, indices 45066 Bones : 52.
+Material Name : Vampire_MAT
+Texture path :: resources/vampire/textures/Vampire_diffuse.png
+Texture path :: resources/vampire/textures/Vampire_specular.png
+Texture path :: resources/vampire/textures/Vampire_emission.png
+Node::ANIMATION::NAME : Hips
+Load Model Done Successfuly
+Loading Model
+Success::ASSIMP::MODEL::ReadFile Successs
+ASSIMP::MODEL:: Directory-> resources/vampire
+scene->mNumMeshes : 1
+scene->mNumMaterials : 1
+scene->HasTextures() : False
+scene->HasAnimations() : True
+scene->mAnimations[0]->mNumChannels : 52
+scene->mAnimations[0]->mDuration : 3433.332920
+scene->mAnimations[0]->mTicksPerSecond :  1000.000000
+	Name nodes : 
+Data : = RootNode
+Data : = Hips
+Data : = Spine
+Data : = Spine1
+Data : = Spine2
+Data : = Neck
+Data : = Head
+Data : = HeadTop_End
+Data : = LeftShoulder
+Data : = LeftArm
+Data : = LeftForeArm
+Data : = LeftHand
+Data : = LeftHandThumb1
+Data : = LeftHandThumb2
+Data : = LeftHandThumb3
+Data : = LeftHandThumb4
+Data : = LeftHandIndex1
+Data : = LeftHandIndex2
+Data : = LeftHandIndex3
+Data : = LeftHandIndex4
+Data : = LeftHandMiddle1
+Data : = LeftHandMiddle2
+Data : = LeftHandMiddle3
+Data : = LeftHandMiddle4
+Data : = LeftHandRing1
+Data : = LeftHandRing2
+Data : = LeftHandRing3
+Data : = LeftHandRing4
+Data : = LeftHandPinky1
+Data : = LeftHandPinky2
+Data : = LeftHandPinky3
+Data : = LeftHandPinky4
+Data : = RightShoulder
+Data : = RightArm
+Data : = RightForeArm
+Data : = RightHand
+Data : = RightHandThumb1
+Data : = RightHandThumb2
+Data : = RightHandThumb3
+Data : = RightHandThumb4
+Data : = RightHandIndex1
+Data : = RightHandIndex2
+Data : = RightHandIndex3
+Data : = RightHandIndex4
+Data : = RightHandMiddle1
+Data : = RightHandMiddle2
+Data : = RightHandMiddle3
+Data : = RightHandMiddle4
+Data : = RightHandRing1
+Data : = RightHandRing2
+Data : = RightHandRing3
+Data : = RightHandRing4
+Data : = RightHandPinky1
+Data : = RightHandPinky2
+Data : = RightHandPinky3
+Data : = RightHandPinky4
+Data : = LeftUpLeg
+Data : = LeftLeg
+Data : = LeftFoot
+Data : = LeftToeBase
+Data : = LeftToe_End
+Data : = RightUpLeg
+Data : = RightLeg
+Data : = RightFoot
+Data : = RightToeBase
+Data : = RightToe_End
+Data : = Vampire
+Mesh Data : Vampire-lib, Num Vertices : 10567, indices 45066 Bones : 52.
+Material Name : Vampire_MAT
+Texture path :: resources/vampire/textures/Vampire_diffuse.png
+Texture path :: resources/vampire/textures/Vampire_specular.png
+Texture path :: resources/vampire/textures/Vampire_emission.png
+Node::ANIMATION::NAME : Hips
+Load Model Done Successfuly
+Loading Model
+Success::ASSIMP::MODEL::ReadFile Successs
+ASSIMP::MODEL:: Directory-> resources/vampire
+scene->mNumMeshes : 1
+scene->mNumMaterials : 1
+scene->HasTextures() : False
+scene->HasAnimations() : True
+scene->mAnimations[0]->mNumChannels : 52
+scene->mAnimations[0]->mDuration : 3433.332920
+scene->mAnimations[0]->mTicksPerSecond :  1000.000000
+	Name nodes : 
+Data : = RootNode
+Data : = Hips
+Data : = Spine
+Data : = Spine1
+Data : = Spine2
+Data : = Neck
+Data : = Head
+Data : = HeadTop_End
+Data : = LeftShoulder
+Data : = LeftArm
+Data : = LeftForeArm
+Data : = LeftHand
+Data : = LeftHandThumb1
+Data : = LeftHandThumb2
+Data : = LeftHandThumb3
+Data : = LeftHandThumb4
+Data : = LeftHandIndex1
+Data : = LeftHandIndex2
+Data : = LeftHandIndex3
+Data : = LeftHandIndex4
+Data : = LeftHandMiddle1
+Data : = LeftHandMiddle2
+Data : = LeftHandMiddle3
+Data : = LeftHandMiddle4
+Data : = LeftHandRing1
+Data : = LeftHandRing2
+Data : = LeftHandRing3
+Data : = LeftHandRing4
+Data : = LeftHandPinky1
+Data : = LeftHandPinky2
+Data : = LeftHandPinky3
+Data : = LeftHandPinky4
+Data : = RightShoulder
+Data : = RightArm
+Data : = RightForeArm
+Data : = RightHand
+Data : = RightHandThumb1
+Data : = RightHandThumb2
+Data : = RightHandThumb3
+Data : = RightHandThumb4
+Data : = RightHandIndex1
+Data : = RightHandIndex2
+Data : = RightHandIndex3
+Data : = RightHandIndex4
+Data : = RightHandMiddle1
+Data : = RightHandMiddle2
+Data : = RightHandMiddle3
+Data : = RightHandMiddle4
+Data : = RightHandRing1
+Data : = RightHandRing2
+Data : = RightHandRing3
+Data : = RightHandRing4
+Data : = RightHandPinky1
+Data : = RightHandPinky2
+Data : = RightHandPinky3
+Data : = RightHandPinky4
+Data : = LeftUpLeg
+Data : = LeftLeg
+Data : = LeftFoot
+Data : = LeftToeBase
+Data : = LeftToe_End
+Data : = RightUpLeg
+Data : = RightLeg
+Data : = RightFoot
+Data : = RightToeBase
+Data : = RightToe_End
+Data : = Vampire
+Mesh Data : Vampire-lib, Num Vertices : 10567, indices 45066 Bones : 52.
+Material Name : Vampire_MAT
+Texture path :: resources/vampire/textures/Vampire_diffuse.png
+Texture path :: resources/vampire/textures/Vampire_specular.png
+Texture path :: resources/vampire/textures/Vampire_emission.png
+Node::ANIMATION::NAME : Hips
+Load Model Done Successfuly

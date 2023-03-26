@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <assimp/texture.h>
 #include <map>
 #include <vector>
 
@@ -23,7 +24,7 @@ using namespace vmath;
 #include"rvMesh.hpp"
 
 #define MAX_BONES   100
-unsigned int TextureFromFile(const char* path, const std::string& directory);
+GLuint TextureFromFile(const char* path, const std::string& directory);
 
 class rvModel
 {
