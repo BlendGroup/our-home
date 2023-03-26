@@ -48,7 +48,7 @@ void rvMesh::MeshCleanup()
 	if (this->vbo)
 	{
 		glDeleteBuffers(1, &this->vbo);
-		this->vbo;
+		this->vbo = 0;
 	}
 
 	if (this->vao)

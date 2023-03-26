@@ -1,8 +1,10 @@
 #pragma once
 
 #include <assert.h>
+#include <assimp/anim.h>
 #include <assimp/texture.h>
 #include <map>
+#include <string>
 #include <vector>
 
 #include<GL/glew.h> // this must be above gl.h
@@ -26,6 +28,15 @@ using namespace vmath;
 #define MAX_BONES   100
 GLuint TextureFromFile(const char* path, const std::string& directory);
 
+struct rvAnimation
+{
+    float duration;
+    float m_TicksPerSecond;
+    std::map<std::string,aiNodeAnim*> m_nodeAnim_map;
+    void readNodeHierarchy(const aiAnimation* p_animation,const aiNode* p_node);
+    void readMissingBones(const aiAnimation* p_animation,std::map<std::string, unsigned int>& m_bone_mapping,int& m_BoneCounter,std::vector<rvBoneMatrix> &m_bone_matrices);
+};
+
 class rvModel
 {
     private:
@@ -33,6 +44,7 @@ class rvModel
         const aiScene* scene;
         std::vector<rvMesh> meshes;
         std::vector<rvTexture> textures_loaded;
+        std::vector<rvAnimation> animations;
         std::string directory;
         std::map<std::string, unsigned int> m_bone_mapping;
         int m_BoneCounter = 0;
@@ -43,14 +55,11 @@ class rvModel
         unsigned int m_bone_location[MAX_BONES];
         float ticks_per_second = 0.0f;
 
-        std::map<std::string,aiNodeAnim*> m_nodeAnim_map;
-
         bool hasAnimation,hasTexture;
 
         // Utility functions
 
         void processNode(aiNode* node, const aiScene* scene);
-        void readNodeHierarchy(const aiAnimation* p_animation,const aiNode* p_node);
         rvMesh processMesh(aiMesh* mesh,const aiScene* scene);
         std::vector<rvTexture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typestring);
         std::vector<rvMaterial> loadMaterialColor(aiMaterial* mat, const char* type, int one, int two, std::string typeString);
@@ -59,7 +68,7 @@ class rvModel
         int findRotation(float p_animation_time, const aiNodeAnim* p_node_anim);
         int findScaling(float p_animation_time, const aiNodeAnim* p_node_anim);
 
-        const aiNodeAnim* findNodeAnim(const aiAnimation* p_animation, const std::string p_node_name);
+        const aiNodeAnim* findNodeAnim(int animationIndex,const std::string p_node_name);
 
         // calculate transform matrix
         aiVector3D calcInterpolatedPosition(float p_animation_time, const aiNodeAnim* p_node_anim);
@@ -67,7 +76,7 @@ class rvModel
         aiVector3D calcInterpolatedScaling(float p_animation_time, const aiNodeAnim* p_node_anim);
 
         void readNodeHierarchy(float p_animation_time, const aiNode* p_node, const aiMatrix4x4 parent_transform);
-        void boneTransform(double time_in_sec, std::vector<aiMatrix4x4>& transforms);
+        void boneTransform(double time_in_sec, std::vector<aiMatrix4x4>& transforms,int animationIndex);
 
     public:
 
@@ -78,6 +87,7 @@ class rvModel
 
         void initShaders(GLuint shader_program);
         void loadModel(const std::string& path);
+        void loadAnimation(const std::string& path);
 
         // render
         void draw(GLuint shader_program,double dt);

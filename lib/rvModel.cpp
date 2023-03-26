@@ -1,4 +1,7 @@
 #include"../include/rvModel.hpp"
+#include <assimp/anim.h>
+#include <assimp/scene.h>
+#include <cstddef>
 
 rvModel::rvModel()
 {
@@ -38,7 +41,7 @@ void rvModel::draw(GLuint shader_program, double dt)
     {
         std::vector<aiMatrix4x4> transforms;
 
-        boneTransform(dt,transforms);
+        boneTransform(dt,transforms,0);
 
         for(size_t i = 0; i < transforms.size(); i++)
         {
@@ -58,7 +61,7 @@ void rvModel::drawInstanced(GLuint shader_program, double dt, GLint numOfInstanc
     {
         std::vector<aiMatrix4x4> transforms;
 
-        boneTransform(dt,transforms);
+        boneTransform(dt,transforms,0);
 
         for(size_t i = 0; i < transforms.size(); i++)
         {
@@ -98,21 +101,6 @@ void rvModel::loadModel(const std::string& path)
     hasTexture = scene->HasTextures();
 
     directory = path.substr(0,path.find_last_of('/'));
-
-    if(hasAnimation)
-    {
-        m_global_inverse_transform = scene->mRootNode->mTransformation;
-        m_global_inverse_transform = m_global_inverse_transform.Inverse();
-
-        if(scene->mAnimations[0]->mTicksPerSecond != 0.0)
-        {
-            ticks_per_second = (float) scene->mAnimations[0]->mTicksPerSecond;
-        }else
-        {
-            ticks_per_second = 30.0f;
-        }
-    }
-
     pFile = fopen("AssimpModelLogFile.txt","a+");
 	fprintf(pFile, "ASSIMP::MODEL:: Directory-> %s\n", directory.c_str());
     fprintf(pFile, "scene->mNumMeshes : %d\n", scene->mNumMeshes);
@@ -120,13 +108,6 @@ void rvModel::loadModel(const std::string& path)
     fprintf(pFile, "scene->HasTextures() : %s\n", hasTexture ? "True" : "False");
     if(hasTexture)
         fprintf(pFile, "scene->mNumTextures : %d\n", scene->mNumTextures);
-	fprintf(pFile, "scene->HasAnimations() : %s\n", hasAnimation ? "True" : "False");
-    if(hasAnimation)
-    {
-        fprintf(pFile, "scene->mAnimations[0]->mNumChannels : %d\n", scene->mAnimations[0]->mNumChannels);
-        fprintf(pFile, "scene->mAnimations[0]->mDuration : %f\n", scene->mAnimations[0]->mDuration);
-        fprintf(pFile, "scene->mAnimations[0]->mTicksPerSecond :  %f\n", scene->mAnimations[0]->mTicksPerSecond);
-    }
 	fprintf(pFile, "\tName nodes : \n");
 	fclose(pFile);
 
@@ -136,19 +117,98 @@ void rvModel::loadModel(const std::string& path)
 
     if(hasAnimation)
     {
-        for(size_t i = 0; i < scene->mNumAnimations; i++)
-        {
-            pFile = fopen("AssimpModelLogFile.txt","a+");
-            fprintf(pFile,"Node::ANIMATION::NAME : %s\n",scene->mAnimations[0]->mName.C_Str());
-            fclose(pFile);
-			readNodeHierarchy(scene->mAnimations[0],scene->mRootNode);
-        }
+		//animations.resize(scene->mNumAnimations);
+		for(size_t i = 0; i < scene->mNumAnimations; i++)
+		{
+			rvAnimation animation;
+			animation.duration = scene->mAnimations[i]->mDuration;
+			if(scene->mAnimations[i]->mTicksPerSecond != 0.0f)
+			{
+				animation.m_TicksPerSecond = (float) scene->mAnimations[i]->mTicksPerSecond;
+			}
+			else 
+			{
+				animation.m_TicksPerSecond = 0.0f;
+			}
+			animation.readNodeHierarchy(scene->mAnimations[i], scene->mRootNode);
+			animations.push_back(animation);
+		}
+    }
+	
+	pFile = fopen("AssimpModelLogFile.txt","a+");
+	fprintf(pFile, "scene->HasAnimations() : %s Num Animations : %d\n", hasAnimation ? "True" : "False",scene->mNumAnimations);
+    if(hasAnimation)
+    {
+		for(int i = 0; i < animations.size(); i++)
+		{
+			fprintf(pFile, "scene->mAnimations[%d]->mDuration : %f\n", i,animations[i].duration);
+			fprintf(pFile, "scene->mAnimations[%d]->mTicksPerSecond :  %f\n", i,animations[i].m_TicksPerSecond);
+			fprintf(pFile, "scene->mAnimations[%d]->Channels : %zd\n", i,animations[i].m_nodeAnim_map.size());
+		}
+        fprintf(pFile, "scene->mAnimations[0]->mNumChannels : %d\n", scene->mAnimations[0]->mNumChannels);
+    }
+    fprintf(pFile,"Load Model Done Successfuly\n");
+    fclose(pFile);
+}
+
+void rvModel::loadAnimation(const std::string &path)
+{
+	Assimp::Importer importAnim;
+	FILE *pFile = NULL;
+
+    pFile = fopen("AssimpModelLogFile.txt","a+");
+    fprintf(pFile,"Loading animation\n");
+    fclose(pFile);
+	
+	const aiScene* pScene = importAnim.ReadFile(path,aiProcessPreset_TargetRealtime_Quality);
+	if(!pScene || pScene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
+    {
+        pFile = fopen("AssimpModelLogFile.txt","a+");
+        fprintf(pFile,"Error::ANIMATION::ReadFile Failed = %s\n",importAnim.GetErrorString());
+        fclose(pFile);
+        return;
     }
 
 	pFile = fopen("AssimpModelLogFile.txt","a+");
-    fprintf(pFile,"Load Model Done Successfuly\n");
+    fprintf(pFile,"Success::ASSIMP::ANIMATION::ReadFile Successs\n");
     fclose(pFile);
 
+	if(pScene->HasAnimations())
+	{
+		for(size_t i = 0; i < pScene->mNumAnimations; i++)
+		{
+			rvAnimation animation;
+			animation.duration = pScene->mAnimations[i]->mDuration;
+			if(pScene->mAnimations[i]->mTicksPerSecond != 0.0f)
+			{
+				animation.m_TicksPerSecond = (float) pScene->mAnimations[i]->mTicksPerSecond;
+			}
+			else 
+			{
+				animation.m_TicksPerSecond = 0.0f;
+			}
+			animation.readNodeHierarchy(pScene->mAnimations[i], pScene->mRootNode);
+			animations.push_back(animation);
+		}
+	}
+	else 
+	{
+		pFile = fopen("AssimpModelLogFile.txt","a+");
+    	fprintf(pFile,"No animation in given file !!!\n");
+    	fclose(pFile);
+		return;
+	}
+
+	pFile = fopen("AssimpModelLogFile.txt","a+");
+	for(int i = 0; i < animations.size(); i++)
+	{
+		fprintf(pFile, "scene->mAnimations[%d]->mDuration : %f\n", i,animations[i].duration);
+		fprintf(pFile, "scene->mAnimations[%d]->mTicksPerSecond :  %f\n", i,animations[i].m_TicksPerSecond);
+		fprintf(pFile, "scene->mAnimations[%d]->Channels : %zd\n", i,animations[i].m_nodeAnim_map.size());
+	}
+    fprintf(pFile,"Load Animation Done Successfuly\n");
+    fclose(pFile);
+	importAnim.FreeScene();
 }
 
 void rvModel::showNodeName(aiNode* node)
@@ -173,19 +233,35 @@ void rvModel::processNode(aiNode* node,const aiScene* scene)
     }
 }
 
-void rvModel::readNodeHierarchy(const aiAnimation *p_animation, const aiNode *p_node)
+void rvAnimation::readNodeHierarchy(const aiAnimation *p_animation, const aiNode *p_node)
 {
-	FILE* pFile;
 	for(size_t i = 0; i <  p_animation->mNumChannels; i++)
 	{
 		aiNodeAnim* node_anim = p_animation->mChannels[i];
 		std::string node_name(node_anim->mNodeName.data);
-
 		if(m_nodeAnim_map.find(node_name) == m_nodeAnim_map.end())
 		{
 			m_nodeAnim_map[node_name] = node_anim;
 		}
 	}
+}
+
+void rvAnimation::readMissingBones(const aiAnimation *p_animation, std::map<std::string, unsigned int> &m_bone_mapping, int &m_BoneCounter, std::vector<rvBoneMatrix> &m_bone_matrices)
+{
+	int size = p_animation->mNumChannels;
+
+	for(int i = 0; i < size; i++)
+	{
+		const aiNodeAnim* channel = p_animation->mChannels[i];
+		std::string boneName = channel->mNodeName.data;
+		if(m_bone_mapping.find(boneName) == m_bone_mapping.end())
+		{
+			m_bone_mapping[boneName] = m_BoneCounter;
+			m_BoneCounter++;
+		}
+		
+	}
+
 }
 
 rvMesh rvModel::processMesh(aiMesh* mesh,const aiScene* scene)
@@ -415,24 +491,12 @@ int rvModel::findScaling(float p_animation_time, const aiNodeAnim* p_node_anim)
     return 0;
 }
 
-const aiNodeAnim* rvModel::findNodeAnim(const aiAnimation* p_animation, const std::string p_node_name)
+const aiNodeAnim* rvModel::findNodeAnim(int animationIndex,const std::string p_node_name)
 {
-
-	if(m_nodeAnim_map.find(p_node_name) != m_nodeAnim_map.end())
-		return m_nodeAnim_map[p_node_name];
+	if(animations[animationIndex].m_nodeAnim_map.find(p_node_name) != animations[animationIndex].m_nodeAnim_map.end())
+		return animations[animationIndex].m_nodeAnim_map[p_node_name];
 	else
 		return nullptr;
-/*
-    for(size_t i = 0; i < p_animation->mNumChannels;i++)
-    {
-        const aiNodeAnim* node_anim = p_animation->mChannels[i];
-        if(std::string(node_anim->mNodeName.data) == p_node_name)
-        {
-            return node_anim;
-        }
-    }
-    return nullptr;
-	*/
 }
 
 aiVector3D rvModel::calcInterpolatedPosition(float p_animation_time, const aiNodeAnim* p_node_anim)
@@ -507,10 +571,10 @@ void rvModel::readNodeHierarchy(float p_animation_time, const aiNode* p_node,con
 {
 	std::string node_name(p_node->mName.data);
 
-	const aiAnimation* animation = scene->mAnimations[0];
+	//const aiAnimation* animation = scene->mAnimations[0];
 	aiMatrix4x4 node_transform = p_node->mTransformation;
 
-	const aiNodeAnim* node_anim = findNodeAnim(animation, node_name);
+	const aiNodeAnim* node_anim = findNodeAnim(0,node_name);
 	if (node_anim)
 	{
 
@@ -547,12 +611,12 @@ void rvModel::readNodeHierarchy(float p_animation_time, const aiNode* p_node,con
 	}
 }
 
-void rvModel::boneTransform(double time_in_sec, std::vector<aiMatrix4x4>& transforms)
+void rvModel::boneTransform(double time_in_sec, std::vector<aiMatrix4x4>& transforms,int animationIndex)
 {
 	aiMatrix4x4 identity_matrix; // = mat4(1.0f);
 
-	double time_in_ticks = time_in_sec * ticks_per_second;
-	float animation_time = (float)fmod(time_in_ticks, scene->mAnimations[0]->mDuration);
+	double time_in_ticks = time_in_sec * animations[animationIndex].m_TicksPerSecond;
+	float animation_time = (float)fmod(time_in_ticks, animations[animationIndex].duration);
 
 	readNodeHierarchy(animation_time, scene->mRootNode, identity_matrix);
 

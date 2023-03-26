@@ -52,6 +52,7 @@ void initTestEffect() {
 
 	model = new rvModel();
 	model->loadModel("resources/vampire/dancing_vampire.dae");
+	//model->loadAnimation("resources/vampire/Idle.dae");
 
     glClearColor(0.0f,0.25f,0.25f,1.0f);
 
