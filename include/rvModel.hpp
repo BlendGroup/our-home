@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <assimp/anim.h>
+#include <assimp/matrix4x4.h>
 #include <assimp/texture.h>
 #include <map>
 #include <string>
@@ -42,6 +43,7 @@ class rvModel
     private:
         Assimp::Importer import;
         const aiScene* scene;
+        aiNode* mSceneRoot;
         std::vector<rvMesh> meshes;
         std::vector<rvTexture> textures_loaded;
         std::vector<rvAnimation> animations;
@@ -75,8 +77,13 @@ class rvModel
         aiQuaternion calcInterpolatedRotation(float p_animation_time, const aiNodeAnim* p_node_anim);
         aiVector3D calcInterpolatedScaling(float p_animation_time, const aiNodeAnim* p_node_anim);
 
+        // To play multiple animations
         void readNodeHierarchy(float p_animation_time, const aiNode* p_node, const aiMatrix4x4 parent_transform);
         void boneTransform(double time_in_sec, std::vector<aiMatrix4x4>& transforms,int animationIndex);
+
+        // To interpolate between two animations
+        void readNodeHierarchyBlended(float p_start_time, float p_end_time, const aiNode* p_node,const aiMatrix4x4 parent_transform,int startAnimationIndex, int endAnimationIndex, float blendFactor);
+        void boneTransformBlended(double time_in_sec,std::vector<aiMatrix4x4>& transforms,unsigned int StartAnimIndex,unsigned int EndAnimIndex,float BlendFactor);
 
     public:
 

@@ -1,7 +1,13 @@
 #include"../include/rvModel.hpp"
 #include <assimp/anim.h>
+#include <assimp/matrix4x4.h>
+#include <assimp/quaternion.h>
 #include <assimp/scene.h>
+#include <assimp/vector3.h>
+#include <cassert>
+#include <iostream>
 #include <cstddef>
+#include <cstdio>
 
 rvModel::rvModel()
 {
@@ -41,7 +47,8 @@ void rvModel::draw(GLuint shader_program, double dt)
     {
         std::vector<aiMatrix4x4> transforms;
 
-        boneTransform(dt,transforms,0);
+        //boneTransform(dt,transforms,2);
+		boneTransformBlended(dt, transforms, 0, 2, 0.5f);
 
         for(size_t i = 0; i < transforms.size(); i++)
         {
@@ -61,7 +68,7 @@ void rvModel::drawInstanced(GLuint shader_program, double dt, GLint numOfInstanc
     {
         std::vector<aiMatrix4x4> transforms;
 
-        boneTransform(dt,transforms,0);
+        boneTransform(dt,transforms,2);
 
         for(size_t i = 0; i < transforms.size(); i++)
         {
@@ -147,6 +154,12 @@ void rvModel::loadModel(const std::string& path)
 		}
         fprintf(pFile, "scene->mAnimations[0]->mNumChannels : %d\n", scene->mAnimations[0]->mNumChannels);
     }
+
+	fprintf(pFile, "bone map info\n");
+	for(auto &itr : m_bone_mapping)
+	{
+		fprintf(pFile, "Bone name : %s, index : %d\n", itr.first.c_str(),itr.second);
+	}
     fprintf(pFile,"Load Model Done Successfuly\n");
     fclose(pFile);
 }
@@ -188,6 +201,7 @@ void rvModel::loadAnimation(const std::string &path)
 				animation.m_TicksPerSecond = 0.0f;
 			}
 			animation.readNodeHierarchy(pScene->mAnimations[i], pScene->mRootNode);
+			//animation.readMissingBones(pScene->mAnimations[i],m_bone_mapping,m_BoneCounter,m_bone_matrices);
 			animations.push_back(animation);
 		}
 	}
@@ -205,6 +219,10 @@ void rvModel::loadAnimation(const std::string &path)
 		fprintf(pFile, "scene->mAnimations[%d]->mDuration : %f\n", i,animations[i].duration);
 		fprintf(pFile, "scene->mAnimations[%d]->mTicksPerSecond :  %f\n", i,animations[i].m_TicksPerSecond);
 		fprintf(pFile, "scene->mAnimations[%d]->Channels : %zd\n", i,animations[i].m_nodeAnim_map.size());
+		for(auto &itr : animations[i].m_nodeAnim_map)
+		{
+			fprintf(pFile, "nodename : %s, node address : %p\n",itr.first.c_str(),itr.second);
+		}
 	}
     fprintf(pFile,"Load Animation Done Successfuly\n");
     fclose(pFile);
@@ -257,11 +275,12 @@ void rvAnimation::readMissingBones(const aiAnimation *p_animation, std::map<std:
 		if(m_bone_mapping.find(boneName) == m_bone_mapping.end())
 		{
 			m_bone_mapping[boneName] = m_BoneCounter;
+			rvBoneMatrix bi;
+            m_bone_matrices.push_back(bi);
+			//m_bone_matrices[m_BoneCounter].aimat44_Offset_Matrix = ;
 			m_BoneCounter++;
 		}
-		
 	}
-
 }
 
 rvMesh rvModel::processMesh(aiMesh* mesh,const aiScene* scene)
@@ -574,7 +593,7 @@ void rvModel::readNodeHierarchy(float p_animation_time, const aiNode* p_node,con
 	//const aiAnimation* animation = scene->mAnimations[0];
 	aiMatrix4x4 node_transform = p_node->mTransformation;
 
-	const aiNodeAnim* node_anim = findNodeAnim(0,node_name);
+	const aiNodeAnim* node_anim = findNodeAnim(2,node_name);
 	if (node_anim)
 	{
 
@@ -607,7 +626,60 @@ void rvModel::readNodeHierarchy(float p_animation_time, const aiNode* p_node,con
 
 	for (unsigned int i = 0; i < p_node->mNumChildren; i++)
 	{
+		//std::cout<<"here"<<std::endl;
 		readNodeHierarchy(p_animation_time, p_node->mChildren[i], global_transform);
+	}
+}
+
+void rvModel::readNodeHierarchyBlended(float p_start_time, float p_end_time, const aiNode* p_node,const aiMatrix4x4 parent_transform,int startAnimationIndex, int endAnimationIndex, float blendFactor)
+{
+	std::string node_name(p_node->mName.data);
+	aiMatrix4x4 node_transform = p_node->mTransformation;
+
+	const aiNodeAnim* startNodeAnim = findNodeAnim(startAnimationIndex,node_name);
+	const aiNodeAnim* endNodeAnim = findNodeAnim(endAnimationIndex, node_name);
+
+	if (startNodeAnim && endNodeAnim)
+	{
+		//scaling
+		//aiVector3D scaling_vector = node_anim->mScalingKeys[2].mValue;
+		const aiVector3D scale0 = calcInterpolatedScaling(p_start_time, startNodeAnim);
+		const aiVector3D scale1 = calcInterpolatedScaling(p_end_time, endNodeAnim);
+		aiVector3D BlendedScaling = (1.0f - blendFactor) * scale0 + scale1 * blendFactor;
+		aiMatrix4x4 scaling_matr;
+		aiMatrix4x4::Scaling(BlendedScaling, scaling_matr);
+
+		//rotation
+		//aiQuaternion rotate_quat = node_anim->mRotationKeys[2].mValue;
+		const aiQuaternion rotate0 = calcInterpolatedRotation(p_start_time, startNodeAnim);
+		const aiQuaternion rotate1 = calcInterpolatedRotation(p_end_time, endNodeAnim);
+		aiQuaternion BlendedRot;
+		aiQuaternion::Interpolate(BlendedRot, rotate0, rotate1, blendFactor);
+		aiMatrix4x4 rotate_matr = aiMatrix4x4(BlendedRot.GetMatrix());
+
+		//translation
+		//aiVector3D translate_vector = node_anim->mPositionKeys[2].mValue;
+		const aiVector3D translate0 = calcInterpolatedPosition(p_start_time, startNodeAnim);
+		const aiVector3D translate1 = calcInterpolatedPosition(p_end_time, endNodeAnim);
+		aiVector3D BlendedTranslation = (1.0f - blendFactor) * translate0 + translate1 * blendFactor;
+		aiMatrix4x4 translate_matr;
+		aiMatrix4x4::Translation(BlendedTranslation, translate_matr);
+		
+		node_transform = translate_matr * rotate_matr * scaling_matr;
+	}
+
+	aiMatrix4x4 global_transform = parent_transform * node_transform;
+
+	if (m_bone_mapping.find(node_name) != m_bone_mapping.end()) // true if node_name exist in bone_mapping
+	{
+		int bone_index = m_bone_mapping[node_name];
+		m_bone_matrices[bone_index].aimat44_Final_World_Transform = global_transform * m_bone_matrices[bone_index].aimat44_Offset_Matrix;
+	}
+
+	for (unsigned int i = 0; i < p_node->mNumChildren; i++)
+	{
+		//std::cout<<"here"<<std::endl;
+		readNodeHierarchyBlended(p_start_time,p_end_time,p_node->mChildren[i],global_transform,startAnimationIndex,endAnimationIndex,blendFactor);
 	}
 }
 
@@ -619,6 +691,36 @@ void rvModel::boneTransform(double time_in_sec, std::vector<aiMatrix4x4>& transf
 	float animation_time = (float)fmod(time_in_ticks, animations[animationIndex].duration);
 
 	readNodeHierarchy(animation_time, scene->mRootNode, identity_matrix);
+
+	transforms.resize(m_BoneCounter);
+
+	for (unsigned int i = 0; i < m_BoneCounter; i++)
+	{
+		transforms[i] = m_bone_matrices[i].aimat44_Final_World_Transform;
+	}
+}
+
+void rvModel::boneTransformBlended(double time_in_sec,std::vector<aiMatrix4x4>& transforms,unsigned int StartAnimIndex,unsigned int EndAnimIndex,float BlendFactor)
+{
+	aiMatrix4x4 identity_matrix;
+
+	if(StartAnimIndex >= animations.size() || EndAnimIndex >= animations.size())
+	{
+		assert(0);
+	}
+
+	if(BlendFactor < 0.0f || BlendFactor > 1.0f)
+	{
+		assert(0);
+	}
+
+	double start_time_in_ticks = time_in_sec * animations[StartAnimIndex].m_TicksPerSecond;
+	float start_animation_time = (float)fmod(start_time_in_ticks,animations[StartAnimIndex].duration);
+
+	double end_time_in_ticks = time_in_sec * animations[EndAnimIndex].m_TicksPerSecond;
+	float end_animation_time = (float)fmod(end_time_in_ticks,animations[EndAnimIndex].duration);
+
+	readNodeHierarchyBlended(start_animation_time, end_animation_time, scene->mRootNode, identity_matrix, StartAnimIndex, EndAnimIndex, BlendFactor);
 
 	transforms.resize(m_BoneCounter);
 
