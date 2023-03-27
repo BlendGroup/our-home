@@ -8,11 +8,12 @@
 
 using namespace std;
 
+static glshaderprogram* program;
 static GLuint texture;
 
 void setupProgramTestEffect() {
 	try {
-		glshaderprogram* program = new glshaderprogram({"src/shadrs/point.vert", "src/shaders/point.frag"});
+		program = new glshaderprogram({"src/shaders/point.vert", "src/shaders/point.frag"});
 	} catch(string errorString) {
 		cout<<errorString<<endl;
 	}
@@ -29,13 +30,17 @@ void initTestEffect() {
 }
 
 void renderTestEffect() {
-	// glUseProgram(testRenderProgram.programObject);
-	// glUniform1i(glGetUniformLocation(testRenderProgram.programObject, "texSampler"), 0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glDrawArrays(GL_POINTS, 0, 1);
+	try {
+		program->use();
+		glUniform1i(program->getUniformLocation("texSampler"), 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glDrawArrays(GL_POINTS, 0, 1);
+	} catch(string errorString) {
+		cout<<errorString<<endl;
+	}
 }
 
 void uninitTestEffect() {
-	// glprogramDestory(&testRenderProgram);
+	delete program;
 }

@@ -18,6 +18,8 @@ private:
 	std::unordered_map<std::string, GLint> uniforms;
 public:
 	glshaderprogram(std::initializer_list<std::string> shaderList, int version = 460, int profile = DL_SHADER_CORE);
+	void use(void);
+	GLint getUniformLocation(std::string uniformName);
 	~glshaderprogram(void);
 };
 

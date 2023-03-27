@@ -1,5 +1,6 @@
 #include<fstream>
 #include<sstream>
+#include"../include/errorlog.h"
 #include"../include/glshaderloader.h"
 
 using namespace std;
@@ -27,13 +28,15 @@ glshaderprogram::glshaderprogram(initializer_list<std::string> shaderList, int v
 	for(std::string shaderPath : shaderList) {
 		ifstream file(shaderPath, ifstream::in);
 		if(!file.is_open()) {
-			throw "error: [" + string(__FILE__) + " " + to_string(__LINE__) + "] : '" + shaderPath + "' file not found.";
+			throwErr("'" + shaderPath + "' file not found.");
 		}
 		string filestr(istreambuf_iterator<char>(file), (istreambuf_iterator<char>()));
 		
 		int findVersion = filestr.find("#version");
-		int findVersionCount = filestr.find('\n', findVersion) - findVersion;
-		filestr.replace(findVersion, findVersionCount, versionString);
+		if(findVersion != -1) {	
+			int findVersionCount = filestr.find('\n', findVersion) - findVersion;
+			filestr.replace(findVersion, findVersionCount, versionString);
+		}
 		
 		const char* source = filestr.c_str();
 		int flen = filestr.length();
@@ -46,7 +49,7 @@ glshaderprogram::glshaderprogram(initializer_list<std::string> shaderList, int v
 		if(!compiledStatus) {
 			char buffer[1024];
 			glGetShaderInfoLog(shaderObject, 1024, NULL, buffer);
-			string s(buffer);
+			throwErr(shaderPath + ":" + string(buffer));
 		}
 		glshaderprogram::shaderMap[shaderPath] = shaderObject;
 		glAttachShader(this->programObject, shaderObject);
@@ -57,13 +60,32 @@ glshaderprogram::glshaderprogram(initializer_list<std::string> shaderList, int v
 	if(!linkedStatus) {
 		char buffer[1024];
 		glGetProgramInfoLog(this->programObject, 1024, NULL, buffer);
-		string s(buffer);
+		throwErr("glsl linker : " + string(buffer));
 	}
 	for(string shaderPath : shaderList) {
 		glDetachShader(this->programObject, glshaderprogram::shaderMap[shaderPath]);
 	}
+
+	int numberOfActiveUniforms;
+	glGetProgramiv(this->programObject, GL_ACTIVE_UNIFORMS, &numberOfActiveUniforms);
+	for(int i = 0; i < numberOfActiveUniforms; i++) {
+		char buffer[1024];
+		glGetActiveUniform(this->programObject, 0, sizeof(buffer), NULL, NULL, NULL, buffer);
+		this->uniforms[string(buffer)] = i;
+	}
+}
+
+void glshaderprogram::use(void) {
+	glUseProgram(this->programObject);
+}
+
+GLint glshaderprogram::getUniformLocation(string uniformName) {
+	if(this->uniforms.count(uniformName) == 0) {
+		throwErr("'" + uniformName + "' not an active uniform.");
+	}
+	return this->uniforms[uniformName];
 }
 
 glshaderprogram::~glshaderprogram() {
-
+	glDeleteProgram(this->programObject);
 }
