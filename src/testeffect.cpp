@@ -8,20 +8,15 @@
 
 using namespace std;
 
-static glprogram_dl testRenderProgram;
+static glshaderprogram* program;
 static GLuint texture;
 
 void setupProgramTestEffect() {
-	glshader_dl vertexShader;
-	glshader_dl fragmentShader;
-
-	cout<<glshaderCreate(&vertexShader, GL_VERTEX_SHADER, "src/shaders/point.vert", DL_SHADER_CORE, 410);
-	cout<<glshaderCreate(&fragmentShader, GL_FRAGMENT_SHADER, "src/shaders/point.frag", DL_SHADER_CORE, 410);
-
-	cout<<glprogramCreate(&testRenderProgram, "Render", {vertexShader, fragmentShader});
-
-	glshaderDestroy(&vertexShader);
-	glshaderDestroy(&fragmentShader);
+	try {
+		program = new glshaderprogram({"src/shaders/point.vert", "src/shaders/point.frag"});
+	} catch(string errorString) {
+		cout<<errorString<<endl;
+	}
 }
 
 void initTestEffect() {
@@ -35,13 +30,17 @@ void initTestEffect() {
 }
 
 void renderTestEffect() {
-	glUseProgram(testRenderProgram.programObject);
-	glUniform1i(glGetUniformLocation(testRenderProgram.programObject, "texSampler"), 0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glDrawArrays(GL_POINTS, 0, 1);
+	try {
+		program->use();
+		glUniform1i(program->getUniformLocation("texSampler"), 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glDrawArrays(GL_POINTS, 0, 1);
+	} catch(string errorString) {
+		cout<<errorString<<endl;
+	}
 }
 
 void uninitTestEffect() {
-	glprogramDestory(&testRenderProgram);
+	delete program;
 }
