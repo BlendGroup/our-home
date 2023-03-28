@@ -1,3 +1,15 @@
 rm main.run
-g++ lib/*.cpp src/*.cpp -lX11 -lGL -lGLEW -o main.run
-./main.run
+if [[ $1 == "DEBUG" ]]; then
+	g++ lib/*.cpp src/*.cpp -lX11 -lGL -lGLEW -o main.run -g -D DEBUG
+	printf "Run using:\n1. qrenderdoc renderdocsettings.cap\n2. gdb main.run\n3. ./main.run\n"
+	if [[ $2 == 1 ]]; then
+		qrenderdoc renderdocsettings.cap
+	elif [[ $2 == 2 ]]; then
+		gdb main.run
+	else
+		./main.run
+	fi
+else
+	g++ lib/*.cpp src/*.cpp -lX11 -lGL -lGLEW -o main.run
+	./main.run
+fi
