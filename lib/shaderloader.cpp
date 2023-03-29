@@ -40,7 +40,11 @@ glshaderprogram::glshaderprogram(initializer_list<std::string> shaderList, int v
 		
 		const char* source = filestr.c_str();
 		int flen = filestr.length();
-		GLuint shaderObject = glCreateShader(extensionMap[shaderPath.substr(shaderPath.find_last_of('.')+1)]);
+		string extension = shaderPath.substr(shaderPath.find_last_of('.')+1);
+		if(extensionMap.count(extension) == 0) {
+			throwErr(shaderPath + " extension not mapped or invalid. Try files with the following extensions: [.vert .tesc .tese .geom .frag .comp]");
+		}
+		GLuint shaderObject = glCreateShader(extensionMap[extension]);
 		glShaderSource(shaderObject, 1, &source, &flen);
 		glCompileShader(shaderObject);
 		
@@ -70,7 +74,9 @@ glshaderprogram::glshaderprogram(initializer_list<std::string> shaderList, int v
 	glGetProgramiv(this->programObject, GL_ACTIVE_UNIFORMS, &numberOfActiveUniforms);
 	for(int i = 0; i < numberOfActiveUniforms; i++) {
 		char buffer[1024];
-		glGetActiveUniform(this->programObject, 0, sizeof(buffer), NULL, NULL, NULL, buffer);
+		GLint size;
+		GLenum type;
+		glGetActiveUniform(this->programObject, 0, sizeof(buffer), NULL, &size, &type, buffer);
 		this->uniforms[string(buffer)] = i;
 	}
 }
