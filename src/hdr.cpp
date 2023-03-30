@@ -6,14 +6,21 @@
 #include"../include/glshaderloader.h"
 #include"../include/gltextureloader.h"
 #include"../include/vmath.h"
-
+#include"../include/errorlog.h"
 #include"../include/hdr.h"
 
 using namespace std;
 
 static glshaderprogram* program;
-GLuint tempVao;
-void setupProgramHDREffect(){
+static GLuint tempVao;
+
+HDR::HDR(GLfloat exposure, GLfloat fade, GLsizei size) {
+	this->exposure = exposure;
+	this->fade = fade;
+	this->size = size;
+}
+
+void HDR::setupProgram(void) {
     try {
         program = new glshaderprogram({"src/shaders/hdr.vert", "src/shaders/hdr.frag"});
     } catch (string errorString) {
@@ -21,20 +28,40 @@ void setupProgramHDREffect(){
     }
 }
 
-void initHDREffect(){
-    glGenVertexArrays(1,&tempVao);
+void HDR::init(void) {
+    glGenVertexArrays(1, &tempVao);
     glBindVertexArray(tempVao);
+	glGenFramebuffers(1, &this->FBO);
+	glGenTextures(1, &this->Tex);
+	glBindTexture(GL_TEXTURE_2D, this->Tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 2048, 2048, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glGenRenderbuffers(1, &this->RBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, this->RBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 2048, 2048);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, this->FBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->Tex, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, this->RBO);
+	const GLenum buffers[] = {GL_COLOR_ATTACHMENT0};
+	glDrawBuffers(1, buffers);
+	if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		throwErr("HDR Framebuffer Not Complete !!!");
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void renderHDREffect(HDR &hdr)
-{
+void HDR::render(void) {
     try {
         program->use();
-        glUniform1i(program->getUniformLocation("hdrTex"),hdr.hdrTex);
-        glUniform1f(program->getUniformLocation("exposure"),hdr.exposure);
-        glUniform1f(program->getUniformLocation("fade"),hdr.fade);
+        glUniform1i(program->getUniformLocation("hdrTex"), 0);
+        glUniform1f(program->getUniformLocation("exposure"), this->exposure);
+        glUniform1f(program->getUniformLocation("fade"), this->fade);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D,hdr.hdrTex);
+        glBindTexture(GL_TEXTURE_2D, this->Tex);
         glBindVertexArray(tempVao);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     } catch (string errorString) {
@@ -42,7 +69,14 @@ void renderHDREffect(HDR &hdr)
     }
 }
 
-void uninitHDREffect()
-{
+GLuint HDR::getFBO(void) {
+	return this->FBO;
+}
+
+GLsizei HDR::getSize(void) {
+	return this->size;
+}
+
+void HDR::uninit(void) {
     delete program;
 }

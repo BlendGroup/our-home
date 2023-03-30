@@ -14,64 +14,37 @@
 using namespace std;
 using namespace vmath;
 
-Bool ghdr_enabled = False;
-HDR g_hdr;
+static bool hdrEnabled = false;
+static HDR* hdr;
 
 void setupProgram(void) {
 	setupProgramTestEffect();
-	setupProgramHDREffect();
+	hdr->setupProgram();
 }
 
 void init(void) {
-	
-	glGenFramebuffers(1,&g_hdr.hdrFBO);
-	glGenTextures(1, &g_hdr.hdrTex);
-	glBindTexture(GL_TEXTURE_2D,g_hdr.hdrTex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 2048, 2048, 0, GL_RGBA, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glGenRenderbuffers(1,&g_hdr.hdrRBO);
-	glBindRenderbuffer(GL_RENDERBUFFER,g_hdr.hdrRBO);
-	glRenderbufferStorage(GL_RENDERBUFFER,GL_DEPTH_COMPONENT,2048,2048);
-
-	glBindFramebuffer(GL_FRAMEBUFFER,g_hdr.hdrFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,g_hdr.hdrTex,0);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER,GL_DEPTH_ATTACHMENT,GL_RENDERBUFFER,g_hdr.hdrRBO);
-	const GLenum buffers[] = {GL_COLOR_ATTACHMENT0};
-	glDrawBuffers(1,buffers);
-	if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		cout<<"HDR Framebuffer Not Complete !!!"<<endl;
-
-	glBindFramebuffer(GL_FRAMEBUFFER,0);
-
-	g_hdr.fade = 1.0f;
-	g_hdr.exposure = 5.0f;
+	hdr = new HDR(5.0f, 1.0f, 2048);
 	
 	initTestEffect();
-	initHDREffect();
-
+	hdr->init();
 }
 
 void render(glwindow* window) {
-	if(ghdr_enabled)
-	{
-		glBindFramebuffer(GL_FRAMEBUFFER,g_hdr.hdrFBO);
-		glViewport(0, 0, 2048, 2048);
-	}
-	else 
-	{
+	if(hdrEnabled) {
+		glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
+		glViewport(0, 0, hdr->getSize(), hdr->getSize());
+	} else {
 		glViewport(0, 0, window->getSize().width, window->getSize().height);
 	}
+
 	glClearBufferfv(GL_COLOR, 0, vec4(0.5f, 1.0f, 0.2f, 1.0f));
 	renderTestEffect();
 
-	if(ghdr_enabled)
-	{
+	if(hdrEnabled) {
 		glBindFramebuffer(GL_FRAMEBUFFER,0);
 		glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
 		glViewport(0, 0, window->getSize().width, window->getSize().height);
-		renderHDREffect(g_hdr);
+		hdr->render();
 	}
 }
 
@@ -81,23 +54,24 @@ void keyboard(glwindow* window, int key) {
 		window->close();
 		break;
 	case XK_space:
-		ghdr_enabled = !ghdr_enabled;
+		hdrEnabled = !hdrEnabled;
 	break;
-	case XK_e:
-		g_hdr.exposure -= 0.01f;
-		cout << g_hdr.exposure << endl;
-	break;
-	case XK_r:
-		g_hdr.exposure += 0.01f;
-		cout << g_hdr.exposure << endl;
-	break;
+	// case XK_e:
+	// 	hdr.exposure -= 0.01f;
+	// 	cout << hdr.exposure << endl;
+	// break;
+	// case XK_r:
+	// 	hdr.exposure += 0.01f;
+	// 	cout << hdr.exposure << endl;
+	// break;
 	}
 }
 
 void uninit(void) {
-
 	uninitTestEffect();
-	uninitHDREffect();
+	hdr->uninit();
+
+	delete hdr;
 }
 
 int main(int argc, char **argv) {
