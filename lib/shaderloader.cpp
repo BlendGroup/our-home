@@ -76,8 +76,14 @@ glshaderprogram::glshaderprogram(initializer_list<std::string> shaderList, int v
 		char buffer[1024];
 		GLint size;
 		GLenum type;
-		glGetActiveUniform(this->programObject, 0, sizeof(buffer), NULL, &size, &type, buffer);
+		glGetActiveUniform(this->programObject, i, sizeof(buffer), NULL, &size, &type, buffer);
 		this->uniforms[string(buffer)] = i;
+	}
+}
+
+void glshaderprogram::printUniforms(void) {
+	for(pair<string, GLuint> uniform : this->uniforms) {
+		cout<<uniform.first<<" at "<<uniform.second<<endl;
 	}
 }
 
