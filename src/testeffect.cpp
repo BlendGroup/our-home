@@ -7,6 +7,7 @@
 #include"../include/testeffect.h"
 
 using namespace std;
+using namespace vmath;
 
 static glshaderprogram* program;
 static GLuint texture;

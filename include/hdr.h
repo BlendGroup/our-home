@@ -20,7 +20,8 @@ public:
 	void uninit(void) override;
 	GLuint getFBO(void);
 	GLsizei getSize(void);
-	void updateExposure(GLfloat);
+	GLfloat getExposure(void);
+	void updateExposure(GLfloat delta);
 };
 
 #endif

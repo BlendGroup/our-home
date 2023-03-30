@@ -23,7 +23,7 @@ void setupProgram(void) {
 }
 
 void init(void) {
-	hdr = new HDR(5.0f, 1.0f, 2048);
+	hdr = new HDR(1.5f, 1.0f, 2048);
 	
 	initTestEffect();
 	hdr->init();
@@ -56,14 +56,14 @@ void keyboard(glwindow* window, int key) {
 	case XK_space:
 		hdrEnabled = !hdrEnabled;
 	break;
-	// case XK_e:
-	// 	hdr.exposure -= 0.01f;
-	// 	cout << hdr.exposure << endl;
-	// break;
-	// case XK_r:
-	// 	hdr.exposure += 0.01f;
-	// 	cout << hdr.exposure << endl;
-	// break;
+	case XK_e:
+		hdr->updateExposure(0.1f);
+		cout << hdr->getExposure() << endl;
+	break;
+	case XK_r:
+		hdr->updateExposure(0.1f);
+		cout << hdr->getExposure() << endl;
+	break;
 	}
 }
 

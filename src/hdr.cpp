@@ -34,13 +34,13 @@ void HDR::init(void) {
 	glGenFramebuffers(1, &this->FBO);
 	glGenTextures(1, &this->Tex);
 	glBindTexture(GL_TEXTURE_2D, this->Tex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 2048, 2048, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, this->getSize(), this->getSize(), 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glGenRenderbuffers(1, &this->RBO);
 	glBindRenderbuffer(GL_RENDERBUFFER, this->RBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 2048, 2048);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, this->getSize(), this->getSize());
 
 	glBindFramebuffer(GL_FRAMEBUFFER, this->FBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->Tex, 0);
@@ -57,7 +57,8 @@ void HDR::init(void) {
 void HDR::render(void) {
     try {
         program->use();
-        glUniform1i(program->getUniformLocation("hdrTex"), 0);
+        // program->printUniforms();
+		glUniform1i(program->getUniformLocation("hdrTex"), 0);
         glUniform1f(program->getUniformLocation("exposure"), this->exposure);
         glUniform1f(program->getUniformLocation("fade"), this->fade);
         glActiveTexture(GL_TEXTURE0);
@@ -75,6 +76,14 @@ GLuint HDR::getFBO(void) {
 
 GLsizei HDR::getSize(void) {
 	return this->size;
+}
+
+void HDR::updateExposure(GLfloat delta) {
+	this->exposure += delta;
+}
+
+GLfloat HDR::getExposure() {
+	return this->exposure;
 }
 
 void HDR::uninit(void) {
