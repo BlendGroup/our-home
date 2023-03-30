@@ -1,5 +1,5 @@
-#include <X11/X.h>
-#include<iostream>
+#include <X11/keysym.h>
+#include <iostream>
 #include <iterator>
 #include <string>
 
@@ -84,6 +84,17 @@ void HDR::updateExposure(GLfloat delta) {
 
 GLfloat HDR::getExposure() {
 	return this->exposure;
+}
+
+void HDR::keyboardfunc(int key) {
+	switch(key) {
+	case XK_e:
+		this->updateExposure(-0.1f);
+		break;
+	case XK_r:
+		this->updateExposure(0.1f);
+		break;
+	}
 }
 
 void HDR::uninit(void) {

@@ -55,16 +55,9 @@ void keyboard(glwindow* window, int key) {
 		break;
 	case XK_space:
 		hdrEnabled = !hdrEnabled;
-	break;
-	case XK_e:
-		hdr->updateExposure(0.1f);
-		cout << hdr->getExposure() << endl;
-	break;
-	case XK_r:
-		hdr->updateExposure(0.1f);
-		cout << hdr->getExposure() << endl;
-	break;
+		break;
 	}
+	hdr->keyboardfunc(key);
 }
 
 void uninit(void) {

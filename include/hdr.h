@@ -18,6 +18,7 @@ public:
 	void init(void) override;
 	void render(void) override;
 	void uninit(void) override;
+	void keyboardfunc(int key) override;
 	GLuint getFBO(void);
 	GLsizei getSize(void);
 	GLfloat getExposure(void);
