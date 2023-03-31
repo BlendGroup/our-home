@@ -80,8 +80,8 @@ class rvModel
         aiVector3D calcInterpolatedScaling(float p_animation_time, const aiNodeAnim* p_node_anim);
 
         // To play multiple animations
-        void readNodeHierarchy(float p_animation_time, const aiNode* p_node, const aiMatrix4x4 parent_transform);
-        void boneTransform(double time_in_sec, std::vector<aiMatrix4x4>& transforms,int animationIndex);
+        void readNodeHierarchy(float p_animation_time, const aiNode* p_node, const aiMatrix4x4 parent_transform,int animationIndex = 0);
+        void boneTransform(double time_in_sec, std::vector<aiMatrix4x4>& transforms,int animationIndex = 0);
 
         // To interpolate between two animations
         void readNodeHierarchyBlended(float p_start_time, float p_end_time, const aiNode* p_node,const aiMatrix4x4 parent_transform,int startAnimationIndex, int endAnimationIndex, float blendFactor);
@@ -99,9 +99,8 @@ class rvModel
         void loadAnimation(const std::string& path);
 
         // render
-        void draw(glshaderprogram* program, double dt);
-        void drawInstanced(GLuint shader_program, double dt, GLint numOfInstances);
-
+        void draw(glshaderprogram* program, double dt,std::vector<int>animationIndex = {0},float blendFactor = 0.0f);
+        void drawInstanced(glshaderprogram* program, double dt, GLint numOfInstances,std::vector<int>animationIndex = {0},float blendFactor = 0.0f);
         void showNodeName(aiNode* node);
 
         aiQuaternion nlerp(aiQuaternion a, aiQuaternion b, float blend);

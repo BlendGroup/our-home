@@ -1,5 +1,6 @@
 #include"../include/rvModel.hpp"
 #include <assimp/anim.h>
+#include <assimp/material.h>
 #include <assimp/matrix4x4.h>
 #include <assimp/quaternion.h>
 #include <assimp/scene.h>
@@ -8,6 +9,8 @@
 #include <iostream>
 #include <cstddef>
 #include <cstdio>
+#include <string>
+#include <vector>
 
 rvModel::rvModel()
 {
@@ -41,45 +44,66 @@ void rvModel::initShaders(glshaderprogram* shader_program)
     }
 }
 
-void rvModel::draw(glshaderprogram* program, double dt)
+void rvModel::draw(glshaderprogram* program, double dt,std::vector<int>animationIndex,float blendFactor)
 {
-    if(hasAnimation)
-    {
-        std::vector<aiMatrix4x4> transforms;
+	try
+	{
+		if(hasAnimation)
+		{
+			std::vector<aiMatrix4x4> transforms;
 
-        //boneTransform(dt,transforms,2);
-		boneTransformBlended(dt, transforms, 0, 2, 0.5f);
+			if(animationIndex.size() > 1)
+				//boneTransformBlended(dt, transforms, 0, 2, 0.5f);
+				;
+			else
+				boneTransform(dt, transforms, animationIndex[0]);
 
-        for(size_t i = 0; i < transforms.size(); i++)
-        {
-			glUniformMatrix4fv(m_bone_location[i], 1, GL_TRUE, (const GLfloat*)&transforms[i]);
-        }
-    }
+			for(size_t i = 0; i < transforms.size(); i++)
+			{
+				glUniformMatrix4fv(m_bone_location[i], 1, GL_TRUE, (const GLfloat*)&transforms[i]);
+			}
+		}
 
-    for(size_t i = 0; i < meshes.size(); i++)
-    {
-        meshes[i].Draw(program);
-    }
+		for(size_t i = 0; i < meshes.size(); i++)
+		{
+			meshes[i].Draw(program);
+		}
+	}
+	catch(std::string errorString)
+	{
+		std::cout<<errorString<<std::endl;
+	}
 }
 
-void rvModel::drawInstanced(GLuint shader_program, double dt, GLint numOfInstances)
+void rvModel::drawInstanced(glshaderprogram* program, double dt, GLint numOfInstances,std::vector<int>animationIndex,float blendFactor)
 {
-    if(hasAnimation)
-    {
-        std::vector<aiMatrix4x4> transforms;
+	try
+	{
+		if(hasAnimation)
+		{
+			std::vector<aiMatrix4x4> transforms;
 
-        boneTransform(dt,transforms,2);
+			if(animationIndex.size() > 1)
+				//boneTransformBlended(dt, transforms, 0, 2, 0.5f);
+				;
+			else
+				boneTransform(dt, transforms, animationIndex[0]);
 
-        for(size_t i = 0; i < transforms.size(); i++)
-        {
-            glUniformMatrix4fv(m_bone_location[i], 1, GL_TRUE, (const GLfloat*)&transforms[i]);
-        }
+			for(size_t i = 0; i < transforms.size(); i++)
+			{
+				glUniformMatrix4fv(m_bone_location[i], 1, GL_TRUE, (const GLfloat*)&transforms[i]);
+			}
 
-        for(size_t i = 0; i < meshes.size(); i++)
-        {
-            meshes[i].DrawInstanced(shader_program,numOfInstances);
-        }
-    }
+			for(size_t i = 0; i < meshes.size(); i++)
+			{
+				meshes[i].DrawInstanced(program,numOfInstances);
+			}
+		}
+	}
+	catch(std::string errorString)
+	{
+		std::cout<<errorString<<std::endl;
+	}
 }
 
 void rvModel::loadModel(const std::string& path)
@@ -363,7 +387,7 @@ rvMesh rvModel::processMesh(aiMesh* mesh,const aiScene* scene)
 		textures.insert(textures.end(), specularMap.begin(), specularMap.end());
 
 		//normal map
-		std::vector<rvTexture> normalMap = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+		std::vector<rvTexture> normalMap = loadMaterialTextures(material, aiTextureType_NORMALS, "texture_normal");
 		textures.insert(textures.end(), normalMap.begin(), normalMap.end());
 
 		// emissive
@@ -586,14 +610,14 @@ aiVector3D rvModel::calcInterpolatedScaling(float p_animation_time, const aiNode
 	return start + factor * delta;
 }
 
-void rvModel::readNodeHierarchy(float p_animation_time, const aiNode* p_node,const aiMatrix4x4 parent_transform)
+void rvModel::readNodeHierarchy(float p_animation_time, const aiNode* p_node,const aiMatrix4x4 parent_transform,int animationIndex)
 {
 	std::string node_name(p_node->mName.data);
 
 	//const aiAnimation* animation = scene->mAnimations[0];
 	aiMatrix4x4 node_transform = p_node->mTransformation;
 
-	const aiNodeAnim* node_anim = findNodeAnim(2,node_name);
+	const aiNodeAnim* node_anim = findNodeAnim(0,node_name);
 	if (node_anim)
 	{
 

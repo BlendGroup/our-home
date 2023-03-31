@@ -61,7 +61,7 @@ public:
 	rvMesh(std::vector<rvVertex>& vertices, std::vector<unsigned int>& indices, std::vector<rvTexture>& textures, std::vector<rvMaterial>& mats);
 	void MeshCleanup();
 	void Draw(glshaderprogram* program);
-	void DrawInstanced(GLuint program, GLuint numOfInstance);
+	void DrawInstanced(glshaderprogram* program, GLuint numOfInstance);
 	void printVertData();
 	void setupMesh();
 };

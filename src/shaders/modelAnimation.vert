@@ -1,12 +1,12 @@
 #version 460 core 
 
-in vec3 a_position; 
-in vec3 a_normal;
-in vec2 a_texcoord;
-in vec3 a_tangent;
-in vec3 a_bitangent;
-in ivec4 a_boneIds;
-in vec4 a_weights;
+layout(location = 0) in vec3 a_position; 
+layout(location = 1) in vec3 a_normal;
+layout(location = 2) in vec2 a_texcoord;
+layout(location = 3) in vec3 a_tangent;
+layout(location = 4) in vec3 a_bitangent;
+layout(location = 5) in ivec4 a_boneIds;
+layout(location = 6) in vec4 a_weights;
 
 uniform mat4 u_Model;
 uniform mat4 u_View;
@@ -35,7 +35,6 @@ void main(void)
         vec4 localPosition = gBones[a_boneIds[i]] * vec4(a_position,1.0f);
         totalPosition += localPosition * a_weights[i];
     }
-
     //gl_Position = u_Projection * u_View * u_Model * vec4(a_position,1.0f);
     gl_Position = u_Projection * u_View * u_Model * totalPosition;
     out_texcoord = a_texcoord;

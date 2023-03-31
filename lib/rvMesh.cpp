@@ -1,4 +1,6 @@
 #include "../include/rvMesh.hpp"
+#include <iostream>
+#include <string>
 
 rvVertex::rvVertex()
 {
@@ -89,53 +91,62 @@ void rvMesh::MeshCleanup()
 
 void rvMesh::Draw(glshaderprogram* program)
 {
-	// Bind appropriate Textures
-	unsigned int diffuseNr = 1;
-	unsigned int specularNr = 1;
-	unsigned int normalNr = 1;
-	unsigned int heightNr = 1;
-
-	for (unsigned int i = 0; i < this->textures.size(); i++)
+	try
 	{
-		glActiveTexture(GL_TEXTURE0 + i);
+		// Bind appropriate Textures
+		unsigned int diffuseNr = 1;
+		unsigned int specularNr = 1;
+		unsigned int normalNr = 1;
+		unsigned int heightNr = 1;
 
-		std::string name = this->textures[i].type;
-		std::string number;
-
-		if (name == "texture_diffuse")
-			number = std::to_string(diffuseNr++);
-		else if (name == "texture_specular")
-			number = std::to_string(specularNr++);
-		else if (name == "texture_normal")
-			number = std::to_string(normalNr++);
-		else if (name == "texture_height")
-			number = std::to_string(heightNr++);
-
-		glUniform1i(program->getUniformLocation(name + number), i);
-		glBindTexture(GL_TEXTURE_2D, this->textures[i].id);
-	}
-
-	unsigned int diffuse_mr = 1;
-
-	for (size_t i = 0; i < this->materials.size(); i++)
-	{
-		std::string type = materials[i].type;
-		if ((type == "material_ambient_animModel") || (type == "material_diffuse_animModel") || (type == "material_specular_animModel"))
+		for (unsigned int i = 0; i < this->textures.size(); i++)
 		{
-			glUniform3fv(program->getUniformLocation(type), 1, materials[i].value);
+			glActiveTexture(GL_TEXTURE0 + i);
+
+			std::string name = this->textures[i].type;
+			std::string number;
+
+			if (name == "texture_diffuse")
+				number = std::to_string(diffuseNr++);
+			else if (name == "texture_specular")
+				number = std::to_string(specularNr++);
+			else if (name == "texture_normal")
+				number = std::to_string(normalNr++);
+			else if (name == "texture_height")
+				number = std::to_string(heightNr++);
+
+			glUniform1i(program->getUniformLocation(name + number), i);
+			glBindTexture(GL_TEXTURE_2D, this->textures[i].id);
 		}
+
+		unsigned int diffuse_mr = 1;
+
+		for (size_t i = 0; i < this->materials.size(); i++)
+		{
+			std::string type = materials[i].type;
+			if ((type == "material_ambient_animModel") || (type == "material_diffuse_animModel") || (type == "material_specular_animModel"))
+			{
+				glUniform3fv(program->getUniformLocation(type), 1, materials[i].value);
+			}
+		}
+		glBindVertexArray(this->vao);
+		glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ebo);
+		glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(this->indices.size()), GL_UNSIGNED_INT, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
 	}
-	glBindVertexArray(this->vao);
-	glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ebo);
-	glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(this->indices.size()), GL_UNSIGNED_INT, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+	catch(std::string errorString)
+	{
+		std::cout<<errorString<<std::endl;
+	}
 }
 
-void rvMesh::DrawInstanced(GLuint program, GLuint numOfInstance)
+void rvMesh::DrawInstanced(glshaderprogram* program, GLuint numOfInstance)
 {
+	try
+	{
 	GLint diffuseNr = 1;
 	GLuint specularNr = 1;
 	GLuint normalNr = 1;
@@ -157,7 +168,7 @@ void rvMesh::DrawInstanced(GLuint program, GLuint numOfInstance)
 		else if (name == "texture_height")
 			number = std::to_string(heightNr++);
 
-		glUniform1i(glGetUniformLocation(program, (name + number).c_str()), i);
+		glUniform1i(program->getUniformLocation(name + number), i);
 		glBindTexture(GL_TEXTURE_2D, this->textures[i].id);		
 	}
 
@@ -167,7 +178,7 @@ void rvMesh::DrawInstanced(GLuint program, GLuint numOfInstance)
 		std::string type = materials[i].type;
 		if ((type == "material_ambient_animModel") || (type == "material_diffuse_animModel") || (type == "material_specular_animModel"))
 		{
-			glUniform3fv(glGetUniformLocation(program, type.c_str()), 1, materials[i].value);
+			glUniform3fv(program->getUniformLocation(type), 1, materials[i].value);
 		}
 	}
 
@@ -178,6 +189,11 @@ void rvMesh::DrawInstanced(GLuint program, GLuint numOfInstance)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	}
+	catch(std::string errorString)
+	{
+		std::cout<<errorString<<std::endl;
+	}
 }
 
 void rvMesh::setupMesh()

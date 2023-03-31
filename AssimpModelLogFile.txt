@@ -1,155 +1,16 @@
 Loading Model
 Success::ASSIMP::MODEL::ReadFile Successs
-ASSIMP::MODEL:: Directory-> resources
+ASSIMP::MODEL:: Directory-> resources/backpack
 scene->mNumMeshes : 1
 scene->mNumMaterials : 1
 scene->HasTextures() : False
 	Name nodes : 
-Data : = RootNode
-Data : = Armature
-Data : = mixamorig:Hips
-Data : = mixamorig:Spine
-Data : = mixamorig:Spine1
-Data : = mixamorig:Spine2
-Data : = mixamorig:Neck
-Data : = mixamorig:Head
-Data : = mixamorig:HeadTop_End
-Data : = mixamorig:HeadTop_End_end
-Data : = mixamorig:LeftShoulder
-Data : = mixamorig:LeftArm
-Data : = mixamorig:LeftForeArm
-Data : = mixamorig:LeftHand
-Data : = mixamorig:LeftHandThumb1
-Data : = mixamorig:LeftHandThumb2
-Data : = mixamorig:LeftHandThumb3
-Data : = mixamorig:LeftHandThumb4
-Data : = mixamorig:LeftHandThumb4_end
-Data : = mixamorig:LeftHandIndex1
-Data : = mixamorig:LeftHandIndex2
-Data : = mixamorig:LeftHandIndex3
-Data : = mixamorig:LeftHandIndex4
-Data : = mixamorig:LeftHandIndex4_end
-Data : = mixamorig:LeftHandMiddle1
-Data : = mixamorig:LeftHandMiddle2
-Data : = mixamorig:LeftHandMiddle3
-Data : = mixamorig:LeftHandMiddle4
-Data : = mixamorig:LeftHandMiddle4_end
-Data : = mixamorig:LeftHandRing1
-Data : = mixamorig:LeftHandRing2
-Data : = mixamorig:LeftHandRing3
-Data : = mixamorig:LeftHandRing4
-Data : = mixamorig:LeftHandRing4_end
-Data : = mixamorig:LeftHandPinky1
-Data : = mixamorig:LeftHandPinky2
-Data : = mixamorig:LeftHandPinky3
-Data : = mixamorig:LeftHandPinky4
-Data : = mixamorig:LeftHandPinky4_end
-Data : = mixamorig:RightShoulder
-Data : = mixamorig:RightArm
-Data : = mixamorig:RightForeArm
-Data : = mixamorig:RightHand
-Data : = mixamorig:RightHandThumb1
-Data : = mixamorig:RightHandThumb2
-Data : = mixamorig:RightHandThumb3
-Data : = mixamorig:RightHandThumb4
-Data : = mixamorig:RightHandThumb4_end
-Data : = mixamorig:RightHandIndex1
-Data : = mixamorig:RightHandIndex2
-Data : = mixamorig:RightHandIndex3
-Data : = mixamorig:RightHandIndex4
-Data : = mixamorig:RightHandIndex4_end
-Data : = mixamorig:RightHandMiddle1
-Data : = mixamorig:RightHandMiddle2
-Data : = mixamorig:RightHandMiddle3
-Data : = mixamorig:RightHandMiddle4
-Data : = mixamorig:RightHandMiddle4_end
-Data : = mixamorig:RightHandRing1
-Data : = mixamorig:RightHandRing2
-Data : = mixamorig:RightHandRing3
-Data : = mixamorig:RightHandRing4
-Data : = mixamorig:RightHandRing4_end
-Data : = mixamorig:RightHandPinky1
-Data : = mixamorig:RightHandPinky2
-Data : = mixamorig:RightHandPinky3
-Data : = mixamorig:RightHandPinky4
-Data : = mixamorig:RightHandPinky4_end
-Data : = mixamorig:LeftUpLeg
-Data : = mixamorig:LeftLeg
-Data : = mixamorig:LeftFoot
-Data : = mixamorig:LeftToeBase
-Data : = mixamorig:LeftToe_End
-Data : = mixamorig:LeftToe_End_end
-Data : = mixamorig:RightUpLeg
-Data : = mixamorig:RightLeg
-Data : = mixamorig:RightFoot
-Data : = mixamorig:RightToeBase
-Data : = mixamorig:RightToe_End
-Data : = mixamorig:RightToe_End_end
-Data : = Vampire
-Mesh Data : Vampiremesh, Num Vertices : 10543, indices 45063 Bones : 52.
-Material Name : DefaultMaterial
-scene->HasAnimations() : True Num Animations : 3
-scene->mAnimations[0]->mDuration : 134.000000
-scene->mAnimations[0]->mTicksPerSecond :  30.000000
-scene->mAnimations[0]->Channels : 66
-scene->mAnimations[1]->mDuration : 103.000000
-scene->mAnimations[1]->mTicksPerSecond :  30.000000
-scene->mAnimations[1]->Channels : 66
-scene->mAnimations[2]->mDuration : 71.000000
-scene->mAnimations[2]->mTicksPerSecond :  30.000000
-scene->mAnimations[2]->Channels : 66
-scene->mAnimations[0]->mNumChannels : 66
+Data : = backpack.obj
+Data : = Plane.008
+Mesh Data : Plane.008, Num Vertices : 51523, indices 203721 Bones : 0.
+Material Name : Material
+Texture path :: resources/backpack/diffuse.jpg
+Texture path :: resources/backpack/specular.jpg
+scene->HasAnimations() : False Num Animations : 0
 bone map info
-Bone name : mixamorig:Head, index : 5
-Bone name : mixamorig:Hips, index : 0
-Bone name : mixamorig:LeftArm, index : 7
-Bone name : mixamorig:LeftFoot, index : 46
-Bone name : mixamorig:LeftForeArm, index : 8
-Bone name : mixamorig:LeftHand, index : 9
-Bone name : mixamorig:LeftHandIndex1, index : 13
-Bone name : mixamorig:LeftHandIndex2, index : 14
-Bone name : mixamorig:LeftHandIndex3, index : 15
-Bone name : mixamorig:LeftHandMiddle1, index : 16
-Bone name : mixamorig:LeftHandMiddle2, index : 17
-Bone name : mixamorig:LeftHandMiddle3, index : 18
-Bone name : mixamorig:LeftHandPinky1, index : 22
-Bone name : mixamorig:LeftHandPinky2, index : 23
-Bone name : mixamorig:LeftHandPinky3, index : 24
-Bone name : mixamorig:LeftHandRing1, index : 19
-Bone name : mixamorig:LeftHandRing2, index : 20
-Bone name : mixamorig:LeftHandRing3, index : 21
-Bone name : mixamorig:LeftHandThumb1, index : 10
-Bone name : mixamorig:LeftHandThumb2, index : 11
-Bone name : mixamorig:LeftHandThumb3, index : 12
-Bone name : mixamorig:LeftLeg, index : 45
-Bone name : mixamorig:LeftShoulder, index : 6
-Bone name : mixamorig:LeftToeBase, index : 47
-Bone name : mixamorig:LeftUpLeg, index : 44
-Bone name : mixamorig:Neck, index : 4
-Bone name : mixamorig:RightArm, index : 26
-Bone name : mixamorig:RightFoot, index : 50
-Bone name : mixamorig:RightForeArm, index : 27
-Bone name : mixamorig:RightHand, index : 28
-Bone name : mixamorig:RightHandIndex1, index : 32
-Bone name : mixamorig:RightHandIndex2, index : 33
-Bone name : mixamorig:RightHandIndex3, index : 34
-Bone name : mixamorig:RightHandMiddle1, index : 35
-Bone name : mixamorig:RightHandMiddle2, index : 36
-Bone name : mixamorig:RightHandMiddle3, index : 37
-Bone name : mixamorig:RightHandPinky1, index : 41
-Bone name : mixamorig:RightHandPinky2, index : 42
-Bone name : mixamorig:RightHandPinky3, index : 43
-Bone name : mixamorig:RightHandRing1, index : 38
-Bone name : mixamorig:RightHandRing2, index : 39
-Bone name : mixamorig:RightHandRing3, index : 40
-Bone name : mixamorig:RightHandThumb1, index : 29
-Bone name : mixamorig:RightHandThumb2, index : 30
-Bone name : mixamorig:RightHandThumb3, index : 31
-Bone name : mixamorig:RightLeg, index : 49
-Bone name : mixamorig:RightShoulder, index : 25
-Bone name : mixamorig:RightToeBase, index : 51
-Bone name : mixamorig:RightUpLeg, index : 48
-Bone name : mixamorig:Spine, index : 1
-Bone name : mixamorig:Spine1, index : 2
-Bone name : mixamorig:Spine2, index : 3
 Load Model Done Successfuly
