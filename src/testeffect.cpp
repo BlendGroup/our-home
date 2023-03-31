@@ -15,8 +15,6 @@ static GLuint texture;
 static rvModel* model;
 GLuint tempVao;
 
-void GLAPIENTRY ErrorCallback(GLenum src, GLenum type, GLuint id, GLenum saverity, GLsizei length, const GLchar* message, const void* userParam);
-
 void setupProgramTestEffect() {
 	program = new glshaderprogram({"src/shaders/modelAnimation.vert", "src/shaders/modelAnimation.frag"});
 	model->initShaders(program);
@@ -27,18 +25,6 @@ void initTestEffect() {
 	model = new rvModel();
 	model->loadModel("resources/vampire.fbx");
 	//model->loadAnimation("resources/Vampire/Dancing.dae");
-
-    glClearColor(0.0f,0.25f,0.25f,1.0f);
-
-    // Depth Related Changes
-    glClearDepth(1.0f);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(ErrorCallback,0);
-	//glPointSize(480.0f);
 }
 
 void renderTestEffect(mat4 perspective) {
@@ -67,20 +53,4 @@ void uninitTestEffect() {
 		model = nullptr;
 	}
 	delete program;
-}
-
-void GLAPIENTRY ErrorCallback(GLenum src, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
-{
-	FILE *glLog;
-    glLog = fopen("GLLOG.txt", "a+");
-    fprintf(glLog,"GL CALLBACK: %s type = 0x%x, serverity = 0x%x, message = %s\n", (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
-    fclose(glLog);
-}
-
-void GLAPIENTRY ErrorCallback(GLenum src, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
-{
-	FILE *glLog;
-    glLog = fopen("GLLOG.txt", "a+");
-    fprintf(glLog,"GL CALLBACK: %s type = 0x%x, serverity = 0x%x, message = %s\n", (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
-    fclose(glLog);
 }
