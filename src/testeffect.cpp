@@ -8,8 +8,9 @@
 #include"../include/testeffect.h"
 
 using namespace std;
+using namespace vmath;
 
-static glprogram_dl testRenderProgram;
+static glshaderprogram* program;
 static GLuint texture;
 static rvModel* model;
 GLuint tempVao;
@@ -17,35 +18,8 @@ GLuint tempVao;
 void GLAPIENTRY ErrorCallback(GLenum src, GLenum type, GLuint id, GLenum saverity, GLsizei length, const GLchar* message, const void* userParam);
 
 void setupProgramTestEffect() {
-	glshader_dl vertexShader;
-	glshader_dl fragmentShader;
-
-	cout<<glshaderCreate(&vertexShader, GL_VERTEX_SHADER, "src/shaders/modelAnimation.vert", DL_SHADER_CORE, 460);
-	cout<<glshaderCreate(&fragmentShader, GL_FRAGMENT_SHADER, "src/shaders/modelAnimation.frag", DL_SHADER_CORE, 460);
-
-	//cout<<glprogramCreate(&testRenderProgram, "Render", {vertexShader, fragmentShader});
-	testRenderProgram.programObject = glCreateProgram();
-	glAttachShader(testRenderProgram.programObject, vertexShader.shaderObject);
-	glAttachShader(testRenderProgram.programObject, fragmentShader.shaderObject);
-	glBindAttribLocation(testRenderProgram.programObject, 0, "a_position");
-    glBindAttribLocation(testRenderProgram.programObject, 1, "a_normal");
-    glBindAttribLocation(testRenderProgram.programObject, 2, "a_texcoord");
-    glBindAttribLocation(testRenderProgram.programObject, 3, "a_tangent");
-    glBindAttribLocation(testRenderProgram.programObject, 4, "a_bitangent");
-    glBindAttribLocation(testRenderProgram.programObject, 5, "a_boneIds");
-    glBindAttribLocation(testRenderProgram.programObject, 6, "a_weights");
-	glLinkProgram(testRenderProgram.programObject);
-	GLint linkedStatus;
-	glGetProgramiv(testRenderProgram.programObject, GL_LINK_STATUS, &linkedStatus);
-	if(!linkedStatus) {
-		char buffer[1024];
-		glGetProgramInfoLog(testRenderProgram.programObject, 1024, NULL, buffer);
-		string s(buffer);
-		cout << ": linking failed.\n" + s + "\n";
-	}
-	model->initShaders(testRenderProgram.programObject);
-	//glshaderDestroy(&vertexShader);
-	//glshaderDestroy(&fragmentShader);
+	program = new glshaderprogram({"src/shaders/modelAnimation.vert", "src/shaders/modelAnimation.frag"});
+	model->initShaders(program);
 }
 
 void initTestEffect() {
@@ -68,8 +42,6 @@ void initTestEffect() {
 }
 
 void renderTestEffect(mat4 perspective) {
-
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	static float t = 0.0f;
 	t += 0.0065f;
 	mat4 modelMatrix = mat4::identity();
@@ -78,13 +50,13 @@ void renderTestEffect(mat4 perspective) {
 	modelMatrix *= vmath::translate(0.0f, 0.0f, -5.0f);
     viewMatrix = vmath::lookat(vec3(0.0f,0.0f,5.0f),vec3(0.0f,0.0f,-1.0f) ,vec3(0.0f,1.0f,0.0f));
 
-	glUseProgram(testRenderProgram.programObject);
-	glUniformMatrix4fv(glGetUniformLocation(testRenderProgram.programObject,"u_Model"), 1, GL_FALSE, modelMatrix);
-    glUniformMatrix4fv(glGetUniformLocation(testRenderProgram.programObject,"u_View"), 1, GL_FALSE, viewMatrix);
-    glUniformMatrix4fv(glGetUniformLocation(testRenderProgram.programObject,"u_Projection"), 1, GL_FALSE, perspective);
+	program->use();
+	glUniformMatrix4fv(program->getUniformLocation("u_Model"), 1, GL_FALSE, modelMatrix);
+    glUniformMatrix4fv(program->getUniformLocation("u_View"), 1, GL_FALSE, viewMatrix);
+    glUniformMatrix4fv(program->getUniformLocation("u_Projection"), 1, GL_FALSE, perspective);
 	//glBindVertexArray(tempVao);
     //glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	model->draw(testRenderProgram.programObject,t);
+	model->draw(program, t);
     glUseProgram(0);
 }
 
@@ -94,7 +66,15 @@ void uninitTestEffect() {
 		model->ModelCleanUp();
 		model = nullptr;
 	}
-	glprogramDestory(&testRenderProgram);
+	delete program;
+}
+
+void GLAPIENTRY ErrorCallback(GLenum src, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+	FILE *glLog;
+    glLog = fopen("GLLOG.txt", "a+");
+    fprintf(glLog,"GL CALLBACK: %s type = 0x%x, serverity = 0x%x, message = %s\n", (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
+    fclose(glLog);
 }
 
 void GLAPIENTRY ErrorCallback(GLenum src, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
