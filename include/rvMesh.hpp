@@ -6,6 +6,8 @@
 #include <assimp/types.h>
 
 #include"vmath.h"
+#include"glshaderloader.h"
+
 using namespace vmath;
 
 #define MAX_BONE_INFLUENCE 4
@@ -58,7 +60,7 @@ private:
 public:
 	rvMesh(std::vector<rvVertex>& vertices, std::vector<unsigned int>& indices, std::vector<rvTexture>& textures, std::vector<rvMaterial>& mats);
 	void MeshCleanup();
-	void Draw(GLuint program);
+	void Draw(glshaderprogram* program);
 	void DrawInstanced(GLuint program, GLuint numOfInstance);
 	void printVertData();
 	void setupMesh();

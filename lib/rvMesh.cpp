@@ -87,7 +87,7 @@ void rvMesh::MeshCleanup()
 	}    
 }
 
-void rvMesh::Draw(GLuint program)
+void rvMesh::Draw(glshaderprogram* program)
 {
 	// Bind appropriate Textures
 	unsigned int diffuseNr = 1;
@@ -111,7 +111,7 @@ void rvMesh::Draw(GLuint program)
 		else if (name == "texture_height")
 			number = std::to_string(heightNr++);
 
-		glUniform1i(glGetUniformLocation(program, (name + number).c_str()), i);
+		glUniform1i(program->getUniformLocation(name + number), i);
 		glBindTexture(GL_TEXTURE_2D, this->textures[i].id);
 	}
 
@@ -122,7 +122,7 @@ void rvMesh::Draw(GLuint program)
 		std::string type = materials[i].type;
 		if ((type == "material_ambient_animModel") || (type == "material_diffuse_animModel") || (type == "material_specular_animModel"))
 		{
-			glUniform3fv(glGetUniformLocation(program, type.c_str()), 1, materials[i].value);
+			glUniform3fv(program->getUniformLocation(type), 1, materials[i].value);
 		}
 	}
 	glBindVertexArray(this->vao);

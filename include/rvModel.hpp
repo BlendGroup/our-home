@@ -13,6 +13,8 @@
 #include<GL/gl.h>
 
 #include"vmath.h"
+#include"glshaderloader.h"
+
 using namespace vmath;
 
 // Image Loading Library
@@ -92,12 +94,12 @@ class rvModel
 
         void ModelCleanUp();
 
-        void initShaders(GLuint shader_program);
+        void initShaders(glshaderprogram* program);
         void loadModel(const std::string& path);
         void loadAnimation(const std::string& path);
 
         // render
-        void draw(GLuint shader_program,double dt);
+        void draw(glshaderprogram* program, double dt);
         void drawInstanced(GLuint shader_program, double dt, GLint numOfInstances);
 
         void showNodeName(aiNode* node);

@@ -32,16 +32,16 @@ void rvModel::ModelCleanUp()
     }
 }
 
-void rvModel::initShaders(GLuint shader_program)
+void rvModel::initShaders(glshaderprogram* shader_program)
 {
     for(int i = 0; i < MAX_BONES; i++)
     {
         std::string name = "gBones["+std::to_string(i)+"]";
-        m_bone_location[i] = glGetUniformLocation(shader_program,name.c_str());
+        m_bone_location[i] = shader_program->getUniformLocation(name);
     }
 }
 
-void rvModel::draw(GLuint shader_program, double dt)
+void rvModel::draw(glshaderprogram* program, double dt)
 {
     if(hasAnimation)
     {
@@ -58,7 +58,7 @@ void rvModel::draw(GLuint shader_program, double dt)
 
     for(size_t i = 0; i < meshes.size(); i++)
     {
-        meshes[i].Draw(shader_program);
+        meshes[i].Draw(program);
     }
 }
 
