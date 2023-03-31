@@ -1,5 +1,3 @@
-#include <X11/Xlib.h>
-#include <cstddef>
 #include<iostream>
 
 #include<GL/glew.h>
@@ -8,8 +6,9 @@
 #include"../include/vmath.h"
 #include"../include/glshaderloader.h"
 #include"../include/testeffect.h"
-#include "../include/hdr.h"
+#include"../include/hdr.h"
 #include"../include/windowing.h"
+#include"../include/errorlog.h"
 
 using namespace std;
 using namespace vmath;
@@ -23,10 +22,16 @@ void setupProgram(void) {
 }
 
 void init(void) {
-	hdr = new HDR(1.5f, 1.0f, 2048);
-	
-	initTestEffect();
-	hdr->init();
+	try {
+		//Object Creation
+		hdr = new HDR(1.5f, 1.0f, 2048);
+
+		//Inititalize
+		initTestEffect();
+		hdr->init();
+	} catch(string errorString) {
+		throwErr(errorString);
+	}
 }
 
 void render(glwindow* window) {
@@ -68,17 +73,23 @@ void uninit(void) {
 }
 
 int main(int argc, char **argv) {
-	glwindow* window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
-	init();
-	setupProgram();
-	window->setKeyboardFunc(keyboard);
-	window->toggleFullscreen();
-	while(!window->isClosed()) {
-		window->processEvents();
-		render(window);
-		window->swapBuffers();
+	try {
+		glwindow* window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
+		init();
+		setupProgram();
+		window->setKeyboardFunc(keyboard);
+		window->toggleFullscreen();
+		while(!window->isClosed()) {
+			window->processEvents();
+			render(window);
+			window->swapBuffers();
+		}
+		uninit();
+		delete window;
+	} catch(string errorString) {
+#ifdef DEBUG
+		cerr<<errorString;
+#endif
 	}
-	uninit();
-	delete window;
 	return 0;
 }

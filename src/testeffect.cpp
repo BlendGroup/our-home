@@ -27,7 +27,7 @@ void initTestEffect() {
 	glGenVertexArrays(1, &tempVao);
 	glBindVertexArray(tempVao);
 
-	createTexture2D(texture, "resources/textures/demo.png", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+	texture = createTexture2D("resources/textures/demo.png", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 }
 
 void renderTestEffect() {
