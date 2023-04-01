@@ -98,6 +98,10 @@ GLint glshaderprogram::getUniformLocation(string uniformName) {
 	return this->uniforms[uniformName];
 }
 
+GLuint glshaderprogram::getProgramObject(){
+	return this->programObject;
+}
+
 glshaderprogram::~glshaderprogram() {
 	glDeleteProgram(this->programObject);
 }

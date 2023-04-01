@@ -40,7 +40,8 @@ void rvModel::initShaders(glshaderprogram* shader_program)
     for(int i = 0; i < MAX_BONES; i++)
     {
         std::string name = "gBones["+std::to_string(i)+"]";
-        m_bone_location[i] = shader_program->getUniformLocation(name);
+        //m_bone_location[i] = shader_program->getUniformLocation(name);
+		m_bone_location[i] = glGetUniformLocation(shader_program->getProgramObject(),name.c_str());
     }
 }
 
@@ -183,6 +184,12 @@ void rvModel::loadModel(const std::string& path)
 	for(auto &itr : m_bone_mapping)
 	{
 		fprintf(pFile, "Bone name : %s, index : %d\n", itr.first.c_str(),itr.second);
+	}
+
+	fprintf(pFile, "Textures Loaded\n");
+	for(auto tex : textures_loaded)
+	{
+		fprintf(pFile, "Texture path %s : type %s\n",tex.path.c_str(),tex.type.c_str());
 	}
     fprintf(pFile,"Load Model Done Successfuly\n");
     fclose(pFile);

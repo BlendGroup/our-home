@@ -5,7 +5,8 @@
 #include <string>
 
 void setupProgramTestModel();
-void initTestModel(std::string path);
+void initTestModel(std::string path,bool gStatic);
 void renderTestModel(vmath::mat4 perspective);
 void uninitTestModel();
+void keyboardfuncModel(int key);
 #endif

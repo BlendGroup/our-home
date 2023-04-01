@@ -20,6 +20,7 @@ static HDR* hdr;
 
 // temporary arrangement
 string modelPath;
+bool gStatic;
 
 void setupProgram(void) {
 	setupProgramTestModel();
@@ -27,9 +28,12 @@ void setupProgram(void) {
 }
 
 void init(void) {
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glClearColor(0.0,0.25f,0.25f,1.0f);
 	hdr = new HDR(1.5f, 1.0f, 2048);
 	//"resources/backpack/backpack.obj"
-	initTestModel(modelPath);
+	initTestModel(modelPath,gStatic);
 	hdr->init();
 }
 
@@ -41,7 +45,8 @@ void render(glwindow* window) {
 		glViewport(0, 0, window->getSize().width, window->getSize().height);
 	}
 
-	glClearBufferfv(GL_COLOR, 0, vec4(0.5f, 1.0f, 0.2f, 1.0f));
+	//glClearBufferfv(GL_COLOR, 0, vec4(0.5f, 1.0f, 0.2f, 1.0f));
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	mat4 perspectiveMat = perspective(45.0f,(GLfloat) window->getSize().width / window->getSize().height, 0.01f, 100000.0f);
 	renderTestModel(perspectiveMat);
 	
@@ -63,6 +68,7 @@ void keyboard(glwindow* window, int key) {
 		break;
 	}
 	hdr->keyboardfunc(key);
+	keyboardfuncModel(key);
 }
 
 void uninit(void) {
@@ -72,14 +78,15 @@ void uninit(void) {
 	delete hdr;
 }
 
-int main(int argc, char **argv) {
-	if(argc < 2)
+int main(int argc, char *argv[]) {
+	if(argc < 3)
 	{
-		cout<<"Enter Model Path as Parameter\n";
+		cout<<"usage 1 : model_path 2 : static/dynamic\n";
 		exit(1);		
 	}
 
 	modelPath = string(argv[1]);
+	gStatic = ("static" == string(argv[2])) ? true : false;
 	glwindow* window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
 	init();
 	setupProgram();

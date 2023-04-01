@@ -12,5 +12,5 @@ if [[ $1 == "DEBUG" ]]; then
 	fi
 else
 	g++ lib/*.cpp src/*.cpp -lX11 -lGL -lGLEW  -lassimp -o main.run
-	./main.run $1
+	./main.run $1 $2
 fi

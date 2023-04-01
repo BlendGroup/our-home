@@ -1,16 +1,142 @@
 Loading Model
 Success::ASSIMP::MODEL::ReadFile Successs
-ASSIMP::MODEL:: Directory-> resources/backpack
+ASSIMP::MODEL:: Directory-> resources/vampire
 scene->mNumMeshes : 1
 scene->mNumMaterials : 1
 scene->HasTextures() : False
 	Name nodes : 
-Data : = backpack.obj
-Data : = Plane.008
-Mesh Data : Plane.008, Num Vertices : 51523, indices 203721 Bones : 0.
-Material Name : Material
-Texture path :: resources/backpack/diffuse.jpg
-Texture path :: resources/backpack/specular.jpg
-scene->HasAnimations() : False Num Animations : 0
+Data : = RootNode
+Data : = Hips
+Data : = Spine
+Data : = Spine1
+Data : = Spine2
+Data : = Neck
+Data : = Head
+Data : = HeadTop_End
+Data : = LeftShoulder
+Data : = LeftArm
+Data : = LeftForeArm
+Data : = LeftHand
+Data : = LeftHandThumb1
+Data : = LeftHandThumb2
+Data : = LeftHandThumb3
+Data : = LeftHandThumb4
+Data : = LeftHandIndex1
+Data : = LeftHandIndex2
+Data : = LeftHandIndex3
+Data : = LeftHandIndex4
+Data : = LeftHandMiddle1
+Data : = LeftHandMiddle2
+Data : = LeftHandMiddle3
+Data : = LeftHandMiddle4
+Data : = LeftHandRing1
+Data : = LeftHandRing2
+Data : = LeftHandRing3
+Data : = LeftHandRing4
+Data : = LeftHandPinky1
+Data : = LeftHandPinky2
+Data : = LeftHandPinky3
+Data : = LeftHandPinky4
+Data : = RightShoulder
+Data : = RightArm
+Data : = RightForeArm
+Data : = RightHand
+Data : = RightHandThumb1
+Data : = RightHandThumb2
+Data : = RightHandThumb3
+Data : = RightHandThumb4
+Data : = RightHandIndex1
+Data : = RightHandIndex2
+Data : = RightHandIndex3
+Data : = RightHandIndex4
+Data : = RightHandMiddle1
+Data : = RightHandMiddle2
+Data : = RightHandMiddle3
+Data : = RightHandMiddle4
+Data : = RightHandRing1
+Data : = RightHandRing2
+Data : = RightHandRing3
+Data : = RightHandRing4
+Data : = RightHandPinky1
+Data : = RightHandPinky2
+Data : = RightHandPinky3
+Data : = RightHandPinky4
+Data : = LeftUpLeg
+Data : = LeftLeg
+Data : = LeftFoot
+Data : = LeftToeBase
+Data : = LeftToe_End
+Data : = RightUpLeg
+Data : = RightLeg
+Data : = RightFoot
+Data : = RightToeBase
+Data : = RightToe_End
+Data : = Vampire
+Mesh Data : Vampire-lib, Num Vertices : 10567, indices 45066 Bones : 52.
+Material Name : Vampire_MAT
+Texture path :: resources/vampire/textures/Vampire_diffuse.png
+Texture path :: resources/vampire/textures/Vampire_specular.png
+Texture path :: resources/vampire/textures/Vampire_emission.png
+scene->HasAnimations() : True Num Animations : 1
+scene->mAnimations[0]->mDuration : 3433.333008
+scene->mAnimations[0]->mTicksPerSecond :  1000.000000
+scene->mAnimations[0]->Channels : 52
+scene->mAnimations[0]->mNumChannels : 52
 bone map info
+Bone name : Head, index : 46
+Bone name : Hips, index : 51
+Bone name : LeftArm, index : 44
+Bone name : LeftFoot, index : 5
+Bone name : LeftForeArm, index : 43
+Bone name : LeftHand, index : 42
+Bone name : LeftHandIndex1, index : 38
+Bone name : LeftHandIndex2, index : 37
+Bone name : LeftHandIndex3, index : 36
+Bone name : LeftHandMiddle1, index : 35
+Bone name : LeftHandMiddle2, index : 34
+Bone name : LeftHandMiddle3, index : 33
+Bone name : LeftHandPinky1, index : 29
+Bone name : LeftHandPinky2, index : 28
+Bone name : LeftHandPinky3, index : 27
+Bone name : LeftHandRing1, index : 32
+Bone name : LeftHandRing2, index : 31
+Bone name : LeftHandRing3, index : 30
+Bone name : LeftHandThumb1, index : 41
+Bone name : LeftHandThumb2, index : 40
+Bone name : LeftHandThumb3, index : 39
+Bone name : LeftLeg, index : 6
+Bone name : LeftShoulder, index : 45
+Bone name : LeftToeBase, index : 4
+Bone name : LeftUpLeg, index : 7
+Bone name : Neck, index : 47
+Bone name : RightArm, index : 25
+Bone name : RightFoot, index : 1
+Bone name : RightForeArm, index : 24
+Bone name : RightHand, index : 23
+Bone name : RightHandIndex1, index : 19
+Bone name : RightHandIndex2, index : 18
+Bone name : RightHandIndex3, index : 17
+Bone name : RightHandMiddle1, index : 16
+Bone name : RightHandMiddle2, index : 15
+Bone name : RightHandMiddle3, index : 14
+Bone name : RightHandPinky1, index : 10
+Bone name : RightHandPinky2, index : 9
+Bone name : RightHandPinky3, index : 8
+Bone name : RightHandRing1, index : 13
+Bone name : RightHandRing2, index : 12
+Bone name : RightHandRing3, index : 11
+Bone name : RightHandThumb1, index : 22
+Bone name : RightHandThumb2, index : 21
+Bone name : RightHandThumb3, index : 20
+Bone name : RightLeg, index : 2
+Bone name : RightShoulder, index : 26
+Bone name : RightToeBase, index : 0
+Bone name : RightUpLeg, index : 3
+Bone name : Spine, index : 50
+Bone name : Spine1, index : 49
+Bone name : Spine2, index : 48
+Textures Loaded
+Texture path textures/Vampire_diffuse.png : type texture_diffuse
+Texture path textures/Vampire_specular.png : type texture_specular
+Texture path textures/Vampire_emission.png : type texture_emissive
 Load Model Done Successfuly
