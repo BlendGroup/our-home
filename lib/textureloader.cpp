@@ -4,9 +4,10 @@
 
 using namespace std;
 
-string createTexture2D(GLuint &texId, string filename, GLint minFilter, GLint magFilter, GLint wrapS, GLint wrapT) {
+GLuint createTexture2D(string filename, GLint minFilter, GLint magFilter, GLint wrapS, GLint wrapT) {
 	int w, h, channels;
 
+	GLuint texId;
 	glGenTextures(1, &texId);
 	glBindTexture(GL_TEXTURE_2D, texId);
 	stbi_uc* data = stbi_load(filename.c_str(), &w, &h, &channels, 4);
@@ -19,5 +20,5 @@ string createTexture2D(GLuint &texId, string filename, GLint minFilter, GLint ma
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	glBindTexture(GL_TEXTURE_2D, 0);
-	return "";
+	return texId;
 }

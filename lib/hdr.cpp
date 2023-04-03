@@ -21,16 +21,16 @@ HDR::HDR(GLfloat exposure, GLfloat fade, GLsizei size) {
 }
 
 void HDR::setupProgram(void) {
-    try {
-        program = new glshaderprogram({"src/shaders/hdr.vert", "src/shaders/hdr.frag"});
-    } catch (string errorString) {
-        cout << errorString<<endl;
-    }
+	try {
+		program = new glshaderprogram({"src/shaders/hdr.vert", "src/shaders/hdr.frag"});
+	} catch (string errorString) {
+		throwErr(errorString);
+	}
 }
 
 void HDR::init(void) {
-    glGenVertexArrays(1, &tempVao);
-    glBindVertexArray(tempVao);
+	glGenVertexArrays(1, &tempVao);
+	glBindVertexArray(tempVao);
 	glGenFramebuffers(1, &this->FBO);
 	glGenTextures(1, &this->Tex);
 	glBindTexture(GL_TEXTURE_2D, this->Tex);
@@ -55,19 +55,15 @@ void HDR::init(void) {
 }
 
 void HDR::render(void) {
-    try {
-        program->use();
-        // program->printUniforms();
-		glUniform1i(program->getUniformLocation("hdrTex"), 0);
-        glUniform1f(program->getUniformLocation("exposure"), this->exposure);
-        glUniform1f(program->getUniformLocation("fade"), this->fade);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, this->Tex);
-        glBindVertexArray(tempVao);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    } catch (string errorString) {
-        cout << errorString << endl;
-    }
+	program->use();
+	// program->printUniforms();
+	glUniform1i(program->getUniformLocation("hdrTex"), 0);
+	glUniform1f(program->getUniformLocation("exposure"), this->exposure);
+	glUniform1f(program->getUniformLocation("fade"), this->fade);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, this->Tex);
+	glBindVertexArray(tempVao);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 GLuint HDR::getFBO(void) {
@@ -98,5 +94,5 @@ void HDR::keyboardfunc(int key) {
 }
 
 void HDR::uninit(void) {
-    delete program;
+	delete program;
 }

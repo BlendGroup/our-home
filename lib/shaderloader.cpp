@@ -1,3 +1,4 @@
+#include<iostream>
 #include<fstream>
 #include<sstream>
 #include"../include/errorlog.h"
@@ -81,9 +82,9 @@ glshaderprogram::glshaderprogram(initializer_list<std::string> shaderList, int v
 	}
 }
 
-void glshaderprogram::printUniforms(void) {
+void glshaderprogram::printUniforms(ostream &out) {
 	for(pair<string, GLuint> uniform : this->uniforms) {
-		cout<<uniform.first<<" at "<<uniform.second<<endl;
+		out<<uniform.first<<" at "<<uniform.second<<endl;
 	}
 }
 

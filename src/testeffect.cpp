@@ -3,6 +3,7 @@
 #include"../include/glshaderloader.h"
 #include"../include/gltextureloader.h"
 #include"../include/vmath.h"
+#include"../include/errorlog.h"
 
 #include"../include/testeffect.h"
 
@@ -14,20 +15,24 @@ static GLuint texture;
 
 void setupProgramTestEffect() {
 	try {
-		program = new glshaderprogram({"src/shaders/point.vert", "src/shaders/point.frag"});
+		program = new glshaderprogram({"src/shaders/point.ver", "src/shaders/point.frag"});
 	} catch(string errorString) {
-		cout<<errorString<<endl;
+		throwErr(errorString);
 	}
 }
 
 void initTestEffect() {
-	glPointSize(480.0f);
+	try {
+		glPointSize(480.0f);
 
-	GLuint tempVao;
-	glGenVertexArrays(1, &tempVao);
-	glBindVertexArray(tempVao);
+		GLuint tempVao;
+		glGenVertexArrays(1, &tempVao);
+		glBindVertexArray(tempVao);
 
-	createTexture2D(texture, "resources/textures/demo.png", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+		texture = createTexture2D("resources/textures/demo.png", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+	} catch(string errorString) {
+		throwErr(errorString);
+	}
 }
 
 void renderTestEffect() {
@@ -38,7 +43,7 @@ void renderTestEffect() {
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glDrawArrays(GL_POINTS, 0, 1);
 	} catch(string errorString) {
-		cout<<errorString<<endl;
+		throwErr(errorString);
 	}
 }
 
