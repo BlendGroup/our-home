@@ -1,7 +1,7 @@
 #ifndef __SHADER_LOADER__
 #define __SHADER_LOADER__
 
-#include<iostream>
+#include<string>
 #include<vector>
 #include<unordered_map>
 #include<initializer_list>
@@ -20,7 +20,7 @@ public:
 	glshaderprogram(std::initializer_list<std::string> shaderList, int version = 460, int profile = DL_SHADER_CORE);
 	void use(void);
 	GLint getUniformLocation(std::string uniformName);
-	void printUniforms(void);
+	void printUniforms(std::ostream &out);
 	~glshaderprogram(void);
 };
 

@@ -17,8 +17,12 @@ static bool hdrEnabled = false;
 static HDR* hdr;
 
 void setupProgram(void) {
-	setupProgramTestEffect();
-	hdr->setupProgram();
+	try {
+		setupProgramTestEffect();
+		hdr->setupProgram();
+	} catch(string errorString) {
+		throwErr(errorString);
+	}
 }
 
 void init(void) {
@@ -35,21 +39,25 @@ void init(void) {
 }
 
 void render(glwindow* window) {
-	if(hdrEnabled) {
-		glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
-		glViewport(0, 0, hdr->getSize(), hdr->getSize());
-	} else {
-		glViewport(0, 0, window->getSize().width, window->getSize().height);
-	}
+	try {
+		if(hdrEnabled) {
+			glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
+			glViewport(0, 0, hdr->getSize(), hdr->getSize());
+		} else {
+			glViewport(0, 0, window->getSize().width, window->getSize().height);
+		}
 
-	glClearBufferfv(GL_COLOR, 0, vec4(0.5f, 1.0f, 0.2f, 1.0f));
-	renderTestEffect();
+		glClearBufferfv(GL_COLOR, 0, vec4(0.5f, 1.0f, 0.2f, 1.0f));
+		renderTestEffect();
 
-	if(hdrEnabled) {
-		glBindFramebuffer(GL_FRAMEBUFFER,0);
-		glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
-		glViewport(0, 0, window->getSize().width, window->getSize().height);
-		hdr->render();
+		if(hdrEnabled) {
+			glBindFramebuffer(GL_FRAMEBUFFER,0);
+			glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
+			glViewport(0, 0, window->getSize().width, window->getSize().height);
+			hdr->render();
+		}
+	} catch(string errorString) {
+		throwErr(errorString);
 	}
 }
 
