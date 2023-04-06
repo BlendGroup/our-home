@@ -6,6 +6,7 @@
 #include"../include/vmath.h"
 #include"../include/glshaderloader.h"
 #include"../include/testeffect.h"
+#include"../include/testmodel.h"
 #include"../include/hdr.h"
 #include"../include/windowing.h"
 #include"../include/errorlog.h"
@@ -18,7 +19,8 @@ static HDR* hdr;
 
 void setupProgram(void) {
 	try {
-		setupProgramTestEffect();
+		// setupProgramTestEffect();
+		setupProgramTestModel();
 		hdr->setupProgram();
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -31,8 +33,11 @@ void init(void) {
 		hdr = new HDR(1.5f, 1.0f, 2048);
 
 		//Inititalize
-		initTestEffect();
+		// initTestEffect();
+		initTestModel();
 		hdr->init();
+
+		glEnable(GL_DEPTH_TEST);
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -48,7 +53,9 @@ void render(glwindow* window) {
 		}
 
 		glClearBufferfv(GL_COLOR, 0, vec4(0.5f, 1.0f, 0.2f, 1.0f));
-		renderTestEffect();
+		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
+		renderTestModel();
+		// renderTestEffect();
 
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
@@ -74,7 +81,8 @@ void keyboard(glwindow* window, int key) {
 }
 
 void uninit(void) {
-	uninitTestEffect();
+	// uninitTestEffect();
+	uninitTestModel();
 	hdr->uninit();
 
 	delete hdr;
