@@ -73,16 +73,18 @@ struct glanimator_dl {
 	float m_DeltaTime;
 };
 
-struct glmodel_dl {
+class glmodel {
+private:
+public:
 	std::vector<glmesh_dl> meshes;
 	std::vector<glanimator_dl> animator;
 	std::unordered_map<std::string, BoneInfoDL> m_BoneInfoMap;
 	int m_BoneCounter = 0;
+	glmodel(std::string path, unsigned flags);
+	void setBoneMatrixUniform(int i, int uniformLocation);
+	std::string update(float delta, int i);
+	void draw(int instance = 1);
 };
 
-std::string createModel(glmodel_dl* model, std::string path, unsigned flags, int vPosAttr = -1, int vNorAttr = -1, int vTexAttrib = -1, int vTanAttrib = -1, int vBitAttriib = -1, int vBoneIDAttrib = -1, int vWeightAttrib = -1);
-void setBoneMatrixUniform(glmodel_dl *model, int i, int uniformLocation);
-std::string updateModel(glmodel_dl *model, float delta, int i);
-void drawModel(glmodel_dl *model, int instance = 1);
 
 #endif

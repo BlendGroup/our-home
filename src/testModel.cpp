@@ -13,7 +13,7 @@ using namespace vmath;
 
 static glshaderprogram* program;
 static GLuint texture;
-static glmodel_dl model;
+static glmodel* model;
 
 #define DYNAMIC 1
 
@@ -32,9 +32,9 @@ void setupProgramTestModel() {
 void initTestModel() {
 	try {
 #if DYNAMIC
-		cout<<createModel(&model, "resources/models/vampire/dancing_vampire.dae", aiProcess_FlipUVs, 0, 1, 2, -1, -1, 3, 4);
+		model = new glmodel("resources/models/vampire/dancing_vampire.dae", aiProcess_FlipUVs);
 #else
-		cout<<createModel(&model, "resources/models/backpack/backpack.obj", 0, 0, 1, 2);
+		model = new glmodel("resources/models/backpack/backpack.obj", 0);
 #endif
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -48,12 +48,12 @@ void renderTestModel() {
 		glUniformMatrix4fv(program->getUniformLocation("vMat"), 1, GL_FALSE, lookat(vec3(0.0f, 0.0f, 6.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)));
 #if DYNAMIC
 		glUniformMatrix4fv(program->getUniformLocation("mMat"), 1, GL_FALSE, rotate(0.0f, vec3(0.0f, 1.0f, 0.0f)) * translate(0.0f, -0.7f, 0.0f) * scale(1.5f));
-		cout<<updateModel(&model, 0.01f, 0);
-		setBoneMatrixUniform(&model, 0, 3);
+		model->update(0.01f, 0);
+		model->setBoneMatrixUniform(0, 3);
 #else
 		glUniformMatrix4fv(program->getUniformLocation("mMat"), 1, GL_FALSE, rotate(0.0f, vec3(0.0f, 1.0f, 0.0f)));
 #endif
-		drawModel(&model);
+		model->draw();
 	} catch(string errorString) {
 		throwErr(errorString);
 	}

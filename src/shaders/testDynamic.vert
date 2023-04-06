@@ -3,8 +3,8 @@
 layout(location = 0)in vec4 vPos;
 layout(location = 1)in vec3 vNor;
 layout(location = 2)in vec2 vTex;
-layout(location = 3)in ivec4 vBoneIds;
-layout(location = 4)in vec4 vWeights;
+layout(location = 5)in ivec4 vBoneIds;
+layout(location = 6)in vec4 vWeights;
 
 layout(location = 0)uniform mat4 pMat;
 layout(location = 1)uniform mat4 vMat;

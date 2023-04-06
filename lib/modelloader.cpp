@@ -13,6 +13,7 @@
 #include"../include/gltextureloader.h"
 #include"../include/vmath.h"
 #include"../include/glmodelloader.h"
+#include"../include/errorlog.h"
 
 using namespace vmath;
 using namespace std;
@@ -68,7 +69,7 @@ void readHeirarchyData(AssimpNodeDataDL& dest, const aiNode* src) {
 	}
 }
 
-string createAnimator(const aiScene* scene, glmodel_dl *model) {
+string createAnimator(const aiScene* scene, glmodel *model) {
 	for(int i = 0; i < scene->mNumAnimations; i++) {
 		glanimator_dl animator;
 		aiAnimation* animation = scene->mAnimations[i];
@@ -131,7 +132,7 @@ string createAnimator(const aiScene* scene, glmodel_dl *model) {
 	return "";
 }
 
-string createMesh(const aiScene* scene, glmodel_dl *model, string directory, int vPosAttr, int vNorAttr, int vTexAttrib, int vTanAttrib, int vBitAttrib, int vBoneIDAttrib, int vWeightAttrib) {
+string createMesh(const aiScene* scene, glmodel *model, string directory) {
 	//Process Node Tree
 	unordered_map<string, unsigned> loadedTexture;
 	stringstream errStr;
@@ -229,34 +230,20 @@ string createMesh(const aiScene* scene, glmodel_dl *model, string directory, int
 			glBindBuffer(GL_ARRAY_BUFFER, VBO);
 			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
-			if(vPosAttr >= 0) {
-				glEnableVertexAttribArray(vPosAttr);
-				glVertexAttribPointer(vPosAttr, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Position));
-			}
-			if(vNorAttr >= 0) {
-				glEnableVertexAttribArray(vNorAttr);
-				glVertexAttribPointer(vNorAttr, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
-			}
-			if(vTexAttrib >= 0) {
-				glEnableVertexAttribArray(vTexAttrib);
-				glVertexAttribPointer(vTexAttrib, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
-			}
-			if(vTanAttrib >= 0) {
-				glEnableVertexAttribArray(vTanAttrib);
-				glVertexAttribPointer(vTanAttrib, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
-			}
-			if(vBitAttrib >= 0) {
-				glEnableVertexAttribArray(vBitAttrib);
-				glVertexAttribPointer(vBitAttrib, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
-			}
-			if(vBoneIDAttrib >= 0) {
-				glEnableVertexAttribArray(vBoneIDAttrib);
-				glVertexAttribIPointer(vBoneIDAttrib, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, BoneIDs));
-			}
-			if(vWeightAttrib >= 0) {
-				glEnableVertexAttribArray(vWeightAttrib);
-				glVertexAttribPointer(vWeightAttrib, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Weights));
-			}
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Position));
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
+			glEnableVertexAttribArray(2);
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+			glEnableVertexAttribArray(3);
+			glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
+			glEnableVertexAttribArray(4);
+			glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
+			glEnableVertexAttribArray(5);
+			glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, BoneIDs));
+			glEnableVertexAttribArray(6);
+			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Weights));
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
@@ -273,29 +260,25 @@ string createMesh(const aiScene* scene, glmodel_dl *model, string directory, int
 	return errStr.str();
 }
 
-string createModel(glmodel_dl* model, string path, unsigned flags, int vPosAttr, int vNorAttr, int vTexAttrib, int vTanAttrib, int vBitAttrib, int vBoneIDAttrib, int vWeightAttrib) {
+glmodel::glmodel(string path, unsigned flags) {
 	//Open File
 	stringstream errStr;
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path, flags);
 	if(!scene) {
-		errStr<<"Error: Assimp could not load scene for '"<<path<<"'"<<endl;
-		return errStr.str();
+		throwErr("Error: Assimp could not load scene for '" + path + "'");
 	} else if(scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
-		errStr<<"Error: Assimp scene incomplete for '"<<path<<"'"<<endl;
-		return errStr.str();
+		throwErr("Error: Assimp scene incomplete for '" + path + "'");
 	} else if(!scene->mRootNode) {
-		errStr<<"Error: Assimp root node empty for '"<<path<<"'"<<endl;
-		return errStr.str();
+		throwErr("Error: Assimp root node empty for '" + path + "'");
 	}
 	if(scene->HasMeshes()) {
-		errStr<<createMesh(scene, model, path.substr(0, path.find_last_of('/')), vPosAttr, vNorAttr, vTexAttrib, vTanAttrib, vBitAttrib, vBoneIDAttrib, vWeightAttrib);
+		errStr<<createMesh(scene, this, path.substr(0, path.find_last_of('/')));
 	}
 
 	if(scene->HasAnimations()) {
-		errStr<<createAnimator(scene, model);
+		errStr<<createAnimator(scene, this);
 	}
-	return errStr.str();
 }
 
 void calculateBoneTransform(glanimator_dl* a, const AssimpNodeDataDL* node, mat4 parentTransform) {
@@ -381,10 +364,10 @@ void calculateBoneTransform(glanimator_dl* a, const AssimpNodeDataDL* node, mat4
 	}
 }
 
-void setBoneMatrixUniform(glmodel_dl *model, int i, int uniformLocation) {
+void glmodel::setBoneMatrixUniform(int i, int uniformLocation) {
 	vector<mat4> m;
-	if(i < model->animator.size() && i >= 0) {
-		m = model->animator[i].m_FinalBoneMatrices;
+	if(i < this->animator.size() && i >= 0) {
+		m = this->animator[i].m_FinalBoneMatrices;
 	} else {
 		if(boneArrayDefault.empty()) {
 			for(int i = 0; i < MAX_BONE_COUNT; i++) {
@@ -396,29 +379,29 @@ void setBoneMatrixUniform(glmodel_dl *model, int i, int uniformLocation) {
 	glUniformMatrix4fv(uniformLocation, MAX_BONE_COUNT, GL_FALSE, *m.data());
 }
 
-string updateModel(glmodel_dl *mo, float dt, int i) {
-	if(i < mo->animator.size()) {
-		mo->animator[i].m_DeltaTime = dt;
-		mo->animator[i].m_CurrentTime += mo->animator[i].m_TicksPerSecond * dt;
-		mo->animator[i].m_CurrentTime = fmod(mo->animator[i].m_CurrentTime, mo->animator[i].m_Duration);
-		calculateBoneTransform(&mo->animator[i], &mo->animator[i].m_RootNode, mat4::identity());
+string glmodel::update(float dt, int i) {
+	if(i < this->animator.size()) {
+		this->animator[i].m_DeltaTime = dt;
+		this->animator[i].m_CurrentTime += this->animator[i].m_TicksPerSecond * dt;
+		this->animator[i].m_CurrentTime = fmod(this->animator[i].m_CurrentTime, this->animator[i].m_Duration);
+		calculateBoneTransform(&this->animator[i], &this->animator[i].m_RootNode, mat4::identity());
 		return "";
 	} else {
 		return "Error: Animation not found\n";
 	}
 }
 
-void drawModel(glmodel_dl *mo, int instance) {
-	for(unsigned int i = 0; i < mo->meshes.size(); i++) {
-		if(mo->meshes[i].diffuseTextures.size() > 0) {
+void glmodel::draw(int instance) {
+	for(unsigned int i = 0; i < this->meshes.size(); i++) {
+		if(this->meshes[i].diffuseTextures.size() > 0) {
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, mo->meshes[i].diffuseTextures[0]);
+			glBindTexture(GL_TEXTURE_2D, this->meshes[i].diffuseTextures[0]);
 		}
-		if(mo->meshes[i].specularTextures.size() > 0) {
+		if(this->meshes[i].specularTextures.size() > 0) {
 			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, mo->meshes[i].specularTextures[0]);
+			glBindTexture(GL_TEXTURE_2D, this->meshes[i].specularTextures[0]);
 		}
-		glBindVertexArray(mo->meshes[i].vao);
-		glDrawElementsInstanced(GL_TRIANGLES, mo->meshes[i].trianglePointCount, GL_UNSIGNED_INT, 0, instance);
+		glBindVertexArray(this->meshes[i].vao);
+		glDrawElementsInstanced(GL_TRIANGLES, this->meshes[i].trianglePointCount, GL_UNSIGNED_INT, 0, instance);
 	}
 }
