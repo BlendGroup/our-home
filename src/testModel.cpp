@@ -49,7 +49,7 @@ void renderTestModel() {
 #if DYNAMIC
 		glUniformMatrix4fv(program->getUniformLocation("mMat"), 1, GL_FALSE, rotate(0.0f, vec3(0.0f, 1.0f, 0.0f)) * translate(0.0f, -0.7f, 0.0f) * scale(1.5f));
 		model->update(0.01f, 0);
-		model->setBoneMatrixUniform(0, 3);
+		model->setBoneMatrixUniform(program->getUniformLocation("bMat[0]"), 0);
 #else
 		glUniformMatrix4fv(program->getUniformLocation("mMat"), 1, GL_FALSE, rotate(0.0f, vec3(0.0f, 1.0f, 0.0f)));
 #endif

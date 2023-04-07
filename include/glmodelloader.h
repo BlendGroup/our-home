@@ -69,7 +69,7 @@ public:
 	std::unordered_map<std::string, BoneInfo> boneInfoMap;
 	int boneCounter = 0;
 	glmodel(std::string path, unsigned flags);
-	void setBoneMatrixUniform(int uniformLocation, int i);
+	void setBoneMatrixUniform(GLuint uniformLocation, unsigned i);
 	void update(float delta, int i);
 	void draw(int instance = 1);
 };

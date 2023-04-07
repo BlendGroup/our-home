@@ -372,7 +372,7 @@ void calculateBoneTransform(glmodel* model, glanimator* a, const AssimpNodeData*
 	}
 }
 
-void glmodel::setBoneMatrixUniform(int i, int uniformLocation) {
+void glmodel::setBoneMatrixUniform(GLuint uniformLocation, unsigned i) {
 	vector<mat4> m;
 	if(i < this->animator.size() && i >= 0) {
 		m = this->animator[i].finalBoneMatrices;
