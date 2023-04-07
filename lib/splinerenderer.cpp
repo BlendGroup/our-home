@@ -48,7 +48,7 @@ void SplineRenderer::loadGeometry(void)
 	glBindBuffer(GL_ARRAY_BUFFER, m_vboSpline);
 
 	/** !!! BE CAREFUL WHILE REFACTORING FOR vec3 !!! **/
-	glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(float) * allPositions.size(), allPositions.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * allPositions.size(), allPositions.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 	glEnableVertexAttribArray(0);
 
@@ -57,7 +57,7 @@ void SplineRenderer::loadGeometry(void)
 	glBindBuffer(GL_ARRAY_BUFFER, m_vboCtrlPoly);
 
 	/** !!! BE CAREFUL WHILE REFACTORING FOR vec3 !!! **/
-	glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(float) * m_ctrlps->size(), m_ctrlps->data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * m_ctrlps->size(), m_ctrlps->data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 	glEnableVertexAttribArray(0);
 
