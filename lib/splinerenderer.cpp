@@ -4,7 +4,7 @@ using namespace std;
 using namespace vmath;
 
 /*********************************************************************/
-/*                       	 	SplineRenderer       	             */
+/*                              SplineRenderer                       */
 /*********************************************************************/
 SplineRenderer::SplineRenderer(SplineInterpolator *interpolator, const float linspace)
 	: m_interpolator(interpolator),
@@ -98,8 +98,8 @@ void SplineRenderer::renderPoints(mat4 &viewMatrix, mat4 &projMatrix)
 	{
 		glUniformMatrix4fv(0, 1, GL_FALSE,
 						   projMatrix * viewMatrix *
-							translate(point[0], point[1], point[2]) *
-								scale(0.1f, 0.1f, 0.1f));
+							   translate(point[0], point[1], point[2]) *
+							   scale(0.1f, 0.1f, 0.1f));
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
 }
@@ -115,8 +115,8 @@ void SplineRenderer::renderControlPoints(mat4 &viewMatrix, mat4 &projMatrix)
 	{
 		glUniformMatrix4fv(0, 1, GL_FALSE,
 						   projMatrix * viewMatrix *
-							translate(ctrlp[0], ctrlp[1], ctrlp[2]) *
-								scale(0.1f, 0.1f, 0.1f));
+							   translate(ctrlp[0], ctrlp[1], ctrlp[2]) *
+							   scale(0.1f, 0.1f, 0.1f));
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
 }
