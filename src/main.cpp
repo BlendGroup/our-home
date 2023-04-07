@@ -6,10 +6,7 @@
 #include"../include/vmath.h"
 #include"../include/glshaderloader.h"
 #include"../include/testeffect.h"
-<<<<<<< Updated upstream
-=======
 #include"../include/testcamera.h"
->>>>>>> Stashed changes
 #include"../include/hdr.h"
 #include"../include/windowing.h"
 #include"../include/errorlog.h"
@@ -22,11 +19,8 @@ static HDR* hdr;
 
 void setupProgram(void) {
 	try {
-		setupProgramTestEffect();
-<<<<<<< Updated upstream
-=======
+		// setupProgramTestEffect();
 		setupProgramTestCamera();
->>>>>>> Stashed changes
 		hdr->setupProgram();
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -39,14 +33,11 @@ void init(void) {
 		hdr = new HDR(1.5f, 1.0f, 2048);
 
 		//Inititalize
-<<<<<<< Updated upstream
-		initTestEffect();
-=======
+		// initTestEffect();
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
 		// initTestEffect();
 		initTestCamera();
->>>>>>> Stashed changes
 		hdr->init();
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -64,13 +55,10 @@ void render(glwindow* window) {
 
 		glClearBufferfv(GL_COLOR, 0, vec4(0.5f, 1.0f, 0.2f, 1.0f));
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
-<<<<<<< Updated upstream
-		renderTestModel();
+		// renderTestModel();
 		// renderTestEffect();
-=======
 		// renderTestEffect();
 		renderTestCamera(window->getSize().width, window->getSize().height);
->>>>>>> Stashed changes
 
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
@@ -96,11 +84,8 @@ void keyboard(glwindow* window, int key) {
 }
 
 void uninit(void) {
-	uninitTestEffect();
-<<<<<<< Updated upstream
-=======
+	// uninitTestEffect();
 	uninitTestCamera();
->>>>>>> Stashed changes
 	hdr->uninit();
 
 	delete hdr;
