@@ -9,68 +9,57 @@
 #define MAX_BONE_COUNT 100
 #define MAX_BONE_INFLUENCE 4
 
-struct Vertex {
-	vmath::vec3 Position;
-	vmath::vec3 Normal;
-	vmath::vec2 TexCoords;
-	vmath::vec3 Tangent;
-	vmath::vec3 Bitangent;
-	int BoneIDs[MAX_BONE_INFLUENCE];
-	float Weights[MAX_BONE_INFLUENCE];
-};
-
-struct BoneInfoDL {
+struct BoneInfo {
 	int id;
 	vmath::mat4 offset;
 };
 
-struct AssimpNodeDataDL {
+struct AssimpNodeData {
 	vmath::mat4 transformation;
 	std::string name;
 	int childrenCount;
-	std::vector<AssimpNodeDataDL> children;
+	std::vector<AssimpNodeData> children;
 };
 
-struct KeyPositionDL {
+struct KeyPosition {
 	vmath::vec3 position;
 	float timeStamp;
 };
 
-struct KeyRotationDL {
+struct KeyRotation {
 	vmath::quaternion orientation;
 	float timeStamp;
 };
 
-struct KeyScaleDL {
+struct KeyScale {
 	vmath::vec3 scale;
 	float timeStamp;
 };
 
 struct glmesh_dl {
-	unsigned int vao;
-	unsigned int trianglePointCount;
-	std::vector<unsigned> diffuseTextures;
-	std::vector<unsigned> specularTextures;
+	GLuint vao;
+	size_t trianglePointCount;
+	GLuint diffuseTextures;
+	GLuint specularTextures;
 };
 
 struct glbone_dl {
-	int m_ID;
-	std::string m_Name;
-	std::vector<KeyPositionDL> m_Positions;
-	std::vector<KeyRotationDL> m_Rotations;
-	std::vector<KeyScaleDL> m_Scales;
-	vmath::mat4 m_LocalTransform;
+	int id;
+	std::string name;
+	std::vector<KeyPosition> positions;
+	std::vector<KeyRotation> rotations;
+	std::vector<KeyScale> scales;
+	vmath::mat4 localTransform;
 };
 
 struct glanimator_dl {
-	std::vector<vmath::mat4> m_FinalBoneMatrices;
-	float m_Duration;
-	int m_TicksPerSecond;
-	std::vector<glbone_dl> m_Bones;
-	AssimpNodeDataDL m_RootNode;
-	std::unordered_map<std::string, BoneInfoDL> m_BoneInfoMap;
-	float m_CurrentTime;
-	float m_DeltaTime;
+	std::vector<vmath::mat4> finalBoneMatrices;
+	float duration;
+	int ticksPerSecond;
+	std::vector<glbone_dl> bones;
+	AssimpNodeData rootNode;
+	std::unordered_map<std::string, BoneInfo> boneInfoMap;
+	float currentTime;
 };
 
 class glmodel {
@@ -78,11 +67,11 @@ private:
 public:
 	std::vector<glmesh_dl> meshes;
 	std::vector<glanimator_dl> animator;
-	std::unordered_map<std::string, BoneInfoDL> m_BoneInfoMap;
-	int m_BoneCounter = 0;
+	std::unordered_map<std::string, BoneInfo> boneInfoMap;
+	int boneCounter = 0;
 	glmodel(std::string path, unsigned flags);
-	void setBoneMatrixUniform(int i, int uniformLocation);
-	std::string update(float delta, int i);
+	void setBoneMatrixUniform(int uniformLocation, int i);
+	void update(float delta, int i);
 	void draw(int instance = 1);
 };
 

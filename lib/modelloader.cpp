@@ -18,6 +18,16 @@
 using namespace vmath;
 using namespace std;
 
+struct Vertex {
+	vec3 Position;
+	vec3 Normal;
+	vec2 TexCoords;
+	vec3 Tangent;
+	vec3 Bitangent;
+	int BoneIDs[MAX_BONE_INFLUENCE];
+	float Weights[MAX_BONE_INFLUENCE];
+};
+
 static vector<mat4> boneArrayDefault;
 
 mat4 convertMatrixToVmathFormat(const aiMatrix4x4* from) {
@@ -29,20 +39,20 @@ mat4 convertMatrixToVmathFormat(const aiMatrix4x4* from) {
 	return to;
 }
 
-string loadMaterialTextures(aiMaterial *mat, aiTextureType type, string directory, vector<unsigned> &textureVector) {
-	stringstream errStr;
-	for(unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
+GLuint loadMaterialTextures(aiMaterial *mat, aiTextureType type, string directory) {
+	if(mat->GetTextureCount(type) > 0) {
 		aiString str;
-		mat->GetTexture(type, i, &str);
-		textureVector.push_back(createTexture2D(directory + '/' + str.C_Str()));
+		mat->GetTexture(type, 0, &str);
+		return createTexture2D(directory + '/' + str.C_Str());
+	} else {
+		return 0;
 	}
-	return errStr.str();
 }
 
 glbone_dl* findBone(glanimator_dl* a, string name) {
-	for(int i = 0; i < a->m_Bones.size(); i++) {
-		if(a->m_Bones[i].m_Name == name) {
-			return &a->m_Bones[i];
+	for(int i = 0; i < a->bones.size(); i++) {
+		if(a->bones[i].name == name) {
+			return &a->bones[i];
 		}
 	}
 	return NULL;
@@ -56,87 +66,83 @@ float getScaleFactor(float lastTimeStamp, float nextTimeStamp, float animationTi
 	return scaleFactor;
 }
 
-void readHeirarchyData(AssimpNodeDataDL& dest, const aiNode* src) {
+void readHeirarchyData(AssimpNodeData& dest, const aiNode* src) {
 	dest.name = src->mName.data;
 	dest.transformation = convertMatrixToVmathFormat(&src->mTransformation);
 	dest.childrenCount = src->mNumChildren;
 
 	for (int i = 0; i < src->mNumChildren; i++)
 	{
-		AssimpNodeDataDL newData;
+		AssimpNodeData newData;
 		readHeirarchyData(newData, src->mChildren[i]);
 		dest.children.push_back(newData);
 	}
 }
 
-string createAnimator(const aiScene* scene, glmodel *model) {
+void createAnimator(const aiScene* scene, glmodel *model) {
 	for(int i = 0; i < scene->mNumAnimations; i++) {
 		glanimator_dl animator;
 		aiAnimation* animation = scene->mAnimations[i];
-		animator.m_CurrentTime = 0.0;
+		animator.currentTime = 0.0;
 		for (int i = 0; i < 100; i++)
-			animator.m_FinalBoneMatrices.push_back(mat4::identity());
+			animator.finalBoneMatrices.push_back(mat4::identity());
 
-		animator.m_Duration = animation->mDuration;
-		animator.m_TicksPerSecond = animation->mTicksPerSecond;
+		animator.duration = animation->mDuration;
+		animator.ticksPerSecond = animation->mTicksPerSecond;
 		aiMatrix4x4 globalTransformation = scene->mRootNode->mTransformation;
 		globalTransformation = globalTransformation.Inverse();
-		readHeirarchyData(animator.m_RootNode, scene->mRootNode);
+		readHeirarchyData(animator.rootNode, scene->mRootNode);
 
 		for (int i = 0; i < animation->mNumChannels; i++) {
 			aiNodeAnim* channel = animation->mChannels[i];
 			string boneName = channel->mNodeName.C_Str();
 
-			if (model->m_BoneInfoMap.count(boneName) == 0) {
-				model->m_BoneInfoMap[boneName].id = model->m_BoneCounter;
-				model->m_BoneCounter++;
+			if (model->boneInfoMap.count(boneName) == 0) {
+				model->boneInfoMap[boneName].id = model->boneCounter;
+				model->boneCounter++;
 			}
 			glbone_dl b;
-			b.m_Name = channel->mNodeName.C_Str();
-			b.m_ID = model->m_BoneInfoMap[channel->mNodeName.data].id;
-			b.m_LocalTransform = mat4::identity();
+			b.name = channel->mNodeName.C_Str();
+			b.id = model->boneInfoMap[channel->mNodeName.data].id;
+			b.localTransform = mat4::identity();
 			for (int positionIndex = 0; positionIndex < channel->mNumPositionKeys; ++positionIndex)
 			{
 				aiVector3D aiPosition = channel->mPositionKeys[positionIndex].mValue;
 				float timeStamp = channel->mPositionKeys[positionIndex].mTime;
-				KeyPositionDL data;
+				KeyPosition data;
 				data.position = vec3(aiPosition.x, aiPosition.y, aiPosition.z);
 				data.timeStamp = timeStamp;
-				b.m_Positions.push_back(data);
+				b.positions.push_back(data);
 			}
 
 			for (int rotationIndex = 0; rotationIndex < channel->mNumRotationKeys; ++rotationIndex)
 			{
 				aiQuaternion aiOrientation = channel->mRotationKeys[rotationIndex].mValue;
 				float timeStamp = channel->mRotationKeys[rotationIndex].mTime;
-				KeyRotationDL data;
+				KeyRotation data;
 				data.orientation = quaternion(aiOrientation.w, vec3(aiOrientation.x, aiOrientation.y, aiOrientation.z));
 				data.timeStamp = timeStamp;
-				b.m_Rotations.push_back(data);
+				b.rotations.push_back(data);
 			}
 
 			for (int keyIndex = 0; keyIndex < channel->mNumScalingKeys; ++keyIndex)
 			{
 				aiVector3D scale = channel->mScalingKeys[keyIndex].mValue;
 				float timeStamp = channel->mScalingKeys[keyIndex].mTime;
-				KeyScaleDL data;
+				KeyScale data;
 				data.scale = vec3(scale.x, scale.y, scale.z);
 				data.timeStamp = timeStamp;
-				b.m_Scales.push_back(data);
+				b.scales.push_back(data);
 			}
-			animator.m_Bones.push_back(b);
+			animator.bones.push_back(b);
 		}
-		animator.m_BoneInfoMap = model->m_BoneInfoMap;
+		animator.boneInfoMap = model->boneInfoMap;
 		model->animator.push_back(animator);
 	}
-	return "";
 }
 
-string createMesh(const aiScene* scene, glmodel *model, string directory) {
+void createMesh(const aiScene* scene, glmodel *model, string directory) {
 	//Process Node Tree
-	unordered_map<string, unsigned> loadedTexture;
-	stringstream errStr;
-			
 	stack<aiNode*> nodeTreeStack;
 	nodeTreeStack.push(scene->mRootNode);
 	while(!nodeTreeStack.empty()) {
@@ -153,7 +159,11 @@ string createMesh(const aiScene* scene, glmodel *model, string directory) {
 			//Fill Vertices
 			for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
 				Vertex vertex;
-				vertex.Position = vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+				if(mesh->HasPositions()) {
+					vertex.Position = vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+				} else {
+					vertex.Position = vec3(0.0f, 0.0f, 0.0f);
+				}
 				if(mesh->HasNormals()) {
 					vertex.Normal = vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
 				} else {
@@ -188,22 +198,22 @@ string createMesh(const aiScene* scene, glmodel *model, string directory) {
 
 			//Fill Textures
 			aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-			errStr<<loadMaterialTextures(material, aiTextureType_DIFFUSE, directory, m.diffuseTextures);
-			errStr<<loadMaterialTextures(material, aiTextureType_SPECULAR, directory, m.specularTextures);
+			m.diffuseTextures = loadMaterialTextures(material, aiTextureType_DIFFUSE, directory);
+			m.specularTextures = loadMaterialTextures(material, aiTextureType_SPECULAR, directory);
 
 			// Fill Bones and Weights
 			for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
 				int boneID = -1;
 				string boneName = mesh->mBones[boneIndex]->mName.C_Str();
-				if (model->m_BoneInfoMap.count(boneName) == 0) {
-					BoneInfoDL newBoneInfo;
-					newBoneInfo.id = model->m_BoneCounter;
+				if (model->boneInfoMap.count(boneName) == 0) {
+					BoneInfo newBoneInfo;
+					newBoneInfo.id = model->boneCounter;
 					newBoneInfo.offset = convertMatrixToVmathFormat(&mesh->mBones[boneIndex]->mOffsetMatrix);
-					model->m_BoneInfoMap[boneName] = newBoneInfo;
-					boneID = model->m_BoneCounter;
-					model->m_BoneCounter++;
+					model->boneInfoMap[boneName] = newBoneInfo;
+					boneID = model->boneCounter;
+					model->boneCounter++;
 				} else {
-					boneID = model->m_BoneInfoMap[boneName].id;
+					boneID = model->boneInfoMap[boneName].id;
 				}
 				aiVertexWeight* weights = mesh->mBones[boneIndex]->mWeights;
 				int numWeights = mesh->mBones[boneIndex]->mNumWeights;
@@ -256,13 +266,10 @@ string createMesh(const aiScene* scene, glmodel *model, string directory) {
 			nodeTreeStack.push(node->mChildren[i]);
 		}
 	}
-
-	return errStr.str();
 }
 
 glmodel::glmodel(string path, unsigned flags) {
 	//Open File
-	stringstream errStr;
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path, flags);
 	if(!scene) {
@@ -273,21 +280,23 @@ glmodel::glmodel(string path, unsigned flags) {
 		throwErr("Error: Assimp root node empty for '" + path + "'");
 	}
 	if(scene->HasMeshes()) {
-		errStr<<createMesh(scene, this, path.substr(0, path.find_last_of('/')));
+		createMesh(scene, this, path.substr(0, path.find_last_of('/')));
 	}
 
 	if(scene->HasAnimations()) {
-		errStr<<createAnimator(scene, this);
+		createAnimator(scene, this);
 	}
+
+	importer.FreeScene();
 }
 
-void calculateBoneTransform(glanimator_dl* a, const AssimpNodeDataDL* node, mat4 parentTransform) {
+void calculateBoneTransform(glanimator_dl* a, const AssimpNodeData* node, mat4 parentTransform) {
 	string nodeName = node->name;
 	mat4 nodeTransform = node->transformation;
 
-	glbone_dl* Bone = findBone(a, nodeName);
+	glbone_dl* bone = findBone(a, nodeName);
 
-	if(Bone) {	
+	if(bone) {	
 		mat4 translationMat;
 		mat4 rotationMat;
 		mat4 scalingMat;
@@ -295,68 +304,68 @@ void calculateBoneTransform(glanimator_dl* a, const AssimpNodeDataDL* node, mat4
 		int p1Index = -1;
 
 		//Calculate Translation
-		if (Bone->m_Positions.size() == 1) {
-			translationMat = translate(Bone->m_Positions[0].position);
+		if (bone->positions.size() == 1) {
+			translationMat = translate(bone->positions[0].position);
 		} else {
-			for(p0Index = 0; p0Index < Bone->m_Positions.size() - 1; ++p0Index) {
-				if (a->m_CurrentTime < Bone->m_Positions[p0Index + 1].timeStamp) {
+			for(p0Index = 0; p0Index < bone->positions.size() - 1; ++p0Index) {
+				if (a->currentTime < bone->positions[p0Index + 1].timeStamp) {
 					break;
 				}
 			}
-			if(p0Index == Bone->m_Positions.size() - 1) {
-				translationMat = translate(Bone->m_Positions[p0Index].position);
+			if(p0Index == bone->positions.size() - 1) {
+				translationMat = translate(bone->positions[p0Index].position);
 			} else {
 				p1Index = p0Index + 1;
-				translationMat = translate(mix(Bone->m_Positions[p0Index].position, Bone->m_Positions[p1Index].position, getScaleFactor(Bone->m_Positions[p0Index].timeStamp, Bone->m_Positions[p1Index].timeStamp, a->m_CurrentTime)));
+				translationMat = translate(mix(bone->positions[p0Index].position, bone->positions[p1Index].position, getScaleFactor(bone->positions[p0Index].timeStamp, bone->positions[p1Index].timeStamp, a->currentTime)));
 			}
 		}
 
 		//Calculate Rotation
-		if (Bone->m_Rotations.size() == 1) {
-			rotationMat = quaternionToMatrix(normalize(Bone->m_Rotations[0].orientation));
+		if (bone->rotations.size() == 1) {
+			rotationMat = quaternionToMatrix(normalize(bone->rotations[0].orientation));
 		} else {
-			for(p0Index = 0; p0Index < Bone->m_Rotations.size() - 1; ++p0Index) {
-				if (a->m_CurrentTime < Bone->m_Rotations[p0Index + 1].timeStamp) {
+			for(p0Index = 0; p0Index < bone->rotations.size() - 1; ++p0Index) {
+				if (a->currentTime < bone->rotations[p0Index + 1].timeStamp) {
 					break;
 				}
 			}
-			if(p0Index == Bone->m_Rotations.size() - 1) {
-				rotationMat = quaternionToMatrix(normalize(Bone->m_Rotations[p0Index].orientation));
+			if(p0Index == bone->rotations.size() - 1) {
+				rotationMat = quaternionToMatrix(normalize(bone->rotations[p0Index].orientation));
 			} else {
 				p1Index = p0Index + 1;
-				rotationMat = quaternionToMatrix(normalize(slerp(Bone->m_Rotations[p0Index].orientation, Bone->m_Rotations[p1Index].orientation, getScaleFactor(Bone->m_Rotations[p0Index].timeStamp, Bone->m_Rotations[p1Index].timeStamp, a->m_CurrentTime))));
+				rotationMat = quaternionToMatrix(normalize(slerp(bone->rotations[p0Index].orientation, bone->rotations[p1Index].orientation, getScaleFactor(bone->rotations[p0Index].timeStamp, bone->rotations[p1Index].timeStamp, a->currentTime))));
 			}
 		}
 
 		//Calculate Scale
-		if (Bone->m_Scales.size() == 1) {
-			scalingMat = scale(Bone->m_Scales[0].scale);
+		if (bone->scales.size() == 1) {
+			scalingMat = scale(bone->scales[0].scale);
 		} else {
-			for(p0Index = 0; p0Index < Bone->m_Scales.size() - 1; ++p0Index) {
-				if (a->m_CurrentTime < Bone->m_Scales[p0Index + 1].timeStamp) {
+			for(p0Index = 0; p0Index < bone->scales.size() - 1; ++p0Index) {
+				if (a->currentTime < bone->scales[p0Index + 1].timeStamp) {
 					break;
 				}
 			}
-			if(p0Index == Bone->m_Scales.size() - 1) {
-				scalingMat = scale(Bone->m_Scales[p0Index].scale);
+			if(p0Index == bone->scales.size() - 1) {
+				scalingMat = scale(bone->scales[p0Index].scale);
 			} else {
 				p1Index = p0Index + 1;
-				scalingMat = scale(mix(Bone->m_Scales[p0Index].scale, Bone->m_Scales[p1Index].scale, getScaleFactor(Bone->m_Scales[p0Index].timeStamp, Bone->m_Scales[p1Index].timeStamp, a->m_CurrentTime)));
+				scalingMat = scale(mix(bone->scales[p0Index].scale, bone->scales[p1Index].scale, getScaleFactor(bone->scales[p0Index].timeStamp, bone->scales[p1Index].timeStamp, a->currentTime)));
 			}
 		}
 
-		Bone->m_LocalTransform = translationMat * rotationMat * scalingMat;
-		nodeTransform = Bone->m_LocalTransform;
+		bone->localTransform = translationMat * rotationMat * scalingMat;
+		nodeTransform = bone->localTransform;
 	}
 
 	mat4 globalTransformation = parentTransform * nodeTransform;
 
-	unordered_map<string, BoneInfoDL> boneInfoMap = a->m_BoneInfoMap;
+	unordered_map<string, BoneInfo> boneInfoMap = a->boneInfoMap;
 	if (boneInfoMap.count(nodeName) != 0)
 	{
 		int index = boneInfoMap[nodeName].id;
 		mat4 offset = boneInfoMap[nodeName].offset;
-		a->m_FinalBoneMatrices[index] = globalTransformation * offset;
+		a->finalBoneMatrices[index] = globalTransformation * offset;
 	}
 
 	for (int i = 0; i < node->childrenCount; i++) {
@@ -367,7 +376,7 @@ void calculateBoneTransform(glanimator_dl* a, const AssimpNodeDataDL* node, mat4
 void glmodel::setBoneMatrixUniform(int i, int uniformLocation) {
 	vector<mat4> m;
 	if(i < this->animator.size() && i >= 0) {
-		m = this->animator[i].m_FinalBoneMatrices;
+		m = this->animator[i].finalBoneMatrices;
 	} else {
 		if(boneArrayDefault.empty()) {
 			for(int i = 0; i < MAX_BONE_COUNT; i++) {
@@ -379,28 +388,20 @@ void glmodel::setBoneMatrixUniform(int i, int uniformLocation) {
 	glUniformMatrix4fv(uniformLocation, MAX_BONE_COUNT, GL_FALSE, *m.data());
 }
 
-string glmodel::update(float dt, int i) {
+void glmodel::update(float dt, int i) {
 	if(i < this->animator.size()) {
-		this->animator[i].m_DeltaTime = dt;
-		this->animator[i].m_CurrentTime += this->animator[i].m_TicksPerSecond * dt;
-		this->animator[i].m_CurrentTime = fmod(this->animator[i].m_CurrentTime, this->animator[i].m_Duration);
-		calculateBoneTransform(&this->animator[i], &this->animator[i].m_RootNode, mat4::identity());
-		return "";
-	} else {
-		return "Error: Animation not found\n";
+		this->animator[i].currentTime += this->animator[i].ticksPerSecond * dt;
+		this->animator[i].currentTime = fmod(this->animator[i].currentTime, this->animator[i].duration);
+		calculateBoneTransform(&this->animator[i], &this->animator[i].rootNode, mat4::identity());
 	}
 }
 
 void glmodel::draw(int instance) {
 	for(unsigned int i = 0; i < this->meshes.size(); i++) {
-		if(this->meshes[i].diffuseTextures.size() > 0) {
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, this->meshes[i].diffuseTextures[0]);
-		}
-		if(this->meshes[i].specularTextures.size() > 0) {
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, this->meshes[i].specularTextures[0]);
-		}
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, this->meshes[i].diffuseTextures);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, this->meshes[i].specularTextures);
 		glBindVertexArray(this->meshes[i].vao);
 		glDrawElementsInstanced(GL_TRIANGLES, this->meshes[i].trianglePointCount, GL_UNSIGNED_INT, 0, instance);
 	}
