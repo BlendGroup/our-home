@@ -7,13 +7,13 @@ using namespace vmath;
 /*********************************************************************/
 /*                        CubicBezierInterpolator                    */
 /*********************************************************************/
-CubicBezierInterpolator::CubicBezierInterpolator(vector<vec3> &inCtrlps)
+CubicBezierInterpolator::CubicBezierInterpolator(const vector<vec3> &inCtrlps)
 {
     m_ctrlps = inCtrlps;
     m_nSplines = inCtrlps.size() / 3;
 }
 
-CubicBezierInterpolator::CubicBezierInterpolator(MatrixX3f &inCtrlps)
+CubicBezierInterpolator::CubicBezierInterpolator(const MatrixX3f &inCtrlps)
 {
     for (auto ctrlp : inCtrlps.rowwise())
     {
@@ -22,7 +22,7 @@ CubicBezierInterpolator::CubicBezierInterpolator(MatrixX3f &inCtrlps)
     m_nSplines = inCtrlps.rows() / 3;
 }
 
-vec3 CubicBezierInterpolator::lerp(vec3 &A, vec3 &B, const float t)
+vec3 CubicBezierInterpolator::lerp(const vec3 &A, const vec3 &B, const float t)
 {
     vec3 out;
     out[0] = (1.0f - t) * A[0] + t * B[0];
@@ -31,14 +31,14 @@ vec3 CubicBezierInterpolator::lerp(vec3 &A, vec3 &B, const float t)
     return out;
 }
 
-vec3 CubicBezierInterpolator::quadraticBezier(vec3 &A, vec3 &B, vec3 &C, const float t)
+vec3 CubicBezierInterpolator::quadraticBezier(const vec3 &A, const vec3 &B, const vec3 &C, const float t)
 {
     vec3 D = lerp(A, B, t);
     vec3 E = lerp(B, C, t);
     return lerp(D, E, t);
 }
 
-vec3 CubicBezierInterpolator::cubicBezier(vec3 &A, vec3 &B, vec3 &C, vec3 &D, const float t)
+vec3 CubicBezierInterpolator::cubicBezier(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D, const float t)
 {
     vec3 E = lerp(A, B, t);
     vec3 F = lerp(B, C, t);
@@ -80,7 +80,7 @@ CubicBezierInterpolator::~CubicBezierInterpolator() {}
 /*********************************************************************/
 /*                          BsplineInterpolator                      */
 /*********************************************************************/
-BsplineInterpolator::BsplineInterpolator(vector<vec3> &points)
+BsplineInterpolator::BsplineInterpolator(const vector<vec3> &points)
 {
     /* get points in Eigen matrix form */
     int row = 0;

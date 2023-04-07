@@ -169,3 +169,5 @@ SplineRenderer::~SplineRenderer()
 		m_program = NULL;
 	}
 }
+
+/********************************** EOF ******************************/

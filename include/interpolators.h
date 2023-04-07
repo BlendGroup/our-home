@@ -25,12 +25,12 @@ private:
     std::vector<vmath::vec3> m_ctrlps;
     int m_nSplines;
 
-    vmath::vec3 lerp(vmath::vec3 &A, vmath::vec3 &B, const float t);
-    vmath::vec3 quadraticBezier(vmath::vec3 &A, vmath::vec3 &B, vmath::vec3 &C, const float t);
-    vmath::vec3 cubicBezier(vmath::vec3 &A, vmath::vec3 &B, vmath::vec3 &C, vmath::vec3 &D, const float t);
+    vmath::vec3 lerp(const vmath::vec3 &A, const vmath::vec3 &B, const float t);
+    vmath::vec3 quadraticBezier(const vmath::vec3 &A, const vmath::vec3 &B, const vmath::vec3 &C, const float t);
+    vmath::vec3 cubicBezier(const vmath::vec3 &A, const vmath::vec3 &B, const vmath::vec3 &C, const vmath::vec3 &D, const float t);
 public:
-    CubicBezierInterpolator(std::vector<vmath::vec3> &inCtrlps);
-    CubicBezierInterpolator(Eigen::MatrixX3f &inCtrlps);
+    CubicBezierInterpolator(const std::vector<vmath::vec3> &inCtrlps);
+    CubicBezierInterpolator(const Eigen::MatrixX3f &inCtrlps);
     ~CubicBezierInterpolator();
     float getDistanceOnSpline(const float t);
     vmath::vec3 interpolate(const float t) override;
@@ -50,7 +50,7 @@ private:
 
     Eigen::MatrixX3f getCubicBezierControlPoints(void);
 public:
-    BsplineInterpolator(std::vector<vmath::vec3> &points);
+    BsplineInterpolator(const std::vector<vmath::vec3> &points);
     ~BsplineInterpolator();
     float getDistanceOnSpline(const float t);
     vmath::vec3 interpolate(const float t) override;
