@@ -36,14 +36,14 @@ struct KeyScale {
 	float timeStamp;
 };
 
-struct glmesh_dl {
+struct glmesh {
 	GLuint vao;
 	size_t trianglePointCount;
 	GLuint diffuseTextures;
 	GLuint specularTextures;
 };
 
-struct glbone_dl {
+struct glbone {
 	int id;
 	std::string name;
 	std::vector<KeyPosition> positions;
@@ -52,21 +52,20 @@ struct glbone_dl {
 	vmath::mat4 localTransform;
 };
 
-struct glanimator_dl {
+struct glanimator {
 	std::vector<vmath::mat4> finalBoneMatrices;
 	float duration;
 	int ticksPerSecond;
-	std::vector<glbone_dl> bones;
+	std::vector<glbone> bones;
 	AssimpNodeData rootNode;
-	std::unordered_map<std::string, BoneInfo> boneInfoMap;
 	float currentTime;
 };
 
 class glmodel {
 private:
 public:
-	std::vector<glmesh_dl> meshes;
-	std::vector<glanimator_dl> animator;
+	std::vector<glmesh> meshes;
+	std::vector<glanimator> animator;
 	std::unordered_map<std::string, BoneInfo> boneInfoMap;
 	int boneCounter = 0;
 	glmodel(std::string path, unsigned flags);
