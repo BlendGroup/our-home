@@ -15,7 +15,7 @@ static GLuint texture;
 
 void setupProgramTestEffect() {
 	try {
-		program = new glshaderprogram({"src/shaders/point.ver", "src/shaders/point.frag"});
+		program = new glshaderprogram({"src/shaders/point.vert", "src/shaders/point.frag"});
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
