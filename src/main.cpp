@@ -25,13 +25,21 @@ static debugCamera *debugcamera;
 static bool isDebugCameraOn = false;
 static bool isAnimating = false;
 
+#define SHOW_TEST_SCENE 		0
+#define SHOW_MODEL_SCENE 		1
+#define SHOW_CAMERA_SCENE 		0
+
 mat4 programglobal::perspective;
 
 void setupProgram(void) {
 	try {
 		// setupProgramTestEffect();
+#if SHOW_CAMERA_SCENE
 		setupProgramTestCamera();
-		// setupProgramTestModel();
+#endif
+#if SHOW_MODEL_SCENE
+		setupProgramTestModel();
+#endif
 		hdr->setupProgram();
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -54,8 +62,12 @@ void init(void) {
 
 		//Inititalize
 		// initTestEffect();
+#if SHOW_CAMERA_SCENE
 		initTestCamera();
-		// initTestModel();
+#endif
+#if SHOW_MODEL_SCENE
+		initTestModel();
+#endif
 		hdr->init();
 
 		glDepthFunc(GL_LEQUAL);
@@ -79,8 +91,12 @@ void render(glwindow* window) {
 		glClearBufferfv(GL_COLOR, 0, vec4(0.5f, 1.0f, 0.2f, 1.0f));
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().height, 0.1f, 1000.0f);
+#if SHOW_CAMERA_SCENE
 		renderTestCamera(currentCamera);
-		// renderTestModel();
+#endif
+#if SHOW_MODEL_SCENE
+		renderTestModel(dynamic_cast<camera*>(debugcamera));
+#endif
 		// renderTestEffect();
 
 		if(hdrEnabled) {
@@ -114,21 +130,23 @@ void keyboard(glwindow* window, int key) {
 		break;
 	}
 	hdr->keyboardfunc(key);
-	if(isDebugCameraOn) {
-		debugcamera->keyboardFunc(key);
-	}
+	debugcamera->keyboardFunc(key);
 }
 
 void mouse(glwindow* window, int button, int action, int x, int y) {
-	if(isDebugCameraOn && button == Button1) {
+	if(button == Button1) {
 		debugcamera->mouseFunc(action, x, y);
 	}
 }
 
 void uninit(void) {
 	// uninitTestEffect();
+#if SHOW_CAMERA_SCENE
 	uninitTestCamera();
-	// uninitTestModel();
+#endif
+#if SHOW_MODEL_SCENE
+	uninitTestModel();
+#endif
 	hdr->uninit();
 
 	delete hdr;
