@@ -1,7 +1,7 @@
 rm main.run
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./lib
 if [[ $1 == "DEBUG" ]]; then
-	g++ lib/*.cpp src/*.cpp -lX11 -lGL -lGLEW -lassimp -o main.run -g -D DEBUG
+	g++ lib/*.cpp src/*.cpp -I ./include -L ./lib -lX11 -lGL -lGLEW -lassimp -o main.run -g -D DEBUG
 	printf "Run using:\n1. qrenderdoc renderdocsettings.cap\n2. gdb main.run\n3. ./main.run\n"
 	if [[ $2 == 1 ]]; then
 		qrenderdoc renderdocsettings.cap
