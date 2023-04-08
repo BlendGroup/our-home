@@ -1,8 +1,9 @@
 #include<iostream>
 #include<memory.h>
 #include"../include/glshaderloader.h"
+#include"../include/camera.h"
 #include"../include/scenecamera.h"
-#include"../include/debugcamera.h"
+#include"../include/errorlog.h"
 #include"../include/global.h"
 
 using namespace std;
@@ -19,15 +20,29 @@ static struct test_camera_vbos {
 	GLuint cube;
 } vbos;
 
-static sceneCamera *camera;
-// static debugCamera *camera;
-
 void setupProgramTestCamera(void) {
     try {
 		testCameraProgram = new glshaderprogram({"src/shaders/testcamera.vert", "src/shaders/testcamera.frag"});
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
+}
+
+void setupSceneCameraTestCamera(sceneCamera* &scenecam) {
+	PathDescriptor path;
+	path.positionKeyFrames.push_back(vec3(0.0f, 20.0f, 35.0f));
+    path.positionKeyFrames.push_back(vec3(5.0f, 15.0f, 15.0f));
+    path.positionKeyFrames.push_back(vec3(-5.0f, 13.0f, 5.0f));
+    path.positionKeyFrames.push_back(vec3(-10.0f, 14.0f, 8.0f));
+    path.positionKeyFrames.push_back(vec3(-15.0f, 15.0f, 10.0f));
+
+	path.frontKeyFrames.push_back(vec3(0.0f, -1.0f, 0.0f));
+    path.frontKeyFrames.push_back(vec3(10.0f, -1.0f, 10.0f));
+    path.frontKeyFrames.push_back(vec3(0.0f, -1.0f, 5.0f));
+    path.frontKeyFrames.push_back(vec3(-8.0f, -1.0f, 5.0f));
+    path.frontKeyFrames.push_back(vec3(10.0f, 1.0f, 10.0f));
+
+	scenecam = new sceneCamera(&path);
 }
 
 void initTestCamera() {
@@ -105,31 +120,16 @@ void initTestCamera() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVerts), cubeVerts, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 	glEnableVertexAttribArray(0);
-
-
-	PathDescriptor path;
-	path.positionKeyFrames.push_back(vec3(0.0f, 20.0f, 35.0f));
-    path.positionKeyFrames.push_back(vec3(5.0f, 15.0f, 15.0f));
-    path.positionKeyFrames.push_back(vec3(-5.0f, 13.0f, 5.0f));
-    path.positionKeyFrames.push_back(vec3(-10.0f, 14.0f, 8.0f));
-    path.positionKeyFrames.push_back(vec3(-15.0f, 15.0f, 10.0f));
-
-	path.frontKeyFrames.push_back(vec3(0.0f, -1.0f, 0.0f));
-    path.frontKeyFrames.push_back(vec3(10.0f, -1.0f, 10.0f));
-    path.frontKeyFrames.push_back(vec3(0.0f, -1.0f, 5.0f));
-    path.frontKeyFrames.push_back(vec3(-8.0f, -1.0f, 5.0f));
-    path.frontKeyFrames.push_back(vec3(10.0f, 1.0f, 10.0f));
-
-    camera = new sceneCamera(&path);
-    // camera = new debugCamera(vec3(0.0f, 0.0f, 3.0f), -90.0f, 0.0f);
 }
 
-void renderTestCamera() {
+void renderTestCamera(camera* camera) {
+	if(camera == NULL) {
+		throwErr("Camera Not Inititalized Correctly");
+	}
+
 	testCameraProgram->use();
 	glUniformMatrix4fv(1, 1, GL_FALSE, camera->matrix());
 	glUniformMatrix4fv(2, 1, GL_FALSE, programglobal::perspective);
-
-	camera->updateT(0.001f);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glUniform1i(3, GL_TRUE);  // isPlane = true
@@ -173,14 +173,6 @@ void renderTestCamera() {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-void keyboardFuncTestCamera(unsigned key) {
-	// camera->keyboardFunc(key);
-}
-
-void mouseFuncTestCamera(int action, int x, int y) {
-	// camera->mouseFunc(action, x, y);
-}
-
 void uninitTestCamera(void) {
 	if(vbos.cube) {
 		glDeleteBuffers(1, &vbos.cube);
@@ -197,10 +189,6 @@ void uninitTestCamera(void) {
 	if(vaos.plane) {
 		glDeleteVertexArrays(1, &vaos.plane);
 		vaos.plane = 0;
-	}
-	if(camera) {
-		delete camera;
-		camera = NULL;
 	}
 	if(testCameraProgram) {
 		delete testCameraProgram;

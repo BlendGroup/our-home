@@ -7,6 +7,8 @@
 #include"../include/glshaderloader.h"
 #include"../include/testeffect.h"
 #include"../include/testcamera.h"
+#include"../include/scenecamera.h"
+#include"../include/debugcamera.h"
 #include"../include/testmodel.h"
 #include"../include/hdr.h"
 #include"../include/windowing.h"
@@ -18,6 +20,10 @@ using namespace vmath;
 
 static bool hdrEnabled = false;
 static HDR* hdr;
+static sceneCamera *scenecamera;
+static debugCamera *debugcamera;
+static bool isDebugCameraOn = false;
+static bool isAnimating = false;
 
 mat4 programglobal::perspective;
 
@@ -32,6 +38,15 @@ void setupProgram(void) {
 	}
 }
 
+void setupSceneCamera(void) {
+	try {
+		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
+		setupSceneCameraTestCamera(scenecamera);
+	} catch(string errorString) {
+		throwErr(errorString);
+	}
+}
+
 void init(void) {
 	try {
 		//Object Creation
@@ -39,13 +54,11 @@ void init(void) {
 
 		//Inititalize
 		// initTestEffect();
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL);
-		// initTestEffect();
 		initTestCamera();
 		// initTestModel();
 		hdr->init();
 
+		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -61,10 +74,12 @@ void render(glwindow* window) {
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 		}
 
+		camera* currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamera);
+
 		glClearBufferfv(GL_COLOR, 0, vec4(0.5f, 1.0f, 0.2f, 1.0f));
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
-		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().width, 0.1f, 1000.0f);
-		renderTestCamera();
+		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().height, 0.1f, 1000.0f);
+		renderTestCamera(currentCamera);
 		// renderTestModel();
 		// renderTestEffect();
 
@@ -79,6 +94,10 @@ void render(glwindow* window) {
 	}
 }
 
+void update(void) {
+	scenecamera->updateT(0.001f);
+}
+
 void keyboard(glwindow* window, int key) {
 	switch(key) {
 	case XK_Escape:
@@ -87,17 +106,22 @@ void keyboard(glwindow* window, int key) {
 	case XK_F1:
 		window->toggleFullscreen();
 		break;
+	case XK_F2:
+		isDebugCameraOn = !isDebugCameraOn;
+		break;
 	case XK_space:
-		hdrEnabled = !hdrEnabled;
+		isAnimating = !isAnimating;
 		break;
 	}
 	hdr->keyboardfunc(key);
-	keyboardFuncTestCamera(key);
+	if(isDebugCameraOn) {
+		debugcamera->keyboardFunc(key);
+	}
 }
 
 void mouse(glwindow* window, int button, int action, int x, int y) {
-	if(button == Button1) {
-		mouseFuncTestCamera(action, x, y);
+	if(isDebugCameraOn && button == Button1) {
+		debugcamera->mouseFunc(action, x, y);
 	}
 }
 
@@ -115,12 +139,16 @@ int main(int argc, char **argv) {
 		glwindow* window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
 		init();
 		setupProgram();
+		setupSceneCamera();
 		window->setKeyboardFunc(keyboard);
 		window->setMouseFunc(mouse);
 		window->setFullscreen(true);
 		while(!window->isClosed()) {
 			window->processEvents();
 			render(window);
+			if(isAnimating) {
+				update();
+			}
 			window->swapBuffers();
 		}
 		uninit();
