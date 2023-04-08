@@ -6,7 +6,7 @@ using namespace vmath;
 /*********************************************************************/
 /*                              SceneCamera                          */
 /*********************************************************************/
-SceneCamera::SceneCamera(const PathDescriptor *pdesc)
+sceneCamera::sceneCamera(const PathDescriptor *pdesc)
 {
     if (pdesc->positionKeyFrames.size() <= 0)
     {
@@ -24,12 +24,16 @@ SceneCamera::SceneCamera(const PathDescriptor *pdesc)
     m_pdesc = pdesc;
 }
 
-float SceneCamera::getDistanceOnSpline(const float t) const
+void sceneCamera::updateT(float speed) {
+	this->t = std::min(this->t + speed, 1.0f);
+}
+
+float sceneCamera::getDistanceOnSpline() const
 {
     return m_bspPositions->getDistanceOnSpline(t);
 }
 
-mat4 SceneCamera::matrix(const float t) const
+mat4 sceneCamera::matrix() const
 {
     static const vec3 up = vec3(0.0f, 1.0f, 0.0f);
     vec3 eye = m_bspPositions->interpolate(t);
@@ -37,7 +41,7 @@ mat4 SceneCamera::matrix(const float t) const
     return lookat(eye, center, up);
 }
 
-SceneCamera::~SceneCamera()
+sceneCamera::~sceneCamera()
 {
     if (m_bspFront)
     {

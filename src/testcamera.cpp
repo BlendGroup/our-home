@@ -3,6 +3,7 @@
 #include"../include/glshaderloader.h"
 #include"../include/scenecamera.h"
 #include"../include/debugcamera.h"
+#include"../include/global.h"
 
 using namespace std;
 using namespace vmath;
@@ -18,9 +19,8 @@ static struct test_camera_vbos {
 	GLuint cube;
 } vbos;
 
-static mat4 projMat;
-// static SceneCamera *camera;
-static debugCamera *camera;
+static sceneCamera *camera;
+// static debugCamera *camera;
 
 void setupProgramTestCamera(void) {
     try {
@@ -120,21 +120,16 @@ void initTestCamera() {
     path.frontKeyFrames.push_back(vec3(-8.0f, -1.0f, 5.0f));
     path.frontKeyFrames.push_back(vec3(10.0f, 1.0f, 10.0f));
 
-    // camera = new SceneCamera(&path);
-    camera = new debugCamera(vec3(0.0f, 0.0f, 3.0f), -90.0f, 0.0f);
+    camera = new sceneCamera(&path);
+    // camera = new debugCamera(vec3(0.0f, 0.0f, 3.0f), -90.0f, 0.0f);
 }
 
-void renderTestCamera(int winWidth, int winHeight) {
-	static float t = 0.0f;
-	projMat = perspective(45.0f, (float)winWidth / (float)winHeight, 0.01f, 100.0f);
-
+void renderTestCamera() {
 	testCameraProgram->use();
 	glUniformMatrix4fv(1, 1, GL_FALSE, camera->matrix());
-	glUniformMatrix4fv(2, 1, GL_FALSE, projMat);
+	glUniformMatrix4fv(2, 1, GL_FALSE, programglobal::perspective);
 
-	t += 0.001f;
-	if(t > 1.0f)
-		t = 1.0f;
+	camera->updateT(0.001f);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glUniform1i(3, GL_TRUE);  // isPlane = true
@@ -179,11 +174,11 @@ void renderTestCamera(int winWidth, int winHeight) {
 }
 
 void keyboardFuncTestCamera(unsigned key) {
-	camera->keyboardFunc(key);
+	// camera->keyboardFunc(key);
 }
 
 void mouseFuncTestCamera(int action, int x, int y) {
-	camera->mouseFunc(action, x, y);
+	// camera->mouseFunc(action, x, y);
 }
 
 void uninitTestCamera(void) {

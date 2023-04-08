@@ -5,6 +5,7 @@
 #include "../include/vmath.h"
 #include "../include/interpolators.h"
 #include "../include/errorlog.h"
+#include "../include/camera.h"
 
 struct PathDescriptor
 {
@@ -12,17 +13,19 @@ struct PathDescriptor
     std::vector<vmath::vec3> frontKeyFrames;
 };
 
-class SceneCamera
+class sceneCamera : public camera
 {
 private:
     BsplineInterpolator *m_bspPositions;
     BsplineInterpolator *m_bspFront;
     const PathDescriptor *m_pdesc;
+	float t;
 public:
-    SceneCamera(const PathDescriptor *pdesc);
-    ~SceneCamera();
-    float getDistanceOnSpline(const float t) const;
-    vmath::mat4 matrix(const float t) const;
+    sceneCamera(const PathDescriptor *pdesc);
+    ~sceneCamera();
+    float getDistanceOnSpline() const;
+	void updateT(float speed);
+    vmath::mat4 matrix() const override;
 };
 
 #endif // __SCENE_CAMERA_H__

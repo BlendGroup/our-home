@@ -67,7 +67,10 @@ void debugCamera::mouseFunc(int action, int x, int y) {
 	}
 }
 
-mat4 debugCamera::matrix() {
+mat4 debugCamera::matrix() const {
 	return lookat(this->position, this->front + this->position, upVector);
 }
 
+debugCamera::~debugCamera() {
+
+}

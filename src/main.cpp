@@ -11,12 +11,15 @@
 #include"../include/hdr.h"
 #include"../include/windowing.h"
 #include"../include/errorlog.h"
+#include"../include/global.h"
 
 using namespace std;
 using namespace vmath;
 
 static bool hdrEnabled = false;
 static HDR* hdr;
+
+mat4 programglobal::perspective;
 
 void setupProgram(void) {
 	try {
@@ -60,7 +63,8 @@ void render(glwindow* window) {
 
 		glClearBufferfv(GL_COLOR, 0, vec4(0.5f, 1.0f, 0.2f, 1.0f));
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
-		renderTestCamera(window->getSize().width, window->getSize().height);
+		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().width, 0.1f, 1000.0f);
+		renderTestCamera();
 		// renderTestModel();
 		// renderTestEffect();
 
