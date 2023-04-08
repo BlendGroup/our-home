@@ -6,10 +6,10 @@ layout(location = 2)in vec2 vTex;
 layout(location = 5)in ivec4 vBoneIds;
 layout(location = 6)in vec4 vWeights;
 
-layout(location = 0)uniform mat4 pMat;
-layout(location = 1)uniform mat4 vMat;
-layout(location = 2)uniform mat4 mMat;
-layout(location = 3)uniform mat4 bMat[100];
+uniform mat4 pMat;
+uniform mat4 vMat;
+uniform mat4 mMat;
+uniform mat4 bMat[100];
 
 out VS_OUT {
 	vec3 N;

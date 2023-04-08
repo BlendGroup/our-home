@@ -1,7 +1,7 @@
 #version 460 core
 
-layout(binding = 0)uniform sampler2D diffuseTexture;
-layout(binding = 1)uniform sampler2D specularTexture;
+uniform sampler2D diffuseTexture;
+uniform sampler2D specularTexture;
 
 layout(location = 0)out vec4 fragColor;
 
