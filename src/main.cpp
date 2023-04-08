@@ -80,11 +80,21 @@ void keyboard(glwindow* window, int key) {
 	case XK_Escape:
 		window->close();
 		break;
+	case XK_F1:
+		window->toggleFullscreen();
+		break;
 	case XK_space:
 		hdrEnabled = !hdrEnabled;
 		break;
 	}
 	hdr->keyboardfunc(key);
+	keyboardFuncTestCamera(key);
+}
+
+void mouse(glwindow* window, int button, int action, int x, int y) {
+	if(button == Button1) {
+		mouseFuncTestCamera(action, x, y);
+	}
 }
 
 void uninit(void) {
@@ -102,7 +112,8 @@ int main(int argc, char **argv) {
 		init();
 		setupProgram();
 		window->setKeyboardFunc(keyboard);
-		window->toggleFullscreen();
+		window->setMouseFunc(mouse);
+		window->setFullscreen(true);
 		while(!window->isClosed()) {
 			window->processEvents();
 			render(window);

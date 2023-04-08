@@ -1,4 +1,4 @@
-#include "../include/camera.h"
+#include "../include/scenecamera.h"
 
 using namespace std;
 using namespace vmath;

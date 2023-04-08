@@ -70,7 +70,7 @@ glwindow::glwindow(string name, int x, int y, int width, int height, int version
 	winAttribs.colormap = XCreateColormap(this->display, RootWindow(this->display, this->visualInfo->screen), this->visualInfo->visual, AllocNone);
 	this->colorMap = winAttribs.colormap;
 	winAttribs.background_pixel = BlackPixel(this->display, defaultScreen);
-	winAttribs.event_mask = ExposureMask | VisibilityChangeMask | ButtonPressMask | KeyPressMask | PointerMotionMask | StructureNotifyMask;
+	winAttribs.event_mask = ExposureMask | VisibilityChangeMask | ButtonPressMask | ButtonReleaseMask | KeyPressMask | ButtonMotionMask | StructureNotifyMask;
 	styleMask = CWBorderPixel | CWBackPixel | CWEventMask | CWColormap;
 
 	this->window = XCreateWindow(this->display, RootWindow(this->display, this->visualInfo->screen), x, y, width, height, 0, this->visualInfo->depth, InputOutput, this->visualInfo->visual, styleMask, &winAttribs);
@@ -108,6 +108,8 @@ void glwindow::processEvents(void) {
 	XEvent event;
 	KeySym keysym;
 
+	static unsigned currentButton;
+
 	while(XPending(this->display)) {
 		XNextEvent(this->display, &event);
 		switch(event.type) {
@@ -115,6 +117,23 @@ void glwindow::processEvents(void) {
 			keysym = XkbKeycodeToKeysym(this->display, event.xkey.keycode, 0, 0);
 			if(this->keyboardFunc) {
 				this->keyboardFunc(this, keysym);
+			}
+			break;
+		case ButtonPress:
+			currentButton = event.xbutton.button;
+			if(this->mouseFunc) {
+				this->mouseFunc(this, event.xbutton.button, MOUSE_BUTTON_PRESS, event.xbutton.x, event.xbutton.y);
+			}
+			break;
+		case ButtonRelease:
+			currentButton = 0;
+			if(this->mouseFunc) {
+				this->mouseFunc(this, event.xbutton.button, MOUSE_BUTTON_RELEASE, event.xbutton.x, event.xbutton.y);
+			}
+			break;
+		case MotionNotify:
+			if(this->mouseFunc) {
+				this->mouseFunc(this, currentButton, MOUSE_BUTTON_MOVE, event.xmotion.x, event.xmotion.y);
 			}
 			break;
 		case ConfigureNotify:
@@ -138,17 +157,22 @@ void glwindow::swapBuffers() {
 	glXSwapBuffers(this->display, this->window);
 }
 
-void glwindow::toggleFullscreen(void) {
-	static bool bFullscreen = false;
+void glwindow::setFullscreen(bool fullscreen) {
 	XEvent xev = {0};
 	memset(&xev, 0, sizeof(xev));
 	xev.type = ClientMessage;
 	xev.xclient.window = this->window;
 	xev.xclient.message_type = XInternAtom(this->display, "_NET_WM_STATE", False);;
 	xev.xclient.format = 32;
-	xev.xclient.data.l[0] = bFullscreen ? 0 : 1;
+	xev.xclient.data.l[0] = fullscreen ? 1 : 0;
 	xev.xclient.data.l[1] = XInternAtom(this->display, "_NET_WM_STATE_FULLSCREEN", False);
 	XSendEvent(this->display, RootWindow(this->display, this->visualInfo->screen), False, StructureNotifyMask, &xev);
+	this->fullscreen = fullscreen;
+}
+
+void glwindow::toggleFullscreen(void) {
+	this->fullscreen = !this->fullscreen;
+	setFullscreen(this->fullscreen);
 }
 
 glwindow::windowsize_t glwindow::getSize(void) {
@@ -169,6 +193,10 @@ void glwindow::close(void) {
 
 void glwindow::setKeyboardFunc(glwindowkeyboardfunc keyboardcallback) {
 	this->keyboardFunc = keyboardcallback;
+}
+
+void glwindow::setMouseFunc(glwindowmousefunc mousecallback) {
+	this->mouseFunc = mousecallback;
 }
 
 glwindow::~glwindow(void) {
