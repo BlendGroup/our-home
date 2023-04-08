@@ -26,8 +26,8 @@ static bool isDebugCameraOn = false;
 static bool isAnimating = false;
 
 #define SHOW_TEST_SCENE 		0
-#define SHOW_MODEL_SCENE 		1
-#define SHOW_CAMERA_SCENE 		0
+#define SHOW_MODEL_SCENE 		0
+#define SHOW_CAMERA_SCENE 		1
 
 mat4 programglobal::perspective;
 
