@@ -99,7 +99,10 @@ void render(glwindow* window) {
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().height, 0.1f, 1000.0f);
 #if SHOW_CAMERA_SCENE
-		renderTestCamera(currentCamera, scenecamerarig);
+#if SHOW_CAMERA_RIG
+		renderCameraRigTestCamera(currentCamera, scenecamerarig);
+#endif // SHOW_CAMERA_RIG
+		renderTestCamera(currentCamera);
 #endif // SHOW_CAMERA_SCENE
 #if SHOW_MODEL_SCENE
 		renderTestModel(dynamic_cast<camera*>(debugcamera));
@@ -163,10 +166,6 @@ void uninit(void) {
 	if(scenecamera) {
 		scenecamera.release();
 	}
-	if(debugcamera) {
-		delete debugcamera;
-		debugcamera = NULL;
-	}
 	uninitTestCamera();
 #endif // SHOW_CAMERA_SCENE
 #if SHOW_MODEL_SCENE
@@ -175,6 +174,11 @@ void uninit(void) {
 	hdr->uninit();
 
 	delete hdr;
+
+	if(debugcamera) {
+		delete debugcamera;
+		debugcamera = NULL;
+	}
 }
 
 int main(int argc, char **argv) {

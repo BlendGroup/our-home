@@ -132,7 +132,7 @@ void initTestCamera() {
 	glEnableVertexAttribArray(0);
 }
 
-void renderTestCamera(const camera *camera, const unique_ptr<sceneCameraRig> &scenecamrig) {
+void renderTestCamera(const camera *camera) {
 	if(camera == NULL) {
 		throwErr("Camera Not Inititalized Correctly");
 	}
@@ -181,6 +181,9 @@ void renderTestCamera(const camera *camera, const unique_ptr<sceneCameraRig> &sc
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
+void renderCameraRigTestCamera(const camera *camera, const unique_ptr<sceneCameraRig> &scenecamrig) {
 	scenecamrig->render(camera->matrix(), programglobal::perspective);
 }
 
