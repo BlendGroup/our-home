@@ -9,7 +9,10 @@ using namespace vmath;
 SplineRenderer::SplineRenderer(SplineInterpolator *interpolator, const float linspace)
 	: m_interpolator(interpolator),
 	  m_nAllPositions(0),
-	  m_linspace(linspace)
+	  m_linspace(linspace),
+	  m_isRenderPoints(false),
+	  m_isRenderCtrlps(false),
+	  m_isRenderCtrlPoly(false)
 {
 	/* create vaos for spline data */
 	glCreateVertexArrays(1, &m_vaoSpline);
@@ -61,23 +64,66 @@ void SplineRenderer::loadGeometry(void)
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 	glEnableVertexAttribArray(0);
 
-	/* load a square to mark points into pipeline */
+	/* load a cube to mark points into pipeline */
 	const float verts[] = {
-		1.0f, 1.0f,
-		-1.0f, 1.0f,
-		-1.0f, -1.0f,
-		1.0f, -1.0f};
+		1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f,
+
+		1.0f, -1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f,
+		-1.0f, -1.0f, 1.0f,
+
+		1.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, -1.0f, -1.0f,
+
+		1.0f, -1.0f, -1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f,
+
+		-1.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+
+		-1.0f, -1.0f, -1.0f,
+		1.0f, 1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+
+		-1.0f, 1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, 1.0f, 1.0f,
+
+		-1.0f, 1.0f, 1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, 1.0f,
+
+		1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, 1.0f,
+
+		1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, 1.0f,
+
+		-1.0f, -1.0f, 1.0f,
+		-1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, 1.0f,
+
+		1.0f, -1.0f, 1.0f,
+		-1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f};
 
 	glBindVertexArray(m_vaoPoint);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vboPoint);
 
 	/** !!! BE CAREFUL WHILE REFACTORING FOR vec3 !!! **/
 	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 	glEnableVertexAttribArray(0);
 }
 
-void SplineRenderer::render(mat4 &viewMatrix, mat4 &projMatrix, const vec4 &color)
+void SplineRenderer::render(const mat4 &viewMatrix, const mat4 &projMatrix, const vec4 &color) const
 {
 	m_program->use();
 	glUniformMatrix4fv(0, 1, GL_FALSE, projMatrix * viewMatrix);
@@ -85,50 +131,64 @@ void SplineRenderer::render(mat4 &viewMatrix, mat4 &projMatrix, const vec4 &colo
 	glUniform1i(2, 0); // isPoint = false
 	glBindVertexArray(m_vaoSpline);
 	glDrawArrays(GL_LINE_STRIP, 0, m_nAllPositions);
-}
 
-void SplineRenderer::renderPoints(mat4 &viewMatrix, mat4 &projMatrix)
-{
-	m_program->use();
-	glUniform1i(2, 1); // isPoint = true
-	glBindVertexArray(m_vaoPoint);
-
-	/** !!! BE CAREFUL WHILE REFACTORING FOR vec3 !!! **/
-	for (vec3 point : *m_points)
+	if(m_isRenderPoints)
 	{
-		glUniformMatrix4fv(0, 1, GL_FALSE,
-						   projMatrix * viewMatrix *
-							   translate(point[0], point[1], point[2]) *
-							   scale(0.1f, 0.1f, 0.1f));
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		glUniform1i(2, 1); // isPoint = true
+		glBindVertexArray(m_vaoPoint);
+
+		/** !!! BE CAREFUL WHILE REFACTORING FOR vec3 !!! **/
+		for (vec3 point : *m_points)
+		{
+			glUniformMatrix4fv(0, 1, GL_FALSE,
+							projMatrix * viewMatrix *
+								translate(point[0], point[1], point[2]) *
+								scale(0.1f, 0.1f, 0.1f));
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+	}
+
+	if(m_isRenderCtrlps)
+	{
+		glUniform1i(2, 1); // isPoint = true
+		glBindVertexArray(m_vaoPoint);
+
+		/** !!! BE CAREFUL WHILE REFACTORING FOR vec3 !!! **/
+		for (vec3 ctrlp : *m_ctrlps)
+		{
+			glUniformMatrix4fv(0, 1, GL_FALSE,
+							projMatrix * viewMatrix *
+								translate(ctrlp[0], ctrlp[1], ctrlp[2]) *
+								scale(0.1f, 0.1f, 0.1f));
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+	}
+
+	if(m_isRenderCtrlPoly)
+	{
+		/* TODO: this feature has a bug, find and fix it */
+	
+		// glUniformMatrix4fv(0, 1, GL_FALSE, viewMatrix * projMatrix);
+		// glUniform4fv(1, 1, vec4(0.8f, 0.2f, 0.0f, 1.0f));
+		// glUniform1i(2, 0); // isPoint = false
+		// glBindVertexArray(m_vaoCtrlPoly);
+		// glDrawArrays(GL_LINES, 0, m_ctrlps->size());
 	}
 }
 
-void SplineRenderer::renderControlPoints(mat4 &viewMatrix, mat4 &projMatrix)
+void SplineRenderer::setRenderPoints(bool setting)
 {
-	m_program->use();
-	glUniform1i(2, 1); // isPoint = true
-	glBindVertexArray(m_vaoPoint);
-
-	/** !!! BE CAREFUL WHILE REFACTORING FOR vec3 !!! **/
-	for (vec3 ctrlp : *m_ctrlps)
-	{
-		glUniformMatrix4fv(0, 1, GL_FALSE,
-						   projMatrix * viewMatrix *
-							   translate(ctrlp[0], ctrlp[1], ctrlp[2]) *
-							   scale(0.1f, 0.1f, 0.1f));
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	}
+	m_isRenderPoints = setting;
 }
 
-void SplineRenderer::renderControlPolygon(mat4 &viewMatrix, mat4 &projMatrix, const vec4 &color)
+void SplineRenderer::setRenderControlPoints(bool setting)
 {
-	m_program->use();
-	glUniformMatrix4fv(0, 1, GL_FALSE, viewMatrix * projMatrix);
-	glUniform4fv(1, 1, color);
-	glUniform1i(2, 0); // isPoint = false
-	glBindVertexArray(m_vaoCtrlPoly);
-	glDrawArrays(GL_LINES, 0, m_ctrlps->size());
+	m_isRenderCtrlps = setting;
+}
+
+void SplineRenderer::setRenderControlPolygon(bool setting)
+{
+	m_isRenderCtrlPoly = setting;
 }
 
 SplineRenderer::~SplineRenderer()

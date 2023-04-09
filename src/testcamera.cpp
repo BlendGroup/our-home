@@ -3,6 +3,7 @@
 #include"../include/glshaderloader.h"
 #include"../include/camera.h"
 #include"../include/scenecamera.h"
+#include"../include/scenecamerarig.h"
 #include"../include/errorlog.h"
 #include"../include/global.h"
 
@@ -19,6 +20,9 @@ static struct test_camera_vbos {
 	GLuint plane;
 	GLuint cube;
 } vbos;
+
+static sceneCamera *sceneLocalCam;
+static sceneCameraRig *sceneLocalRig;
 
 void setupProgramTestCamera(void) {
     try {
@@ -42,7 +46,19 @@ void setupSceneCameraTestCamera(sceneCamera* &scenecam) {
     path.frontKeyFrames.push_back(vec3(-8.0f, -1.0f, 5.0f));
     path.frontKeyFrames.push_back(vec3(10.0f, 1.0f, 10.0f));
 
-	scenecam = new sceneCamera(&path);
+	sceneLocalCam = new sceneCamera(&path);
+	scenecam = sceneLocalCam;
+}
+
+void setupSceneCameraRigTestCamera(sceneCamera* &scenecam, sceneCameraRig* &scenecamrig) {
+	sceneLocalRig = new sceneCameraRig(scenecam);
+	sceneLocalRig->setRenderPath(true);
+	sceneLocalRig->setRenderPathPoints(true);
+	sceneLocalRig->setRenderFront(true);
+	sceneLocalRig->setRenderFrontPoints(true);
+	sceneLocalRig->setRenderPathToFront(true);
+
+	scenecamrig = sceneLocalRig;
 }
 
 void initTestCamera() {
@@ -171,6 +187,8 @@ void renderTestCamera(camera* camera) {
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	sceneLocalRig->render(camera->matrix(), programglobal::perspective);
 }
 
 void uninitTestCamera(void) {
@@ -189,6 +207,14 @@ void uninitTestCamera(void) {
 	if(vaos.plane) {
 		glDeleteVertexArrays(1, &vaos.plane);
 		vaos.plane = 0;
+	}
+	if(sceneLocalRig) {
+		delete sceneLocalRig;
+		sceneLocalRig = NULL;
+	}
+	if(sceneLocalCam) {
+		delete sceneLocalCam;
+		sceneLocalCam = NULL;
 	}
 	if(testCameraProgram) {
 		delete testCameraProgram;

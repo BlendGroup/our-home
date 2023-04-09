@@ -8,6 +8,7 @@
 #include"../include/testeffect.h"
 #include"../include/testcamera.h"
 #include"../include/scenecamera.h"
+#include"../include/scenecamerarig.h"
 #include"../include/debugcamera.h"
 #include"../include/testmodel.h"
 #include"../include/hdr.h"
@@ -22,6 +23,7 @@ static bool hdrEnabled = false;
 static HDR* hdr;
 static sceneCamera *scenecamera;
 static debugCamera *debugcamera;
+static sceneCameraRig *scenecamerarig;
 static bool isDebugCameraOn = false;
 static bool isAnimating = false;
 
@@ -50,6 +52,7 @@ void setupSceneCamera(void) {
 	try {
 		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
 		setupSceneCameraTestCamera(scenecamera);
+		setupSceneCameraRigTestCamera(scenecamera, scenecamerarig);
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -111,7 +114,10 @@ void render(glwindow* window) {
 }
 
 void update(void) {
-	scenecamera->updateT(0.001f);
+	if(isDebugCameraOn)
+		scenecamerarig->updateT(0.001f);
+	else
+		scenecamera->updateT(0.001f);
 }
 
 void keyboard(glwindow* window, int key) {
