@@ -114,10 +114,7 @@ void render(glwindow* window) {
 }
 
 void update(void) {
-	if(isDebugCameraOn)
-		scenecamerarig->updateT(0.001f);
-	else
-		scenecamera->updateT(0.001f);
+	scenecamerarig->updateT(0.0005f);
 }
 
 void keyboard(glwindow* window, int key) {
