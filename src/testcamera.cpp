@@ -1,5 +1,5 @@
 #include<iostream>
-#include<memory.h>
+#include<memory>
 #include"../include/glshaderloader.h"
 #include"../include/camera.h"
 #include"../include/scenecamera.h"
@@ -21,9 +21,6 @@ static struct test_camera_vbos {
 	GLuint cube;
 } vbos;
 
-static sceneCamera *sceneLocalCam;
-static sceneCameraRig *sceneLocalRig;
-
 void setupProgramTestCamera(void) {
     try {
 		testCameraProgram = new glshaderprogram({"src/shaders/testcamera.vert", "src/shaders/testcamera.frag"});
@@ -32,7 +29,7 @@ void setupProgramTestCamera(void) {
 	}
 }
 
-void setupSceneCameraTestCamera(sceneCamera* &scenecam) {
+void setupSceneCameraTestCamera(unique_ptr<sceneCamera> &scenecam) {
 	PathDescriptor path;
 	path.positionKeyFrames.push_back(vec3(0.0f, 20.0f, 35.0f));
     path.positionKeyFrames.push_back(vec3(5.0f, 15.0f, 15.0f));
@@ -46,19 +43,16 @@ void setupSceneCameraTestCamera(sceneCamera* &scenecam) {
     path.frontKeyFrames.push_back(vec3(-8.0f, -1.0f, 5.0f));
     path.frontKeyFrames.push_back(vec3(10.0f, 1.0f, 10.0f));
 
-	sceneLocalCam = new sceneCamera(&path);
-	scenecam = sceneLocalCam;
+	scenecam.reset(new sceneCamera(&path));
 }
 
-void setupSceneCameraRigTestCamera(sceneCamera* &scenecam, sceneCameraRig* &scenecamrig) {
-	sceneLocalRig = new sceneCameraRig(scenecam);
-	sceneLocalRig->setRenderPath(true);
-	sceneLocalRig->setRenderPathPoints(true);
-	sceneLocalRig->setRenderFront(true);
-	sceneLocalRig->setRenderFrontPoints(true);
-	sceneLocalRig->setRenderPathToFront(true);
-
-	scenecamrig = sceneLocalRig;
+void setupSceneCameraRigTestCamera(unique_ptr<sceneCamera> &scenecam, unique_ptr<sceneCameraRig> &scenecamrig) {
+	scenecamrig.reset(new sceneCameraRig(scenecam.get()));
+	scenecamrig->setRenderPath(true);
+	scenecamrig->setRenderPathPoints(true);
+	scenecamrig->setRenderFront(true);
+	scenecamrig->setRenderFrontPoints(true);
+	scenecamrig->setRenderPathToFront(true);
 }
 
 void initTestCamera() {
@@ -138,7 +132,7 @@ void initTestCamera() {
 	glEnableVertexAttribArray(0);
 }
 
-void renderTestCamera(camera* camera) {
+void renderTestCamera(const camera *camera, const unique_ptr<sceneCameraRig> &scenecamrig) {
 	if(camera == NULL) {
 		throwErr("Camera Not Inititalized Correctly");
 	}
@@ -187,8 +181,7 @@ void renderTestCamera(camera* camera) {
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-	sceneLocalRig->render(camera->matrix(), programglobal::perspective);
+	scenecamrig->render(camera->matrix(), programglobal::perspective);
 }
 
 void uninitTestCamera(void) {
@@ -207,14 +200,6 @@ void uninitTestCamera(void) {
 	if(vaos.plane) {
 		glDeleteVertexArrays(1, &vaos.plane);
 		vaos.plane = 0;
-	}
-	if(sceneLocalRig) {
-		delete sceneLocalRig;
-		sceneLocalRig = NULL;
-	}
-	if(sceneLocalCam) {
-		delete sceneLocalCam;
-		sceneLocalCam = NULL;
 	}
 	if(testCameraProgram) {
 		delete testCameraProgram;

@@ -6,10 +6,10 @@
 #include"camera.h"
 
 void setupProgramTestCamera();
-void setupSceneCameraTestCamera(sceneCamera* &scenecam);
-void setupSceneCameraRigTestCamera(sceneCamera* &scenecam, sceneCameraRig* &scenecamrig);
+void setupSceneCameraTestCamera(std::unique_ptr<sceneCamera> &scenecam);
+void setupSceneCameraRigTestCamera(std::unique_ptr<sceneCamera> &scenecam, std::unique_ptr<sceneCameraRig> &scenecamrig);
 void initTestCamera();
-void renderTestCamera(camera* cam);
+void renderTestCamera(const camera *camera, const std::unique_ptr<sceneCameraRig> &scenecamrig);
 void uninitTestCamera();
 
 #endif // __TEST_CAMERA__
