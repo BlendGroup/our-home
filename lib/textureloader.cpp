@@ -1,6 +1,6 @@
 #define STB_IMAGE_IMPLEMENTATION
-#include"../include/stb_image.h"
-#include"../include/gltextureloader.h"
+#include<stb_image.h>
+#include<gltextureloader.h>
 
 #include<unordered_map>
 

@@ -1,8 +1,8 @@
 #include<iostream>
 #include<fstream>
 #include<sstream>
-#include"../include/errorlog.h"
-#include"../include/glshaderloader.h"
+#include<errorlog.h>
+#include<glshaderloader.h>
 
 using namespace std;
 
@@ -78,7 +78,7 @@ glshaderprogram::glshaderprogram(initializer_list<std::string> shaderList, int v
 		GLint size;
 		GLenum type;
 		glGetActiveUniform(this->programObject, i, sizeof(buffer), NULL, &size, &type, buffer);
-		this->uniforms[string(buffer)] = i;
+		this->uniforms[string(buffer)] = glGetUniformLocation(this->programObject, buffer);
 	}
 }
 

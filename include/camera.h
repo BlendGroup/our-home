@@ -1,7 +1,7 @@
 #ifndef __CAMERA__
 #define __CAMERA__
 
-#include"../include/vmath.h"
+#include<vmath.h>
 
 class camera {
 public:

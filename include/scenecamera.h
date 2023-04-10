@@ -1,11 +1,11 @@
 #ifndef __SCENE_CAMERA_H__
 #define __SCENE_CAMERA_H__
 
-#include <vector>
-#include "../include/vmath.h"
-#include "../include/interpolators.h"
-#include "../include/errorlog.h"
-#include "../include/camera.h"
+#include<vector>
+#include<vmath.h>
+#include<interpolators.h>
+#include<errorlog.h>
+#include<camera.h>
 
 struct PathDescriptor
 {

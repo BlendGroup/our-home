@@ -6,8 +6,7 @@
 #include<GL/glew.h>
 #include<GL/glx.h>
 #include<iostream>
-
-#include"../include/windowing.h"
+#include<windowing.h>
 
 using namespace std;
 

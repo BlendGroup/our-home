@@ -1,10 +1,10 @@
 #include<iostream>
 #include<memory.h>
-#include"../include/glshaderloader.h"
-#include"../include/camera.h"
-#include"../include/scenecamera.h"
-#include"../include/errorlog.h"
-#include"../include/global.h"
+#include<glshaderloader.h>
+#include<camera.h>
+#include<scenecamera.h>
+#include<errorlog.h>
+#include<global.h>
 
 using namespace std;
 using namespace vmath;

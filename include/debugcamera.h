@@ -1,8 +1,8 @@
 #ifndef __DEBUG_CAMERA__
 #define __DEBUG_CAMERA__
 
-#include"camera.h"
-#include"vmath.h"
+#include<camera.h>
+#include<vmath.h>
 
 class debugCamera : public camera {
 private:
