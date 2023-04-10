@@ -1,8 +1,8 @@
 #include<iostream>
 #include<memory.h>
-#include"../include/glshaderloader.h"
-#include"../include/interpolators.h"
-#include"../include/splinerenderer.h"
+#include<glshaderloader.h>
+#include<interpolators.h>
+#include<splinerenderer.h>
 
 using namespace std;
 using namespace vmath;

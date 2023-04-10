@@ -4,18 +4,17 @@
 #include<GL/glew.h>
 #include<GL/gl.h>
 
-#include"../include/vmath.h"
-#include"../include/glshaderloader.h"
-#include"../include/testeffect.h"
-#include"../include/testcamera.h"
-#include"../include/scenecamera.h"
-#include"../include/scenecamerarig.h"
-#include"../include/debugcamera.h"
-#include"../include/testmodel.h"
-#include"../include/hdr.h"
-#include"../include/windowing.h"
-#include"../include/errorlog.h"
-#include"../include/global.h"
+#include<vmath.h>
+#include<glshaderloader.h>
+#include<testeffect.h>
+#include<testcamera.h>
+#include<scenecamera.h>
+#include<debugcamera.h>
+#include<testmodel.h>
+#include<hdr.h>
+#include<windowing.h>
+#include<errorlog.h>
+#include<global.h>
 
 using namespace std;
 using namespace vmath;

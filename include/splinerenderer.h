@@ -1,12 +1,12 @@
 #ifndef __SPLINE_RENDERER_H__
 #define __SPLINE_RENDERER_H__
 
-#include <vector>
-#include <GL/glew.h>
-#include <GL/gl.h>
-#include "../include/vmath.h"
-#include "../include/glshaderloader.h"
-#include "../include/interpolators.h"
+#include<vector>
+#include<GL/glew.h>
+#include<GL/gl.h>
+#include<vmath.h>
+#include<glshaderloader.h>
+#include<interpolators.h>
 
 class SplineRenderer
 {

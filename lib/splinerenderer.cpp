@@ -1,4 +1,4 @@
-#include "../include/splinerenderer.h"
+#include<splinerenderer.h>
 
 using namespace std;
 using namespace vmath;

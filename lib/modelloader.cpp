@@ -10,10 +10,10 @@
 #include<assimp/scene.h>
 #include<assimp/postprocess.h>
 
-#include"../include/gltextureloader.h"
-#include"../include/vmath.h"
-#include"../include/glmodelloader.h"
-#include"../include/errorlog.h"
+#include<gltextureloader.h>
+#include<vmath.h>
+#include<glmodelloader.h>
+#include<errorlog.h>
 
 using namespace vmath;
 using namespace std;

@@ -1,7 +1,7 @@
 #ifndef __HDR__
 #define __HDR__
 
-#include"glbase.h"
+#include<glbase.h>
 #include<GL/glew.h>
 
 class HDR : public glbase {

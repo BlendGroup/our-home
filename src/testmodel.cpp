@@ -24,7 +24,7 @@ void setupProgramTestModel() {
 #else
 		program = new glshaderprogram({"src/shaders/testStatic.vert", "src/shaders/testStatic.frag"});
 #endif
-	program->printUniforms(cerr);
+	// program->printUniforms(cerr);
 	} catch(string errorString) {
 		throwErr(errorString);
 	}

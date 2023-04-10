@@ -1,11 +1,10 @@
 #include<iostream>
 
-#include"../include/glshaderloader.h"
-#include"../include/gltextureloader.h"
-#include"../include/vmath.h"
-#include"../include/errorlog.h"
-
-#include"../include/testeffect.h"
+#include<glshaderloader.h>
+#include<gltextureloader.h>
+#include<vmath.h>
+#include<errorlog.h>
+#include<testeffect.h>
 
 using namespace std;
 using namespace vmath;
