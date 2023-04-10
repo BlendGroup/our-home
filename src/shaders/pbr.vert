@@ -14,6 +14,7 @@ out VS_OUT {
     vec3 P;
 	vec3 N;
 	vec2 Tex;
+	mat3 TBN;
 } vs_out;
 
 void main(void) {
@@ -22,5 +23,6 @@ void main(void) {
 	gl_Position = pMat * P;
     vs_out.P = vec3(mMat*vPos);
 	vs_out.N = mat3(mMat) * vNor;
+	vs_out.TBN = mat3(mMat) * mat3(vTangent,vBitangent,vNor);
 	vs_out.Tex = vTex;
 }

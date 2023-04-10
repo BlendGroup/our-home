@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "../include/glshaderloader.h"
+#include"../include/gltextureloader.h"
 #include "../include/glmodelloader.h"
 #include "../include/vmath.h"
 #include "../include/errorlog.h"
@@ -12,6 +13,12 @@ using namespace vmath;
 
 static glshaderprogram* program;
 static glmodel* model;
+
+static GLuint diffuseMap;
+static GLuint normalMap;
+static GLuint metallicMap;
+static GLuint roughnessMap;
+static GLuint aoMap;
 
 void setupProgramTestPbr(){
 
@@ -26,6 +33,12 @@ void setupProgramTestPbr(){
 void initTestPbr(){
     try {
         model = new glmodel("resources/models/sphere.obj",0);
+
+        diffuseMap = createTexture2D("resources/textures/pbr/albedo.png");
+        normalMap = createTexture2D("resources/textures/pbr/normal.png");
+        metallicMap = createTexture2D("resources/textures/pbr/metallic.png");
+        roughnessMap = createTexture2D("resources/textures/pbr/roughness.png");
+        aoMap = createTexture2D("resources/textures/pbr/ao.png");
     } catch (string errorString) {
         throwErr(errorString);
     }
@@ -53,6 +66,29 @@ void renderTestPbr(camera *cam,vec3 camPos){
         glUniform1f(program->getUniformLocation("material.metallic"),0.5);
         glUniform1f(program->getUniformLocation("material.roughness"),0.5);
         glUniform1f(program->getUniformLocation("material.ao"),1.0);
+        // Texture Properties
+        glUniform1i(program->getUniformLocation("isTextured"),GL_TRUE);
+        
+        glUniform1i(program->getUniformLocation("diffueMap"), 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+        glUniform1i(program->getUniformLocation("normalMap"), 1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, normalMap);
+
+        glUniform1i(program->getUniformLocation("metallicMap"), 2);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, metallicMap);
+
+        glUniform1i(program->getUniformLocation("roughnessMap"), 3);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, roughnessMap);
+
+        glUniform1i(program->getUniformLocation("aoMap"), 4);
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, aoMap);
+        
         model->draw();
     } catch (string errorString) {
         throwErr(errorString);
