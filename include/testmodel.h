@@ -1,7 +1,7 @@
 #ifndef __TEST_MODEL__
 #define __TEST_MODEL__
 
-#include"../include/camera.h"
+#include<camera.h>
 
 void setupProgramTestModel();
 void initTestModel();

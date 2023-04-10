@@ -1,8 +1,8 @@
 #include<iostream>
 #include<fstream>
 #include<sstream>
-#include"../include/errorlog.h"
-#include"../include/glshaderloader.h"
+#include<errorlog.h>
+#include<glshaderloader.h>
 
 using namespace std;
 

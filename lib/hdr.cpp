@@ -3,11 +3,11 @@
 #include <iterator>
 #include <string>
 
-#include"../include/glshaderloader.h"
-#include"../include/gltextureloader.h"
-#include"../include/vmath.h"
-#include"../include/errorlog.h"
-#include"../include/hdr.h"
+#include<glshaderloader.h>
+#include<gltextureloader.h>
+#include<vmath.h>
+#include<errorlog.h>
+#include<hdr.h>
 
 using namespace std;
 

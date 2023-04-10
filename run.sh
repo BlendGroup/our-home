@@ -1,4 +1,4 @@
-rm main.run
+rm -f main.run
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./lib
 if [[ $1 == "DEBUG" ]]; then
 	g++ lib/*.cpp src/*.cpp -I ./include -L ./lib -lX11 -lGL -lGLEW -lassimp -o main.run -g -D DEBUG

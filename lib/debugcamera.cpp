@@ -1,5 +1,5 @@
-#include"../include/debugcamera.h"
-#include"../include/windowing.h"
+#include<debugcamera.h>
+#include<windowing.h>
 #include<X11/keysym.h>
 #include<iostream>
 

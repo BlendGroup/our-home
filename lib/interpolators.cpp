@@ -1,4 +1,4 @@
-#include "../include/interpolators.h"
+#include<interpolators.h>
 
 using namespace Eigen;
 using namespace std;
