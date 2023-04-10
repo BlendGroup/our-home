@@ -32,13 +32,14 @@ void setupProgramTestPbr(){
 
 void initTestPbr(){
     try {
+        
+        diffuseMap = createTexture2D("resources/textures/pbr/rusted/basecolor.png");
+        normalMap = createTexture2D("resources/textures/pbr/rusted/normal.png");
+        
         model = new glmodel("resources/models/sphere.obj",0);
-
-        diffuseMap = createTexture2D("resources/textures/pbr/albedo.png");
-        normalMap = createTexture2D("resources/textures/pbr/normal.png");
-        metallicMap = createTexture2D("resources/textures/pbr/metallic.png");
-        roughnessMap = createTexture2D("resources/textures/pbr/roughness.png");
-        aoMap = createTexture2D("resources/textures/pbr/ao.png");
+        metallicMap = createTexture2D("resources/textures/pbr/rusted/metallic.png");
+        roughnessMap = createTexture2D("resources/textures/pbr/rusted/roughness.png");
+        aoMap = createTexture2D("resources/textures/pbr/rusted/ao.png");
     } catch (string errorString) {
         throwErr(errorString);
     }
