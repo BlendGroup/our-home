@@ -10,6 +10,7 @@
 #include"../include/scenecamera.h"
 #include"../include/debugcamera.h"
 #include"../include/testmodel.h"
+#include "../include/testPBR.h"
 #include"../include/hdr.h"
 #include"../include/windowing.h"
 #include"../include/errorlog.h"
@@ -18,7 +19,7 @@
 using namespace std;
 using namespace vmath;
 
-static bool hdrEnabled = false;
+static bool hdrEnabled = true;
 static HDR* hdr;
 static sceneCamera *scenecamera;
 static debugCamera *debugcamera;
@@ -26,8 +27,9 @@ static bool isDebugCameraOn = false;
 static bool isAnimating = false;
 
 #define SHOW_TEST_SCENE 		0
-#define SHOW_MODEL_SCENE 		1
+#define SHOW_MODEL_SCENE 		0
 #define SHOW_CAMERA_SCENE 		0
+#define SHOW_PBR_SCENE			1
 
 mat4 programglobal::perspective;
 
@@ -39,6 +41,9 @@ void setupProgram(void) {
 #endif
 #if SHOW_MODEL_SCENE
 		setupProgramTestModel();
+#endif
+#if SHOW_PBR_SCENE
+	setupProgramTestPbr();
 #endif
 		hdr->setupProgram();
 	} catch(string errorString) {
@@ -68,6 +73,9 @@ void init(void) {
 #if SHOW_MODEL_SCENE
 		initTestModel();
 #endif
+#if SHOW_PBR_SCENE
+		initTestPbr();
+#endif
 		hdr->init();
 
 		glDepthFunc(GL_LEQUAL);
@@ -96,6 +104,9 @@ void render(glwindow* window) {
 #endif
 #if SHOW_MODEL_SCENE
 		renderTestModel(dynamic_cast<camera*>(debugcamera));
+#endif
+#if SHOW_PBR_SCENE
+		renderTestPbr(dynamic_cast<camera*>(debugcamera),debugcamera->getPosition());
 #endif
 		// renderTestEffect();
 
@@ -146,6 +157,9 @@ void uninit(void) {
 #endif
 #if SHOW_MODEL_SCENE
 	uninitTestModel();
+#endif
+#if SHOW_PBR_SCENE
+	uninitTestPbr();
 #endif
 	hdr->uninit();
 
