@@ -5,11 +5,11 @@
 #define EIGEN_NO_DEBUG
 #endif // DEBUG
 
-#include <iostream>
-#include <vector>
-#include "vmath.h"
-#include "Eigen/LU"
-#include "errorlog.h"
+#include<iostream>
+#include<vector>
+#include<vmath.h>
+#include<Eigen/LU>
+#include<errorlog.h>
 
 class SplineInterpolator
 {
