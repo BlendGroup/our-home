@@ -7,7 +7,6 @@ public:
 	virtual void init(void) = 0;
 	virtual void render(void) = 0;
 	virtual void uninit(void) = 0;
-	virtual void keyboardfunc(int key) = 0;
 };
 
 #endif

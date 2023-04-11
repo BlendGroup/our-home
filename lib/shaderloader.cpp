@@ -82,11 +82,13 @@ glshaderprogram::glshaderprogram(initializer_list<std::string> shaderList, int v
 	}
 }
 
+#ifdef DEBUG
 void glshaderprogram::printUniforms(ostream &out) {
 	for(pair<string, GLuint> uniform : this->uniforms) {
 		out<<uniform.first<<" at "<<uniform.second<<endl;
 	}
 }
+#endif
 
 void glshaderprogram::use(void) {
 	glUseProgram(this->programObject);
