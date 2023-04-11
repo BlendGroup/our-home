@@ -31,15 +31,14 @@ void setupProgramTestPbr(){
 }
 
 void initTestPbr(){
-    try {
-        
-        diffuseMap = createTexture2D("resources/textures/pbr/rusted/basecolor.png");
-        normalMap = createTexture2D("resources/textures/pbr/rusted/normal.png");
-        
+    try {         
         model = new glmodel("resources/models/sphere.obj",0);
-        metallicMap = createTexture2D("resources/textures/pbr/rusted/metallic.png");
-        roughnessMap = createTexture2D("resources/textures/pbr/rusted/roughness.png");
-        aoMap = createTexture2D("resources/textures/pbr/rusted/ao.png");
+        
+        diffuseMap = createTexture2D("resources/textures/pbr/panel/albedo.png");
+        normalMap = createTexture2D("resources/textures/pbr/panel/normal.png");
+        metallicMap = createTexture2D("resources/textures/pbr/panel/metallic.png");
+        roughnessMap = createTexture2D("resources/textures/pbr/panel/roughness.png");
+        aoMap = createTexture2D("resources/textures/pbr/panel/ao.png");
     } catch (string errorString) {
         throwErr(errorString);
     }
@@ -54,19 +53,19 @@ void renderTestPbr(camera *cam,vec3 camPos){
         glUniform3fv(program->getUniformLocation("viewPos"),1,camPos);
         // Lights data
         glUniform1i(program->getUniformLocation("numOfLights"),4);
-        glUniform3fv(program->getUniformLocation("light[0].diffuse"),1,vec3(300.0,300.0,300.0));
+        glUniform3fv(program->getUniformLocation("light[0].diffuse"),1,vec3(100.0,100.0,100.0));
         glUniform3fv(program->getUniformLocation("light[0].position"),1,vec3(-10.0f,  10.0f, 10.0f));
         glUniform3fv(program->getUniformLocation("light[1].diffuse"),1,vec3(300.0,300.0,300.0));
         glUniform3fv(program->getUniformLocation("light[1].position"),1,vec3(10.0f,  10.0f, 10.0f));
         glUniform3fv(program->getUniformLocation("light[2].diffuse"),1,vec3(300.0,300.0,300.0));
-        glUniform3fv(program->getUniformLocation("light[2].position"),1,vec3(-10.0f, -10.0f, 10.0f));
+        glUniform3fv(program->getUniformLocation("light[2].position"),1,vec3(-10.0f, 10.0f, -10.0f));
         glUniform3fv(program->getUniformLocation("light[3].diffuse"),1,vec3(300.0,300.0,300.0));
-        glUniform3fv(program->getUniformLocation("light[3].position"),1,vec3(10.0f, -10.0f, 10.0f));
+        glUniform3fv(program->getUniformLocation("light[3].position"),1,vec3(10.0f, 10.0f, -10.0f));
         // Material properties       
-        glUniform3fv(program->getUniformLocation("material.diffuse"),1,vec3(0.5,0.0,0.0));
-        glUniform1f(program->getUniformLocation("material.metallic"),0.5);
-        glUniform1f(program->getUniformLocation("material.roughness"),0.5);
-        glUniform1f(program->getUniformLocation("material.ao"),1.0);
+        glUniform3fv(program->getUniformLocation("material.diffuse"),1,vec3(1.0,1.0,1.0));
+        glUniform1f(program->getUniformLocation("material.metallic"),0.1);
+        glUniform1f(program->getUniformLocation("material.roughness"),0.1);
+        glUniform1f(program->getUniformLocation("material.ao"),0.0);
         // Texture Properties
         glUniform1i(program->getUniformLocation("isTextured"),GL_TRUE);
         
@@ -91,6 +90,7 @@ void renderTestPbr(camera *cam,vec3 camPos){
 		glBindTexture(GL_TEXTURE_2D, aoMap);
         
         model->draw();
+        glBindTexture(GL_TEXTURE_2D, 0);
     } catch (string errorString) {
         throwErr(errorString);
     }

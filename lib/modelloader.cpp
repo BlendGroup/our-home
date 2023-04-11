@@ -397,10 +397,10 @@ void glmodel::update(float dt, int i) {
 
 void glmodel::draw(int instance) {
 	for(unsigned int i = 0; i < this->meshes.size(); i++) {
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, this->meshes[i].diffuseTextures);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, this->meshes[i].specularTextures);
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, this->meshes[i].diffuseTextures);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, this->meshes[i].specularTextures);
 		glBindVertexArray(this->meshes[i].vao);
 		glDrawElementsInstanced(GL_TRIANGLES, this->meshes[i].trianglePointCount, GL_UNSIGNED_INT, 0, instance);
 	}

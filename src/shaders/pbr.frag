@@ -93,10 +93,10 @@ void main(void) {
     vec3 N;
     if(isTextured)
     {
-        diffuse = texture(diffueMap,fs_in.Tex).rgb * material.diffuse;
-        metalness = texture(metallicMap,fs_in.Tex).r * material.metallic;
-        roughness = texture(roughnessMap,fs_in.Tex).r * material.roughness;
-        ao = texture(aoMap,fs_in.Tex).r * material.ao;
+        diffuse = texture(diffueMap,fs_in.Tex).rgb;
+        metalness = texture(metallicMap,fs_in.Tex).r;
+        roughness = texture(roughnessMap,fs_in.Tex).r;
+        ao = texture(aoMap,fs_in.Tex).r;
         N = getNormalFromMap();
     }
     else
