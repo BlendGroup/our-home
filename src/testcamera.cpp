@@ -22,7 +22,7 @@ static struct test_camera_vbos {
 
 void setupProgramTestCamera(void) {
     try {
-		testCameraProgram = new glshaderprogram({"src/shaders/testcamera.vert", "src/shaders/testcamera.frag"});
+		testCameraProgram = new glshaderprogram({"shaders/testcamera.vert", "shaders/testcamera.frag"});
 	} catch(string errorString) {
 		throwErr(errorString);
 	}

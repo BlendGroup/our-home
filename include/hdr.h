@@ -12,6 +12,7 @@ private:
     GLfloat exposure;
     GLfloat fade;
 	GLsizei size;
+	glshaderprogram* hdrprogram;
 public:
 	HDR(GLfloat exposure, GLfloat fade, GLsizei size);
 	void setupProgram(void) override;

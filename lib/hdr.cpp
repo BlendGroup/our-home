@@ -11,7 +11,6 @@
 
 using namespace std;
 
-static glshaderprogram* program;
 static GLuint tempVao;
 
 HDR::HDR(GLfloat exposure, GLfloat fade, GLsizei size) {
@@ -22,7 +21,7 @@ HDR::HDR(GLfloat exposure, GLfloat fade, GLsizei size) {
 
 void HDR::setupProgram(void) {
 	try {
-		program = new glshaderprogram({"src/shaders/hdr.vert", "src/shaders/hdr.frag"});
+		this->hdrprogram = new glshaderprogram({"shaders/hdr.vert", "shaders/hdr.frag"});
 	} catch (string errorString) {
 		throwErr(errorString);
 	}
@@ -55,15 +54,16 @@ void HDR::init(void) {
 }
 
 void HDR::render(void) {
-	program->use();
-	// program->printUniforms();
-	glUniform1i(program->getUniformLocation("hdrTex"), 0);
-	glUniform1f(program->getUniformLocation("exposure"), this->exposure);
-	glUniform1f(program->getUniformLocation("fade"), this->fade);
+	this->hdrprogram->use();
+	glUniform1i(this->hdrprogram->getUniformLocation("hdrTex"), 0);
+	glUniform1f(this->hdrprogram->getUniformLocation("exposure"), this->exposure);
+	glUniform1f(this->hdrprogram->getUniformLocation("fade"), this->fade);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, this->Tex);
 	glBindVertexArray(tempVao);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindVertexArray(0);
 }
 
 GLuint HDR::getFBO(void) {
@@ -94,5 +94,9 @@ void HDR::keyboardfunc(int key) {
 }
 
 void HDR::uninit(void) {
-	delete program;
+	glDeleteFramebuffers(1, &this->FBO);
+	glDeleteRenderbuffers(1, &this->RBO);
+	glDeleteTextures(1, &this->Tex);
+	glDeleteVertexArrays(1, &tempVao);
+	delete this->hdrprogram;
 }

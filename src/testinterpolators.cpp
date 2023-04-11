@@ -14,7 +14,7 @@ static SplineRenderer *renderer;
 
 void setupProgramTestInterpolators(void) {
     try {
-		testCameraProgram = new glshaderprogram({"src/shaders/point.vert", "src/shaders/point.frag"});
+		testCameraProgram = new glshaderprogram({"shaders/point.vert", "shaders/point.frag"});
 	} catch(string errorString) {
 		throwErr(errorString);
 	}

@@ -22,8 +22,8 @@ SplineRenderer::SplineRenderer(SplineInterpolator *interpolator, const float lin
 	glCreateBuffers(1, &m_vboCtrlPoly);
 
 	/* create program for rendering a spline */
-	m_program = new glshaderprogram({"src/shaders/spline.vert",
-									 "src/shaders/spline.frag"});
+	m_program = new glshaderprogram({"shaders/spline.vert",
+									 "shaders/spline.frag"});
 
 	/* get user-specified spline points from the interpolator */
 	m_points = m_interpolator->getPoints();
