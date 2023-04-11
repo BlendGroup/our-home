@@ -9,6 +9,7 @@
 #include "../include/scenecamera.h"
 #include "../include/interpolators.h"
 #include "../include/splinerenderer.h"
+#include "../include/global.h"
 
 class sceneCameraRig
 {
@@ -27,7 +28,7 @@ private:
 public:
     sceneCameraRig(sceneCamera *camera);
     ~sceneCameraRig();
-    void render(const vmath::mat4 &viewMatrix, const vmath::mat4 &projMatrix) const;
+    void render(const camera* &camera) const;
     void updateT(float speed);
     void setRenderPath(bool setting);
     void setRenderPathPoints(bool setting);

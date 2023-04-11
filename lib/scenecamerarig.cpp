@@ -135,12 +135,12 @@ void sceneCameraRig::loadGeometry(void)
     glEnableVertexAttribArray(0);
 }
 
-void sceneCameraRig::render(const mat4 &viewMatrix, const mat4 &projMatrix) const
+void sceneCameraRig::render(const camera* &camera) const
 {
     if (isRenderPath)
-        pathRenderer->render(viewMatrix, projMatrix, PATH_COLOR);
+        pathRenderer->render(camera, PATH_COLOR);
     if (isRenderFront)
-        frontRenderer->render(viewMatrix, projMatrix, FRONT_COLOR);
+        frontRenderer->render(camera, FRONT_COLOR);
 
     if (isRenderPathToFront)
     {
@@ -150,8 +150,8 @@ void sceneCameraRig::render(const mat4 &viewMatrix, const mat4 &projMatrix) cons
             mountCamera->m_bspFront->interpolate(t)};
 
         program->use();
-        glUniformMatrix4fv(1, 1, GL_FALSE, viewMatrix);
-        glUniformMatrix4fv(2, 1, GL_FALSE, projMatrix);
+        glUniformMatrix4fv(1, 1, GL_FALSE, camera->matrix());
+        glUniformMatrix4fv(2, 1, GL_FALSE, programglobal::perspective);
 
         // draw a line connecting the 2 points
         glUniform1i(3, 0); // isPoint = false

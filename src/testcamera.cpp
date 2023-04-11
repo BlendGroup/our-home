@@ -184,7 +184,7 @@ void renderTestCamera(const camera *camera) {
 }
 
 void renderCameraRigTestCamera(const camera *camera, const unique_ptr<sceneCameraRig> &scenecamrig) {
-	scenecamrig->render(camera->matrix(), programglobal::perspective);
+	scenecamrig->render(camera);
 }
 
 void uninitTestCamera(void) {

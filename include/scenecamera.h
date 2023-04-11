@@ -18,7 +18,7 @@ class sceneCamera : public camera
 private:
     BsplineInterpolator *m_bspPositions;
     BsplineInterpolator *m_bspFront;
-    const PathDescriptor *m_pdesc;
+    // const PathDescriptor *m_pdesc;
     float t;
 
     friend class sceneCameraRig;

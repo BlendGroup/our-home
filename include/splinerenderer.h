@@ -7,6 +7,8 @@
 #include<vmath.h>
 #include<glshaderloader.h>
 #include<interpolators.h>
+#include<camera.h>
+#include<global.h>
 
 class SplineRenderer
 {
@@ -26,7 +28,7 @@ private:
 public:
     SplineRenderer(SplineInterpolator *interpolator, const float linspace = 0.01f);
     ~SplineRenderer();
-    void render(const vmath::mat4 &viewMatrix, const vmath::mat4 &projMatrix, const vmath::vec4 &color) const;
+    void render(const camera* &camera, const vmath::vec4 &color) const;
     void setRenderPoints(bool setting);
     void setRenderControlPoints(bool setting);
     void setRenderControlPolygon(bool setting);
