@@ -1,12 +1,11 @@
 #include<iostream>
 #include<assimp/postprocess.h>
-
-#include"../include/glshaderloader.h"
-#include"../include/glmodelloader.h"
-#include"../include/vmath.h"
-#include"../include/errorlog.h"
-#include"../include/testmodel.h"
-#include"../include/global.h"
+#include<glshaderloader.h>
+#include<glmodelloader.h>
+#include<vmath.h>
+#include<errorlog.h>
+#include<testmodel.h>
+#include<global.h>
 
 using namespace std;
 using namespace vmath;
@@ -14,8 +13,9 @@ using namespace vmath;
 static glshaderprogram* program;
 static GLuint texture;
 static glmodel* model;
+//static model* m;
 
-#define DYNAMIC 1
+#define DYNAMIC 0
 
 void setupProgramTestModel() {
 	try {
@@ -35,7 +35,8 @@ void initTestModel() {
 #if DYNAMIC
 		model = new glmodel("resources/models/vampire/dancing_vampire.dae", aiProcess_FlipUVs);
 #else
-		model = new glmodel("resources/models/backpack/backpack.obj", 0);
+		model = new glmodel("resources/models/sphere/sphere.obj", 0);
+		//m = new model("resources/models/vampire/dancing_vampire.dae");
 #endif
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -54,7 +55,8 @@ void renderTestModel(camera* cam) {
 #else
 		glUniformMatrix4fv(program->getUniformLocation("mMat"), 1, GL_FALSE, rotate(0.0f, vec3(0.0f, 1.0f, 0.0f)));
 #endif
-		model->draw();
+		model->draw(program);
+		//m->draw(program,0.0);
 	} catch(string errorString) {
 		throwErr(errorString);
 	}

@@ -1,3 +1,5 @@
+#include <assimp/material.h>
+#include <assimp/types.h>
 #include<string>
 #include<fstream>
 #include<sstream>
@@ -9,7 +11,7 @@
 #include<assimp/Importer.hpp>
 #include<assimp/scene.h>
 #include<assimp/postprocess.h>
-
+#include<glshaderloader.h>
 #include<gltextureloader.h>
 #include<vmath.h>
 #include<glmodelloader.h>
@@ -28,6 +30,20 @@ struct Vertex {
 	float Weights[MAX_BONE_INFLUENCE];
 };
 
+unordered_map<textureTypes, string> textureTypeMap = {
+	{TEX_DIFFUSE, "texture_diffuse"},
+	{TEX_NORMAL, "texture_normal"},
+	{TEX_AO, "texture_ao"},
+	{TEX_ROUGHNESS, "texture_roughness"},
+	{TEX_METALNESS, "texture_metalic"}
+};
+
+unordered_map<materialTypes, string> materialTypeMap = {
+    {MAT_AMBIENT,"material_ambient"},
+    {MAT_DIFFUSE,"material_diffuse"},
+    {MAT_SPECULAR,"material_specular"}
+};
+
 static vector<mat4> boneArrayDefault;
 
 mat4 convertMatrixToVmathFormat(const aiMatrix4x4* from) {
@@ -39,14 +55,40 @@ mat4 convertMatrixToVmathFormat(const aiMatrix4x4* from) {
 	return to;
 }
 
-GLuint loadMaterialTextures(aiMaterial *mat, aiTextureType type, string directory) {
-	if(mat->GetTextureCount(type) > 0) {
-		aiString str;
-		mat->GetTexture(type, 0, &str);
-		return createTexture2D(directory + '/' + str.C_Str());
-	} else {
-		return 0;
-	}
+vector<texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, textureTypes typeString,string directory) {
+	vector<texture> textures;
+    for(size_t i = 0; i < mat->GetTextureCount(type); i++){
+        aiString str;
+        mat->GetTexture(type, i, &str);
+        texture tex;
+        tex.id = createTexture2D(directory + "/" + str.C_Str(),GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
+        tex.type = typeString;
+        textures.push_back(tex);
+    }
+    return textures;
+}
+
+texture loadPBRTextures(textureTypes typeString,string directory) {
+	cout<<directory + "/" + textureTypeMap[typeString]+".png"<<endl;
+    texture tex;
+    tex.id = createTexture2D(directory + "/" + textureTypeMap[typeString]+".png",GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
+    tex.type = typeString;
+	return tex;
+}
+
+vector<material> loadMaterialColor(aiMaterial *mat, const char *type, int one, int two, materialTypes typeString){
+    vector<material> materials;
+    aiColor3D color;
+    mat->Get(type,one,two,color);
+
+    material matInfo;
+    matInfo.type = typeString;
+    matInfo.value[0] = color[0];
+    matInfo.value[1] = color[1];
+    matInfo.value[2] = color[2];
+
+    materials.push_back(matInfo);
+    return materials;
 }
 
 glbone* findBone(glanimator* a, string name) {
@@ -195,10 +237,51 @@ void createMesh(const aiScene* scene, glmodel *model, string directory) {
 				}
 			}
 
+			cout<< (scene->HasTextures() ? "True\n" : "False\n");
+			cout<<scene->mNumMaterials<<endl;
 			//Fill Textures
-			aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-			m.diffuseTextures = loadMaterialTextures(material, aiTextureType_DIFFUSE, directory);
-			m.specularTextures = loadMaterialTextures(material, aiTextureType_SPECULAR, directory);
+			if(mesh->mMaterialIndex >= 0)
+			{
+
+				aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
+
+				// Textures
+				//diffuse map
+				std::vector<texture> diffuseMap = loadMaterialTextures(mat, aiTextureType_DIFFUSE, TEX_DIFFUSE,directory);
+				m.textures.insert(m.textures.end(), diffuseMap.begin(), diffuseMap.end());
+
+				//normal map
+				std::vector<texture> normalMap = loadMaterialTextures(mat, aiTextureType_NORMALS, TEX_NORMAL,directory);
+				m.textures.insert(m.textures.end(), normalMap.begin(), normalMap.end());
+
+				// check if pbr is needed in future.
+				// We'll ambient map as ao map
+				m.textures.push_back(loadPBRTextures(TEX_AO, directory));
+
+				// We'll ambient map as ao map
+				m.textures.push_back(loadPBRTextures(TEX_ROUGHNESS, directory));
+
+				// We'll ambient map as ao map
+				m.textures.push_back(loadPBRTextures(TEX_METALNESS, directory));
+
+				// We'll consider specular as roughness map
+				//std::vector<texture> roughnessMap = loadMaterialTextures(mat, aiTextureType_SPECULAR, TEX_ROUGHNESS,directory);
+				//m.textures.insert(m.textures.end(), roughnessMap.begin(), roughnessMap.end());
+
+				// metalness map
+				//std::vector<texture> metalMap = loadMaterialTextures(mat, aiTextureType_METALNESS, TEX_METALNESS,directory);
+				//m.textures.insert(m.textures.end(), metalMap.begin(), metalMap.end());
+
+				// Materials
+				std::vector<material> MaterialAmbient = loadMaterialColor(mat, AI_MATKEY_COLOR_AMBIENT, MAT_AMBIENT);
+				m.materials.insert(m.materials.end(),MaterialAmbient.begin(), MaterialAmbient.end());
+
+				std::vector<material> MaterialDiffuse = loadMaterialColor(mat, AI_MATKEY_COLOR_DIFFUSE, MAT_DIFFUSE);
+				m.materials.insert(m.materials.end(),MaterialDiffuse.begin(), MaterialDiffuse.end());
+
+				std::vector<material> MaterialSpecular = loadMaterialColor(mat, AI_MATKEY_COLOR_SPECULAR, MAT_SPECULAR);
+				m.materials.insert(m.materials.end(),MaterialSpecular.begin(), MaterialSpecular.end());
+			}
 
 			// Fill Bones and Weights
 			for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
@@ -395,12 +478,18 @@ void glmodel::update(float dt, int i) {
 	}
 }
 
-void glmodel::draw(int instance) {
+void glmodel::draw(glshaderprogram *program,int instance) {
 	for(unsigned int i = 0; i < this->meshes.size(); i++) {
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, this->meshes[i].diffuseTextures);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, this->meshes[i].specularTextures);
+
+		for(size_t t = 0; t < this->meshes[i].textures.size(); t++){
+            glActiveTexture(GL_TEXTURE0 + t);
+            glUniform1i(program->getUniformLocation(textureTypeMap[this->meshes[i].textures[t].type]),t);
+            glBindTexture(GL_TEXTURE_2D,this->meshes[i].textures[t].id);
+        }
+
+		for(size_t m = 0; m < this->meshes[i].materials.size(); m++){
+            glUniform3fv(program->getUniformLocation(materialTypeMap[this->meshes[i].materials[m].type]),1,this->meshes[i].materials[m].value);
+        }
 		glBindVertexArray(this->meshes[i].vao);
 		glDrawElementsInstanced(GL_TRIANGLES, this->meshes[i].trianglePointCount, GL_UNSIGNED_INT, 0, instance);
 	}

@@ -1,0 +1,13 @@
+# Blender 3.5.0 MTL File: 'None'
+# www.blender.org
+
+newmtl panel.002
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd panel/texture_diffuse.png
+map_Ns panel/texture_roughness.png
+map_Ke panel/TexturesCom_SciFiPanels09_1K_emissive.tif
+map_Bump -bm 1.000000 panel/texture_normal.png

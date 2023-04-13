@@ -9,6 +9,33 @@
 #define MAX_BONE_COUNT 100
 #define MAX_BONE_INFLUENCE 4
 
+enum textureTypes {
+	TEX_DIFFUSE = 0,
+	TEX_SPECULAR = 1,
+	TEX_NORMAL = 2,
+	TEX_AO = 3,
+	TEX_ROUGHNESS = 4,
+	TEX_METALNESS = 5
+};
+
+enum materialTypes {
+	MAT_AMBIENT = 0,
+	MAT_DIFFUSE = 1,
+	MAT_SPECULAR = 2
+};
+
+// structure to keep track of textures in model
+struct texture {
+	GLuint id;
+	textureTypes type;
+};
+
+// structure to keep track of materials
+struct material {
+	vmath::vec3 value;
+	materialTypes type;
+};
+
 struct BoneInfo {
 	int id;
 	vmath::mat4 offset;
@@ -39,8 +66,8 @@ struct KeyScale {
 struct glmesh {
 	GLuint vao;
 	size_t trianglePointCount;
-	GLuint diffuseTextures;
-	GLuint specularTextures;
+	std::vector<texture> textures;
+	std::vector<material> materials;
 };
 
 struct glbone {
@@ -71,7 +98,7 @@ public:
 	glmodel(std::string path, unsigned flags);
 	void setBoneMatrixUniform(GLuint uniformLocation, unsigned i);
 	void update(float delta, int i);
-	void draw(int instance = 1);
+	void draw(glshaderprogram* program,int instance = 1);
 };
 
 
