@@ -15,7 +15,7 @@ static GLuint texture;
 static glmodel* model;
 //static model* m;
 
-#define DYNAMIC 0
+#define DYNAMIC 1
 
 void setupProgramTestModel() {
 	try {
@@ -33,7 +33,7 @@ void setupProgramTestModel() {
 void initTestModel() {
 	try {
 #if DYNAMIC
-		model = new glmodel("resources/models/vampire/dancing_vampire.dae", aiProcess_FlipUVs);
+		model = new glmodel("resources/models/vampire/vampire.fbx", aiProcess_FlipUVs);
 #else
 		model = new glmodel("resources/models/sphere/sphere.obj", 0);
 		//m = new model("resources/models/vampire/dancing_vampire.dae");

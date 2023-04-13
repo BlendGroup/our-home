@@ -1,5 +1,6 @@
 #include <assimp/material.h>
 #include <assimp/types.h>
+#include <cmath>
 #include<string>
 #include<fstream>
 #include<sstream>
@@ -236,9 +237,6 @@ void createMesh(const aiScene* scene, glmodel *model, string directory) {
 					indices.push_back(face.mIndices[j]);
 				}
 			}
-
-			cout<< (scene->HasTextures() ? "True\n" : "False\n");
-			cout<<scene->mNumMaterials<<endl;
 			//Fill Textures
 			if(mesh->mMaterialIndex >= 0)
 			{
@@ -369,8 +367,178 @@ glmodel::glmodel(string path, unsigned flags) {
 		createAnimator(scene, this);
 	}
 
+	cout<<this->animator.size()<<endl;
+	for(int i = 0; i < this->animator.size(); i++)
+	{
+		cout<<"duration : "<<this->animator[i].duration<<endl;
+		cout<<"ticks : "<<this->animator[i].ticksPerSecond<<endl;
+		cout<<"bones : "<<this->animator[i].bones.size()<<endl;
+		cout<<endl;
+	}
+
 	importer.FreeScene();
 }
+void calculateBoneTransformBlended(glmodel* model, 
+glanimator* base,const AssimpNodeData* node,
+glanimator* layer,const AssimpNodeData* nodeLayer,
+const float currentTimeBase, const float currentTimeLayered,
+mat4 parentTransform,float blendFactor) {
+
+	string nodeName = node->name;
+	mat4 nodeTransform = node->transformation;
+
+	glbone* startBone = findBone(base, nodeName);
+
+	if(startBone) {
+		mat4 translationMat;
+		mat4 rotationMat;
+		mat4 scalingMat;
+		int p0Index = -1;
+		int p1Index = -1;
+
+		//Calculate Translation
+		if (startBone->positions.size() == 1) {
+			translationMat = translate(startBone->positions[0].position);
+		} else {
+			for(p0Index = 0; p0Index < startBone->positions.size() - 1; ++p0Index) {
+				if (currentTimeBase < startBone->positions[p0Index + 1].timeStamp) {
+					break;
+				}
+			}
+			if(p0Index == startBone->positions.size() - 1) {
+				translationMat = translate(startBone->positions[p0Index].position);
+			} else {
+				p1Index = p0Index + 1;
+				translationMat = translate(mix(startBone->positions[p0Index].position, startBone->positions[p1Index].position, getScaleFactor(startBone->positions[p0Index].timeStamp, startBone->positions[p1Index].timeStamp, currentTimeBase)));
+			}
+		}
+
+		//Calculate Rotation
+		if (startBone->rotations.size() == 1) {
+			rotationMat = quaternionToMatrix(normalize(startBone->rotations[0].orientation));
+		} else {
+			for(p0Index = 0; p0Index < startBone->rotations.size() - 1; ++p0Index) {
+				if (currentTimeBase < startBone->rotations[p0Index + 1].timeStamp) {
+					break;
+				}
+			}
+			if(p0Index == startBone->rotations.size() - 1) {
+				rotationMat = quaternionToMatrix(normalize(startBone->rotations[p0Index].orientation));
+			} else {
+				p1Index = p0Index + 1;
+				rotationMat = quaternionToMatrix(normalize(slerp(startBone->rotations[p0Index].orientation, startBone->rotations[p1Index].orientation, getScaleFactor(startBone->rotations[p0Index].timeStamp, startBone->rotations[p1Index].timeStamp, currentTimeBase))));
+			}
+		}
+
+		//Calculate Scale
+		if (startBone->scales.size() == 1) {
+			scalingMat = scale(startBone->scales[0].scale);
+		} else {
+			for(p0Index = 0; p0Index < startBone->scales.size() - 1; ++p0Index) {
+				if (currentTimeBase < startBone->scales[p0Index + 1].timeStamp) {
+					break;
+				}
+			}
+			if(p0Index == startBone->scales.size() - 1) {
+				scalingMat = scale(startBone->scales[p0Index].scale);
+			} else {
+				p1Index = p0Index + 1;
+				scalingMat = scale(mix(startBone->scales[p0Index].scale, startBone->scales[p1Index].scale, getScaleFactor(startBone->scales[p0Index].timeStamp, startBone->scales[p1Index].timeStamp, currentTimeBase)));
+			}
+		}
+		startBone->localTransform = translationMat * rotationMat * scalingMat;
+		nodeTransform = startBone->localTransform;
+	}
+
+	mat4 layeredNodeTransform = nodeLayer->transformation;
+
+	glbone* endBone = findBone(layer, nodeName);
+
+	if(endBone) {
+		mat4 translationMat;
+		mat4 rotationMat;
+		mat4 scalingMat;
+		int p0Index = -1;
+		int p1Index = -1;
+
+		//Calculate Translation
+		if (endBone->positions.size() == 1) {
+			translationMat = translate(endBone->positions[0].position);
+		} else {
+			for(p0Index = 0; p0Index < endBone->positions.size() - 1; ++p0Index) {
+				if (currentTimeLayered < endBone->positions[p0Index + 1].timeStamp) {
+					break;
+				}
+			}
+			if(p0Index == endBone->positions.size() - 1) {
+				translationMat = translate(endBone->positions[p0Index].position);
+			} else {
+				p1Index = p0Index + 1;
+				translationMat = translate(mix(endBone->positions[p0Index].position, endBone->positions[p1Index].position, getScaleFactor(endBone->positions[p0Index].timeStamp, endBone->positions[p1Index].timeStamp, currentTimeLayered)));
+			}
+		}
+
+		//Calculate Rotation
+		if (endBone->rotations.size() == 1) {
+			rotationMat = quaternionToMatrix(normalize(endBone->rotations[0].orientation));
+		} else {
+			for(p0Index = 0; p0Index < endBone->rotations.size() - 1; ++p0Index) {
+				if (currentTimeLayered < endBone->rotations[p0Index + 1].timeStamp) {
+					break;
+				}
+			}
+			if(p0Index == endBone->rotations.size() - 1) {
+				rotationMat = quaternionToMatrix(normalize(endBone->rotations[p0Index].orientation));
+			} else {
+				p1Index = p0Index + 1;
+				rotationMat = quaternionToMatrix(normalize(slerp(endBone->rotations[p0Index].orientation, endBone->rotations[p1Index].orientation, getScaleFactor(endBone->rotations[p0Index].timeStamp, endBone->rotations[p1Index].timeStamp, currentTimeLayered))));
+			}
+		}
+
+		//Calculate Scale
+		if (endBone->scales.size() == 1) {
+			scalingMat = scale(endBone->scales[0].scale);
+		} else {
+			for(p0Index = 0; p0Index < endBone->scales.size() - 1; ++p0Index) {
+				if (currentTimeLayered < endBone->scales[p0Index + 1].timeStamp) {
+					break;
+				}
+			}
+			if(p0Index == endBone->scales.size() - 1) {
+				scalingMat = scale(endBone->scales[p0Index].scale);
+			} else {
+				p1Index = p0Index + 1;
+				scalingMat = scale(mix(endBone->scales[p0Index].scale, endBone->scales[p1Index].scale, getScaleFactor(endBone->scales[p0Index].timeStamp, endBone->scales[p1Index].timeStamp, currentTimeLayered)));
+			}
+		}
+		endBone->localTransform = translationMat * rotationMat * scalingMat;
+		layeredNodeTransform = endBone->localTransform;
+	}
+
+/*
+	quaternion rot0 = quaternion(nodeTransform);
+	quaternion rot1 = quaternion(layeredNodeTransform);
+	quaternion finalRot = slerp(rot0, rot1, blendFactor);
+	mat4 blendedMat = quaternionToMatrix(finalRot);
+	blendedMat[3] = (1.0f - blendFactor) * nodeTransform[3] + layeredNodeTransform[3] * blendFactor;
+*/
+	mat4 blendedMat = (nodeTransform * (1-blendFactor)) + (layeredNodeTransform * blendFactor);
+	mat4 globalTransformation = parentTransform * blendedMat;
+
+	unordered_map<string, BoneInfo> boneInfoMap = model->boneInfoMap;
+	if (boneInfoMap.count(nodeName) != 0)
+	{
+		int index = boneInfoMap[nodeName].id;
+		mat4 offset = boneInfoMap[nodeName].offset;
+		base->finalBoneMatrices[index] = globalTransformation * offset;
+		layer->finalBoneMatrices[index] = globalTransformation * offset;
+	}
+
+	for (int i = 0; i < node->childrenCount; i++) {
+		calculateBoneTransformBlended(model, base, &node->children[i], layer, &nodeLayer->children[i], currentTimeBase, currentTimeLayered, globalTransformation, blendFactor);
+	}
+}
+
 
 void calculateBoneTransform(glmodel* model, glanimator* a, const AssimpNodeData* node, mat4 parentTransform) {
 	string nodeName = node->name;
@@ -455,6 +623,28 @@ void calculateBoneTransform(glmodel* model, glanimator* a, const AssimpNodeData*
 	}
 }
 
+void BlendTwoAnimations(glmodel* model,glanimator* baseAnimation,glanimator* layeredAnimation,float blendFactor,float dt){
+
+	float a = 1.0f;
+	float b = baseAnimation->duration / layeredAnimation->duration;
+	const float animSpeedMultiplierUp = (1.0f - blendFactor) * a + b * blendFactor;
+
+	a = layeredAnimation->duration / baseAnimation->duration;
+	b = 1.0f;
+	const float animSpeedMultiplierDown = (1.0f - blendFactor) * a + b * blendFactor;
+
+	static float currentTimeBase = 0.0f;
+	currentTimeBase += baseAnimation->ticksPerSecond * dt * animSpeedMultiplierUp;
+	currentTimeBase = fmod(currentTimeBase,baseAnimation->duration);
+
+	static float currentTimeLayered = 0.0f;
+	currentTimeLayered += layeredAnimation->ticksPerSecond * dt * animSpeedMultiplierDown;
+	currentTimeLayered = fmod(currentTimeLayered,layeredAnimation->duration);
+
+	calculateBoneTransformBlended(model,baseAnimation,&baseAnimation->rootNode,layeredAnimation,&layeredAnimation->rootNode,currentTimeBase,currentTimeLayered,mat4::identity(),blendFactor);
+}
+
+
 void glmodel::setBoneMatrixUniform(GLuint uniformLocation, unsigned i) {
 	vector<mat4> m;
 	if(i < this->animator.size() && i >= 0) {
@@ -471,11 +661,18 @@ void glmodel::setBoneMatrixUniform(GLuint uniformLocation, unsigned i) {
 }
 
 void glmodel::update(float dt, int i) {
+	/*
 	if(i < this->animator.size()) {
 		this->animator[i].currentTime += this->animator[i].ticksPerSecond * dt;
 		this->animator[i].currentTime = fmod(this->animator[i].currentTime, this->animator[i].duration);
-		calculateBoneTransform(this, &this->animator[i], &this->animator[i].rootNode, mat4::identity());
+		//calculateBoneTransform(this, &this->animator[i], &this->animator[i].rootNode, mat4::identity());
+		this->animator[1].currentTime += this->animator[1].ticksPerSecond * dt;
+		this->animator[1].currentTime = fmod(this->animator[1].currentTime, this->animator[1].duration);
+		//calculateBoneTransform(this, &this->animator[1], &this->animator[1].rootNode, mat4::identity());
+		//calculateBoneTransformBlended(this,&this->animator[i],&this->animator[1],&this->animator[i].rootNode,mat4::identity(),0.5f);
 	}
+	*/
+	BlendTwoAnimations(this,&this->animator[0],&this->animator[1],0.5f,dt);
 }
 
 void glmodel::draw(glshaderprogram *program,int instance) {
