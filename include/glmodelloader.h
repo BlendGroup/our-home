@@ -21,7 +21,10 @@ enum textureTypes {
 enum materialTypes {
 	MAT_AMBIENT = 0,
 	MAT_DIFFUSE = 1,
-	MAT_SPECULAR = 2
+	MAT_SPECULAR = 2,
+	MAT_EMISSIVE = 3,
+	MAT_SHININESS = 4,
+	MAT_OPACITY = 5
 };
 
 // structure to keep track of textures in model
@@ -34,6 +37,16 @@ struct texture {
 struct material {
 	vmath::vec3 value;
 	materialTypes type;
+};
+
+struct glmaterial{
+	vmath::vec3 ambient;
+	vmath::vec3 diffuse;
+	vmath::vec3 specular;
+	vmath::vec3 emissive; // may or may not use
+	float shininess;
+	float opacity;
+	std::vector<texture> textures;
 };
 
 struct BoneInfo {
@@ -66,8 +79,7 @@ struct KeyScale {
 struct glmesh {
 	GLuint vao;
 	size_t trianglePointCount;
-	std::vector<texture> textures;
-	std::vector<material> materials;
+	GLint materialIndex;
 };
 
 struct glbone {
@@ -94,8 +106,9 @@ public:
 	std::vector<glmesh> meshes;
 	std::vector<glanimator> animator;
 	std::unordered_map<std::string, BoneInfo> boneInfoMap;
+	std::vector<glmaterial> materials;
 	int boneCounter = 0;
-	glmodel(std::string path, unsigned flags);
+	glmodel(std::string path, unsigned flags, bool isPbr);
 	void setBoneMatrixUniform(GLuint uniformLocation, unsigned i);
 	void update(float delta, int i);
 	void draw(glshaderprogram* program,int instance = 1);

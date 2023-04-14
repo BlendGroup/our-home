@@ -15,7 +15,7 @@ static GLuint texture;
 static glmodel* model;
 //static model* m;
 
-#define DYNAMIC 1
+#define DYNAMIC 0
 
 void setupProgramTestModel() {
 	try {
@@ -35,7 +35,7 @@ void initTestModel() {
 #if DYNAMIC
 		model = new glmodel("resources/models/vampire/vampire.fbx", aiProcess_FlipUVs);
 #else
-		model = new glmodel("resources/models/sphere/sphere.obj", 0);
+		model = new glmodel("resources/models/backpack/backpack.obj", aiProcessPreset_TargetRealtime_Quality,false);
 		//m = new model("resources/models/vampire/dancing_vampire.dae");
 #endif
 	} catch(string errorString) {
@@ -45,6 +45,8 @@ void initTestModel() {
 
 void renderTestModel(camera* cam) {
 	try {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
 		program->use();
 		glUniformMatrix4fv(program->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 		glUniformMatrix4fv(program->getUniformLocation("vMat"), 1, GL_FALSE, cam->matrix());
