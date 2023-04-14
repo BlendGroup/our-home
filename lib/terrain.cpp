@@ -48,6 +48,10 @@ void terrain::render(camera* cam) {
 	glUniform1i(this->renderHeightMap->getUniformLocation("numMeshes"), MESH_SIZE);
 	glUniform1f(this->renderHeightMap->getUniformLocation("maxTess"), MAX_PATCH_TESS_LEVEL);
 	glUniform1f(this->renderHeightMap->getUniformLocation("minTess"), MIN_PATCH_TESS_LEVEL);
+	glUniform1i(this->renderHeightMap->getUniformLocation("texHeight"), 0);
+	glUniform1i(this->renderHeightMap->getUniformLocation("texColor"), 1);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, this->heightMap);
 	glDrawArraysInstanced(GL_PATCHES, 0, 4, MESH_SIZE * MESH_SIZE);
 }
 

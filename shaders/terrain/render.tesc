@@ -8,6 +8,14 @@ uniform mat4 mMat;
 uniform float maxTess;
 uniform float minTess;
 
+in VS_OUT {
+	vec2 tc;
+} tcs_in[];
+
+out TCS_OUT {
+	vec2 tc;
+} tcs_out[];
+
 void main(void) {
 	if(gl_InvocationID == 0) {
 		vec4 p0 = pMat * vMat * mMat * gl_in[0].gl_Position;
@@ -22,12 +30,13 @@ void main(void) {
 		float l1 = distance(p3.xy, p2.xy) * (maxTess - minTess) + minTess;
 		float l2 = distance(p3.xy, p1.xy) * (maxTess - minTess) + minTess;
 		float l3 = distance(p1.xy, p0.xy) * (maxTess - minTess) + minTess;
-		gl_TessLevelOuter[0] = l0;
-		gl_TessLevelOuter[1] = l1;
-		gl_TessLevelOuter[2] = l2;
-		gl_TessLevelOuter[3] = l3;
-		gl_TessLevelInner[0] = min(l1, l3);
-		gl_TessLevelInner[1] = min(l0, l2);
+		gl_TessLevelOuter[0] = 32.0;
+		gl_TessLevelOuter[1] = 32.0;
+		gl_TessLevelOuter[2] = 32.0;
+		gl_TessLevelOuter[3] = 32.0;
+		gl_TessLevelInner[0] = 32.0;
+		gl_TessLevelInner[1] = 32.0;
 	}
 	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
+	tcs_out[gl_InvocationID].tc = tcs_in[gl_InvocationID].tc;
 }
