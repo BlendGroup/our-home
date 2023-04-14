@@ -1,5 +1,5 @@
 #version 460 core
-
+// Metalic and Roughness Workflow
 const float PI = 3.14159265359;
 
 layout(location = 0)out vec4 fragColor;

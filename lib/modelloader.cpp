@@ -38,7 +38,8 @@ unordered_map<textureTypes, string> textureTypeMap = {
 	{TEX_SPECULAR, "texture_specular"},
 	{TEX_AO, "texture_ao"},
 	{TEX_ROUGHNESS, "texture_roughness"},
-	{TEX_METALIC, "texture_metalic"}
+	{TEX_METALIC, "texture_metalic"},
+	{TEX_GLOSSINESS,"texture_glossiness"}
 };
 
 unordered_map<materialTypes, string> materialTypeMap = {
@@ -66,7 +67,7 @@ vector<texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, textur
     for(size_t i = 0; i < mat->GetTextureCount(type); i++){
         aiString str;
         mat->GetTexture(type, i, &str);
-		cout<<directory + "/"<<str.data<<endl;
+		//cout<<directory + "/"<<str.data<<endl;
         texture tex;
         tex.id = createTexture2D(directory + "/" + str.C_Str(),GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
         tex.type = typeString;
@@ -78,7 +79,7 @@ vector<texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, textur
 texture loadPBRTextures(textureTypes typeString,string directory) {
 	//cout<<directory + "/" + textureTypeMap[typeString]+".png"<<endl;
     texture tex;
-	cout<<directory + "/textures/" + textureTypeMap[typeString]+".png"<<endl;
+	//cout<<directory + "/textures/" + textureTypeMap[typeString]+".png"<<endl;
     tex.id = createTexture2D(directory + "/textures/" + textureTypeMap[typeString]+".png",GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
     tex.type = typeString;
 	return tex;
@@ -373,17 +374,25 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 				temp.textures.push_back(loadPBRTextures(TEX_METALIC, path.substr(0, path.find_last_of('/'))));
 				temp.textures.push_back(loadPBRTextures(TEX_ROUGHNESS, path.substr(0, path.find_last_of('/'))));
 				temp.textures.push_back(loadPBRTextures(TEX_AO, path.substr(0, path.find_last_of('/'))));
+				temp.textures.push_back(loadPBRTextures(TEX_SPECULAR, path.substr(0, path.find_last_of('/'))));
+				temp.textures.push_back(loadPBRTextures(TEX_GLOSSINESS, path.substr(0, path.find_last_of('/'))));
 			}else {				
+				
 				//diffuse map
 				std::vector<texture> diffuseMap = loadMaterialTextures(mat, aiTextureType_DIFFUSE, TEX_DIFFUSE,path.substr(0, path.find_last_of('/')));
 				temp.textures.insert(temp.textures.end(), diffuseMap.begin(), diffuseMap.end());
-					//normal map
+				
+				//normal map
 				std::vector<texture> normalMap = loadMaterialTextures(mat, aiTextureType_NORMALS, TEX_NORMAL,path.substr(0, path.find_last_of('/')));
 				temp.textures.insert(temp.textures.end(), normalMap.begin(), normalMap.end());
 
 				//specular map
 				std::vector<texture> specularMap = loadMaterialTextures(mat, aiTextureType_SPECULAR, TEX_SPECULAR,path.substr(0, path.find_last_of('/')));
 				temp.textures.insert(temp.textures.end(), specularMap.begin(), specularMap.end());
+
+				// glossiness map
+				std::vector<texture> glossinessMap = loadMaterialTextures(mat, aiTextureType_UNKNOWN, TEX_GLOSSINESS, path.substr(0, path.find_last_of('/')));
+				temp.textures.insert(temp.textures.end(), glossinessMap.begin(), glossinessMap.end());
 			}
 			this->materials.push_back(temp);
 		}

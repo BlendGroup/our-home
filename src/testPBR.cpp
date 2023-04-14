@@ -10,6 +10,8 @@
 #include "../include/testPBR.h"
 #include "../include/global.h"
 
+#define DYNAMIC 1
+
 using namespace std;
 using namespace vmath;
 
@@ -18,9 +20,14 @@ static glmodel* model;
 
 void setupProgramTestPbr(){
 
-    try {
-        //program = new glshaderprogram({"src/shaders/pbr.vert", "src/shaders/pbr.frag"});
-		program = new glshaderprogram({"src/shaders/pbr.vert", "src/shaders/pbr.frag"});
+    try 
+    {
+        #if DYNAMIC
+            program = new glshaderprogram({"src/shaders/pbrDynamic.vert", "src/shaders/pbrSG.frag"});
+        #else
+            //program = new glshaderprogram({"src/shaders/pbr.vert", "src/shaders/pbr.frag"});
+            program = new glshaderprogram({"src/shaders/pbr.vert", "src/shaders/pbrSG.frag"});
+        #endif
         //program->printUniforms(cout);
     } catch (string errorString) {
         throwErr(errorString);
@@ -28,9 +35,12 @@ void setupProgramTestPbr(){
 }
 
 void initTestPbr(){
-    try {         
-        model = new glmodel("resources/models/sphere/sphere.obj",aiProcessPreset_TargetRealtime_Quality | aiProcess_RemoveRedundantMaterials,true);
-
+    try {       
+        #if DYNAMIC  
+        model = new glmodel("resources/models/robot/robot.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
+        #else
+        model = new glmodel("resources/models/robot/robot.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_RemoveRedundantMaterials | aiProcess_FlipUVs,true);
+        #endif
     } catch (string errorString) {
         throwErr(errorString);
     }
@@ -41,7 +51,13 @@ void renderTestPbr(camera *cam,vec3 camPos){
         program->use();
         glUniformMatrix4fv(program->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
         glUniformMatrix4fv(program->getUniformLocation("vMat"),1,GL_FALSE,cam->matrix()); 
-        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f));
+        #if DYNAMIC
+        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) * scale(0.1f,0.1f,0.1f));
+        model->update(0.005f, 0);
+        model->setBoneMatrixUniform(program->getUniformLocation("bMat[0]"), 0);
+        #else
+        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) * scale(0.1f,0.1f,0.1f));
+        #endif
         glUniform3fv(program->getUniformLocation("viewPos"),1,camPos);
         // Lights data
         glUniform1i(program->getUniformLocation("numOfLights"),4);

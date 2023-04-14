@@ -2,7 +2,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include<stb_image.h>
 #include<gltextureloader.h>
-
+#include <iostream>
 #include<unordered_map>
 
 using namespace std;
@@ -18,6 +18,8 @@ GLuint createTexture2D(string filename, GLint minFilter, GLint magFilter, GLint 
 		glBindTexture(GL_TEXTURE_2D, texId);
 		unsigned char* data = stbi_load(filename.c_str(), &w, &h, &channels, 0);
 		GLenum format;
+
+		cout<<filename<<channels<<endl;
 
 		if(channels == 1)
 			format = GL_RED;
