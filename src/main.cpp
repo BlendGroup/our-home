@@ -9,6 +9,7 @@
 #include<testcamera.h>
 #include<scenecamera.h>
 #include<debugcamera.h>
+#include<testPBR.h>
 #include<testmodel.h>
 #include<hdr.h>
 #include<windowing.h>
@@ -18,7 +19,7 @@
 using namespace std;
 using namespace vmath;
 
-static bool hdrEnabled = true;
+static bool hdrEnabled = false;
 static HDR* hdr;
 static sceneCamera *scenecamera;
 static debugCamera *debugcamera;

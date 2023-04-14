@@ -32,15 +32,15 @@ uniform int numOfLights;
 uniform bool isTextured;
 
 // Texture Uniforms
-uniform sampler2D diffueMap;
-uniform sampler2D normalMap;
-uniform sampler2D metallicMap;
-uniform sampler2D roughnessMap;
-uniform sampler2D aoMap;
+uniform sampler2D texture_diffuse;
+uniform sampler2D texture_normal;
+uniform sampler2D texture_metalic;
+uniform sampler2D texture_roughness;
+uniform sampler2D texture_ao;
 
 vec3 getNormalFromMap()
 {
-    vec3 tangentNormal = normalize(2.0 * texture(normalMap,fs_in.Tex).rgb - 1.0);
+    vec3 tangentNormal = normalize(2.0 * texture(texture_normal,fs_in.Tex).rgb - 1.0);
     return normalize(fs_in.TBN * tangentNormal);
 }
 
@@ -93,10 +93,10 @@ void main(void) {
     vec3 N;
     if(isTextured)
     {
-        diffuse = texture(diffueMap,fs_in.Tex).rgb;
-        metalness = texture(metallicMap,fs_in.Tex).r;
-        roughness = texture(roughnessMap,fs_in.Tex).r;
-        ao = texture(aoMap,fs_in.Tex).r;
+        diffuse = texture(texture_diffuse,fs_in.Tex).rgb;
+        metalness = texture(texture_metalic,fs_in.Tex).r;
+        roughness = texture(texture_roughness,fs_in.Tex).r;
+        ao = texture(texture_ao,fs_in.Tex).r;
         N = getNormalFromMap();
     }
     else

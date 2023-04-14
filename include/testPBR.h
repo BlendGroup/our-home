@@ -1,7 +1,7 @@
 #ifndef __TEST_PBR__
 #define __TEST_PBR__
 
-#include"../include/camera.h"
+#include<camera.h>
 
 void setupProgramTestPbr();
 void initTestPbr();

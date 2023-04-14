@@ -15,7 +15,7 @@ static GLuint texture;
 static glmodel* model;
 //static model* m;
 
-#define DYNAMIC 1
+#define DYNAMIC 0
 
 void setupProgramTestModel() {
 	try {

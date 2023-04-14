@@ -1,4 +1,6 @@
+#include <assimp/postprocess.h>
 #include <iostream>
+#include <vmath.h>
 
 #include "../include/glshaderloader.h"
 #include"../include/gltextureloader.h"
@@ -14,16 +16,11 @@ using namespace vmath;
 static glshaderprogram* program;
 static glmodel* model;
 
-static GLuint diffuseMap;
-static GLuint normalMap;
-static GLuint metallicMap;
-static GLuint roughnessMap;
-static GLuint aoMap;
-
 void setupProgramTestPbr(){
 
     try {
-        program = new glshaderprogram({"src/shaders/pbr.vert", "src/shaders/pbr.frag"});
+        //program = new glshaderprogram({"src/shaders/pbr.vert", "src/shaders/pbr.frag"});
+		program = new glshaderprogram({"src/shaders/pbr.vert", "src/shaders/pbr.frag"});
         //program->printUniforms(cout);
     } catch (string errorString) {
         throwErr(errorString);
@@ -32,13 +29,8 @@ void setupProgramTestPbr(){
 
 void initTestPbr(){
     try {         
-        model = new glmodel("resources/models/sphere.obj",0);
-        
-        diffuseMap = createTexture2D("resources/textures/pbr/panel/albedo.png");
-        normalMap = createTexture2D("resources/textures/pbr/panel/normal.png");
-        metallicMap = createTexture2D("resources/textures/pbr/panel/metallic.png");
-        roughnessMap = createTexture2D("resources/textures/pbr/panel/roughness.png");
-        aoMap = createTexture2D("resources/textures/pbr/panel/ao.png");
+        model = new glmodel("resources/models/sphere/sphere.obj",aiProcessPreset_TargetRealtime_Quality | aiProcess_RemoveRedundantMaterials,true);
+
     } catch (string errorString) {
         throwErr(errorString);
     }
@@ -49,7 +41,7 @@ void renderTestPbr(camera *cam,vec3 camPos){
         program->use();
         glUniformMatrix4fv(program->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
         glUniformMatrix4fv(program->getUniformLocation("vMat"),1,GL_FALSE,cam->matrix()); 
-        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,rotate(0.0f, vec3(0.0f, 1.0f, 0.0f)));
+        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f));
         glUniform3fv(program->getUniformLocation("viewPos"),1,camPos);
         // Lights data
         glUniform1i(program->getUniformLocation("numOfLights"),4);
@@ -68,28 +60,7 @@ void renderTestPbr(camera *cam,vec3 camPos){
         glUniform1f(program->getUniformLocation("material.ao"),0.0);
         // Texture Properties
         glUniform1i(program->getUniformLocation("isTextured"),GL_TRUE);
-        
-        glUniform1i(program->getUniformLocation("diffueMap"), 0);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, diffuseMap);
-
-        glUniform1i(program->getUniformLocation("normalMap"), 1);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, normalMap);
-
-        glUniform1i(program->getUniformLocation("metallicMap"), 2);
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, metallicMap);
-
-        glUniform1i(program->getUniformLocation("roughnessMap"), 3);
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, roughnessMap);
-
-        glUniform1i(program->getUniformLocation("aoMap"), 4);
-		glActiveTexture(GL_TEXTURE4);
-		glBindTexture(GL_TEXTURE_2D, aoMap);
-        
-        model->draw();
+        model->draw(program,1);
         glBindTexture(GL_TEXTURE_2D, 0);
     } catch (string errorString) {
         throwErr(errorString);

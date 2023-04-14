@@ -392,7 +392,7 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 	if(scene->HasAnimations()) {
 		createAnimator(scene, this);
 	}
-
+/*
 	cout<<this->animator.size()<<endl;
 	for(auto a : this->animator){
 		cout<<a.duration<<endl;
@@ -400,7 +400,7 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 		cout<<a.bones.size()<<endl;
 		cout<<a.rootNode.name<<endl<<endl;
 	}
-
+*/
 /*
 	cout<<this->materials.size()<<endl;
 	for(auto m : materials)

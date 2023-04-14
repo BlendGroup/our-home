@@ -17,11 +17,6 @@ GLuint createTexture2D(string filename, GLint minFilter, GLint magFilter, GLint 
 		glGenTextures(1, &texId);
 		glBindTexture(GL_TEXTURE_2D, texId);
 		unsigned char* data = stbi_load(filename.c_str(), &w, &h, &channels, 0);
-		
-		if(data == NULL)
-			cout<<"stbi_load Failed"<<endl;
-			
-		cout<<filename<<" "<<w<<" "<<h<<" "<<channels<<endl;
 		GLenum format;
 
 		if(channels == 1)
