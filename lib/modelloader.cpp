@@ -393,6 +393,14 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 		createAnimator(scene, this);
 	}
 
+	cout<<this->animator.size()<<endl;
+	for(auto a : this->animator){
+		cout<<a.duration<<endl;
+		cout<<a.ticksPerSecond<<endl;
+		cout<<a.bones.size()<<endl;
+		cout<<a.rootNode.name<<endl<<endl;
+	}
+
 /*
 	cout<<this->materials.size()<<endl;
 	for(auto m : materials)
@@ -568,7 +576,6 @@ mat4 parentTransform,float blendFactor) {
 	}
 }
 
-
 void calculateBoneTransform(glmodel* model, glanimator* a, const AssimpNodeData* node, mat4 parentTransform) {
 	string nodeName = node->name;
 	mat4 nodeTransform = node->transformation;
@@ -689,19 +696,15 @@ void glmodel::setBoneMatrixUniform(GLuint uniformLocation, unsigned i) {
 	glUniformMatrix4fv(uniformLocation, MAX_BONE_COUNT, GL_FALSE, *m.data());
 }
 
-void glmodel::update(float dt, int i) {
-	/*
-	if(i < this->animator.size()) {
-		this->animator[i].currentTime += this->animator[i].ticksPerSecond * dt;
-		this->animator[i].currentTime = fmod(this->animator[i].currentTime, this->animator[i].duration);
-		//calculateBoneTransform(this, &this->animator[i], &this->animator[i].rootNode, mat4::identity());
-		this->animator[1].currentTime += this->animator[1].ticksPerSecond * dt;
-		this->animator[1].currentTime = fmod(this->animator[1].currentTime, this->animator[1].duration);
-		//calculateBoneTransform(this, &this->animator[1], &this->animator[1].rootNode, mat4::identity());
-		//calculateBoneTransformBlended(this,&this->animator[i],&this->animator[1],&this->animator[i].rootNode,mat4::identity(),0.5f);
+void glmodel::update(float dt, int baseAnimation , int layeredAnimation , float blendFactor) {
+	if(baseAnimation == layeredAnimation && baseAnimation < this->animator.size()) {
+		this->animator[baseAnimation].currentTime += this->animator[baseAnimation].ticksPerSecond * dt;
+		this->animator[baseAnimation].currentTime = fmod(this->animator[baseAnimation].currentTime, this->animator[baseAnimation].duration);
+		calculateBoneTransform(this, &this->animator[baseAnimation], &this->animator[baseAnimation].rootNode, mat4::identity());
 	}
-	*/
-	BlendTwoAnimations(this,&this->animator[0],&this->animator[2],0.5f,dt);
+	else {
+		BlendTwoAnimations(this,&this->animator[baseAnimation],&this->animator[layeredAnimation],blendFactor,dt);
+	}
 }
 
 void glmodel::draw(glshaderprogram *program,int instance) {
