@@ -15,7 +15,7 @@ terrain::terrain(mat4 modelMatrix, GLuint heightMap) {
 void terrain::setupProgram(void) {
 	try {
 		// this->normalCalculator = new glshaderprogram({"shaders/terrain/calculatenormals.vert", "shaders/terrain/calculatenormals.frag"});
-		this->renderHeightMap = new glshaderprogram({"shaders/terrain/render.vert", "shaders/terrain/render.frag"});
+		this->renderHeightMap = new glshaderprogram({"shaders/terrain/render.vert", "shaders/terrain/render.tesc", "shaders/terrain/render.tese", "shaders/terrain/render.frag"});
 	} catch(string errorstring) {
 		throwErr(errorstring);
 	}
@@ -30,13 +30,25 @@ void terrain::init(void) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glCreateVertexArrays(1, &this->vao);
+	glBindVertexArray(this->vao);
+
+	glPatchParameteri(GL_PATCH_VERTICES, 4);
 }
 
 void terrain::render(void) {
+}
+
+void terrain::render(camera* cam) {
 	this->renderHeightMap->use();
 	glUniformMatrix4fv(this->renderHeightMap->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	glUniformMatrix4fv(this->renderHeightMap->getUniformLocation("vMat"), 1, GL_FALSE, mat4::identity());
+	glUniformMatrix4fv(this->renderHeightMap->getUniformLocation("vMat"), 1, GL_FALSE, cam->matrix());
 	glUniformMatrix4fv(this->renderHeightMap->getUniformLocation("mMat"), 1, GL_FALSE, this->modelMatrix);
+	glUniform1i(this->renderHeightMap->getUniformLocation("numMeshes"), MESH_SIZE);
+	glUniform1f(this->renderHeightMap->getUniformLocation("maxTess"), MAX_PATCH_TESS_LEVEL);
+	glUniform1f(this->renderHeightMap->getUniformLocation("minTess"), MIN_PATCH_TESS_LEVEL);
+	glDrawArraysInstanced(GL_PATCHES, 0, 4, MESH_SIZE * MESH_SIZE);
 }
 
 void terrain::uninit(void) {

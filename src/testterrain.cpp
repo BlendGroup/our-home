@@ -11,13 +11,15 @@ void setupProgramTestTerrain(void) {
 }
 
 void initTestTerrain(void) {
-	plainTerrain = new terrain(translate(0.0f, 0.0f, -4.0f), 0);
+	plainTerrain = new terrain(translate(0.0f, -1.0f, -2.0f), 0);
 
 	plainTerrain->init();
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
-void renderTestTerrain(void) {
-	plainTerrain->render();
+void renderTestTerrain(camera* cam) {
+	plainTerrain->render(cam);
 }
 
 void uninitTestTerrain(void) {

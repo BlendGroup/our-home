@@ -5,15 +5,17 @@
 
 #include<vmath.h>
 #include<glshaderloader.h>
-#include<testeffect.h>
-#include<testcamera.h>
 #include<scenecamera.h>
 #include<debugcamera.h>
-#include<testmodel.h>
 #include<hdr.h>
 #include<windowing.h>
 #include<errorlog.h>
 #include<global.h>
+
+#include<testeffect.h>
+#include<testcamera.h>
+#include<testmodel.h>
+#include<testterrain.h>
 
 using namespace std;
 using namespace vmath;
@@ -26,8 +28,9 @@ static bool isDebugCameraOn = false;
 static bool isAnimating = false;
 
 #define SHOW_TEST_SCENE 		0
-#define SHOW_MODEL_SCENE 		1
+#define SHOW_MODEL_SCENE 		0
 #define SHOW_CAMERA_SCENE 		0
+#define SHOW_TERRAIN_SCENE 		1
 
 mat4 programglobal::perspective;
 
@@ -39,6 +42,9 @@ void setupProgram(void) {
 #endif
 #if SHOW_MODEL_SCENE
 		setupProgramTestModel();
+#endif
+#if SHOW_TERRAIN_SCENE
+		setupProgramTestTerrain();
 #endif
 		hdr->setupProgram();
 	} catch(string errorString) {
@@ -68,6 +74,9 @@ void init(void) {
 #if SHOW_MODEL_SCENE
 		initTestModel();
 #endif
+#if SHOW_TERRAIN_SCENE
+		initTestTerrain();
+#endif
 		hdr->init();
 
 		glDepthFunc(GL_LEQUAL);
@@ -88,7 +97,7 @@ void render(glwindow* window) {
 
 		camera* currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamera);
 
-		glClearBufferfv(GL_COLOR, 0, vec4(0.5f, 1.0f, 0.2f, 1.0f));
+		glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.3f, 0.2f, 1.0f));
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().height, 0.1f, 1000.0f);
 #if SHOW_CAMERA_SCENE
@@ -97,6 +106,10 @@ void render(glwindow* window) {
 #if SHOW_MODEL_SCENE
 		renderTestModel(dynamic_cast<camera*>(debugcamera));
 #endif
+#if SHOW_TERRAIN_SCENE
+		renderTestTerrain(currentCamera);
+#endif
+
 		// renderTestEffect();
 
 		if(hdrEnabled) {
@@ -146,6 +159,9 @@ void uninit(void) {
 #endif
 #if SHOW_MODEL_SCENE
 	uninitTestModel();
+#endif
+#if SHOW_TERRAIN_SCENE
+	uninitTestTerrain();
 #endif
 	hdr->uninit();
 
