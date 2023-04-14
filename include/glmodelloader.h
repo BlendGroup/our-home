@@ -15,7 +15,7 @@ enum textureTypes {
 	TEX_NORMAL = 2,
 	TEX_AO = 3,
 	TEX_ROUGHNESS = 4,
-	TEX_METALNESS = 5
+	TEX_METALIC = 5
 };
 
 enum materialTypes {

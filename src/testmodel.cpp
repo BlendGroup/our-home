@@ -33,9 +33,9 @@ void setupProgramTestModel() {
 void initTestModel() {
 	try {
 #if DYNAMIC
-		model = new glmodel("resources/models/vampire/vampire.fbx", aiProcess_FlipUVs);
+		model = new glmodel("resources/models/vampire/vampire.fbx", aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,false);
 #else
-		model = new glmodel("resources/models/backpack/backpack.obj", aiProcessPreset_TargetRealtime_Quality,false);
+		model = new glmodel("resources/models/sphere/sphere.obj", aiProcessPreset_TargetRealtime_Quality,true);
 		//m = new model("resources/models/vampire/dancing_vampire.dae");
 #endif
 	} catch(string errorString) {
