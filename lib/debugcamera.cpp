@@ -71,6 +71,10 @@ mat4 debugCamera::matrix() const {
 	return lookat(this->position, this->front + this->position, upVector);
 }
 
+vec3 debugCamera::getPosition(){
+	return this->position;
+}
+
 debugCamera::~debugCamera() {
 
 }
