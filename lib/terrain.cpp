@@ -22,19 +22,29 @@ void terrain::setupProgram(void) {
 }
 
 void terrain::init(void) {
-	glGenTextures(1, &this->nomralMap);
-	glBindTexture(GL_TEXTURE_2D, this->nomralMap);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, TEXTURE_SIZE, TEXTURE_SIZE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	try {
+		glGenTextures(1, &this->nomralMap);
+		glBindTexture(GL_TEXTURE_2D, this->nomralMap);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, TEXTURE_SIZE, TEXTURE_SIZE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glBindTexture(GL_TEXTURE_2D, 0);
 
-	glCreateVertexArrays(1, &this->vao);
-	glBindVertexArray(this->vao);
+		this->normalMapCl = programglobal::oclContext->createGLCLTexture(CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0, this->nomralMap);
 
-	glPatchParameteri(GL_PATCH_VERTICES, 4);
+		this->heightMapCl = programglobal::oclContext->createGLCLTexture(CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0, this->heightMap);
+
+		glCreateVertexArrays(1, &this->vao);
+		glBindVertexArray(this->vao);
+
+		glPatchParameteri(GL_PATCH_VERTICES, 4);
+
+		this->normalKernel = programglobal::oclContext->getKernel("calcNormal");
+	} catch(string errorString) {
+		throwErr(errorString);
+	}
 }
 
 void terrain::render(void) {

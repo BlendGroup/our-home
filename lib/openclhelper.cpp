@@ -91,6 +91,10 @@ clglcontext::clglcontext(int platformNo, int deviceNo) {
 		}
 		platforms = (cl_platform_id*)alloca(sizeof(cl_platform_id) * num);
 		CLErr(clhelpererr = clGetPlatformIDs(num, platforms, NULL));
+		
+
+		// char buffer[1024];
+		// clGetPlatformInfo(platforms[platformNo], CL_PLATFORM_NAME, sizeof(buffer), buffer, NULL);
 
 		CLErr(clhelpererr = clGetDeviceIDs(platforms[platformNo], CL_DEVICE_TYPE_ALL, 0, NULL, &num));
 		if(num >= deviceNo) {
@@ -100,8 +104,6 @@ clglcontext::clglcontext(int platformNo, int deviceNo) {
 		CLErr(clhelpererr = clGetDeviceIDs(platforms[platformNo], CL_DEVICE_TYPE_ALL, num, devices, NULL));
 
 		this->device = devices[deviceNo];
-		char buffer[1024];
-		clGetPlatformInfo(platforms[platformNo], CL_PLATFORM_NAME, sizeof(buffer), buffer, NULL);
 		
 		cl_context_properties contextProp[] = {
 			CL_GL_CONTEXT_KHR, (cl_context_properties)glXGetCurrentContext(),
@@ -164,7 +166,7 @@ void clglcontext::compilePrograms(vector<string> programNames) {
 
 cl_kernel clglcontext::getKernel(std::string name) {
 	if(this->kernels.count(name) == 0) {
-		throwErr("kernel named : '" + name + "'" + " not found.")
+		throwErr("kernel named : '" + name + "'" + " not found.");
 		return NULL;
 	}
 	return this->kernels[name];
@@ -184,7 +186,7 @@ void clglcontext::setKernelParameters(cl_kernel kernel, vector<clkernelparamater
 void clglcontext::setKernelParameters(string kernelName, vector<clkernelparamater> kernelList) {
 	cl_int err;
 	if(this->kernels.count(kernelName) == 0) {
-		throwErr("kernel named : '" + kernelName + "'" + " not found.")
+		throwErr("kernel named : '" + kernelName + "'" + " not found.");
 		return;
 	}
 	try {
@@ -204,6 +206,7 @@ cl_mem clglcontext::createGLCLBuffer(cl_mem_flags memFlags, GLuint buffer) {
 		return mem;
 	} catch(string errorString) {
 		throwErr(errorString);
+		return NULL;
 	}
 }
 
@@ -214,6 +217,7 @@ cl_mem clglcontext::createGLCLTexture(cl_mem_flags memFlags, GLenum texTarget, G
 		return mem;
 	} catch(string errorString) {
 		throwErr(errorString);
+		return NULL;
 	}
 }
 

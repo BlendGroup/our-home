@@ -6,6 +6,7 @@
 #include<GL/glew.h>
 #include<vmath.h>
 #include<camera.h>
+#include<CL/cl.h>
 
 #define TEXTURE_SIZE 1024
 #define MAX_PATCH_TESS_LEVEL 32
@@ -15,12 +16,15 @@
 class terrain : public glbase {
 private:
 	GLuint heightMap;
+	cl_mem heightMapCl;
 	GLuint nomralMap;
+	cl_mem normalMapCl;
 	GLuint vao;
 	GLuint vbo;
 	glshaderprogram* normalCalculator;
 	glshaderprogram* renderHeightMap;
 	vmath::mat4 modelMatrix;
+	cl_kernel normalKernel;
 public:
 	terrain(vmath::mat4 modelMatrix, GLuint heightMap);
 	void setupProgram(void) override;

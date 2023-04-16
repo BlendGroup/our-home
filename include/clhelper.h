@@ -12,6 +12,12 @@ extern cl_int clhelpererr;
 
 #define param(p, x) {p, &x, sizeof(x)}
 
+struct clkernelparamater {
+	int position;
+	void *param;
+	size_t size;
+};
+
 class clglcontext {
 private:
 	cl_context context;
@@ -19,7 +25,7 @@ private:
 	cl_command_queue cmdQueue;
 	std::unordered_map<std::string, cl_kernel> kernels;
 public:
-	clglcontext(int platformNo, int deviceNo);
+	clglcontext(int platformNo = 0, int deviceNo = 0);
 	void compilePrograms(std::vector<std::string> programNames);
 	cl_kernel getKernel(std::string name);
 	void setKernelParameters(cl_kernel kernel, std::vector<clkernelparamater> kernelList);
@@ -30,13 +36,7 @@ public:
 	~clglcontext();
 };
 
-struct clkernelparamater {
-	int position;
-	void *param;
-	size_t size;
-};
-
-void handleError(cl_int errcode, std::string line);
+void handleError(cl_int errcode, std::string line, std::string filename);
 
 #define CLErr(function) function;handleError(clhelpererr, #function, __FILE__)
 

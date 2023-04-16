@@ -11,6 +11,7 @@
 #include<windowing.h>
 #include<errorlog.h>
 #include<global.h>
+#include<clhelper.h>
 
 #include<testeffect.h>
 #include<testcamera.h>
@@ -22,8 +23,8 @@ using namespace vmath;
 
 static bool hdrEnabled = false;
 static HDR* hdr;
-static sceneCamera *scenecamera;
-static debugCamera *debugcamera;
+static sceneCamera* scenecamera;
+static debugCamera* debugcamera;
 static bool isDebugCameraOn = false;
 static bool isAnimating = false;
 
@@ -33,6 +34,7 @@ static bool isAnimating = false;
 #define SHOW_TERRAIN_SCENE 		1
 
 mat4 programglobal::perspective;
+clglcontext* programglobal::oclContext;
 
 void setupProgram(void) {
 	try {
@@ -47,6 +49,7 @@ void setupProgram(void) {
 		setupProgramTestTerrain();
 #endif
 		hdr->setupProgram();
+		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl"});
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -65,6 +68,7 @@ void init(void) {
 	try {
 		//Object Creation
 		hdr = new HDR(1.5f, 1.0f, 2048);
+		programglobal::oclContext = new clglcontext(1);
 
 		//Inititalize
 		// initTestEffect();
@@ -165,6 +169,7 @@ void uninit(void) {
 #endif
 	hdr->uninit();
 
+	delete programglobal::oclContext;
 	delete hdr;
 }
 
