@@ -18,13 +18,16 @@ class sceneCamera : public camera
 private:
     BsplineInterpolator *m_bspPositions;
     BsplineInterpolator *m_bspFront;
-    const PathDescriptor *m_pdesc;
-	float t;
+    // const PathDescriptor *m_pdesc;
+    float t;
+
+    friend class sceneCameraRig;
+
 public:
     sceneCamera(const PathDescriptor *pdesc);
     ~sceneCamera();
     float getDistanceOnSpline() const;
-	void updateT(float speed);
+    void updateT(float speed);
     vmath::mat4 matrix() const override;
 };
 
