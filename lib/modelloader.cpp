@@ -39,7 +39,8 @@ unordered_map<textureTypes, string> textureTypeMap = {
 	{TEX_AO, "texture_ao"},
 	{TEX_ROUGHNESS, "texture_roughness"},
 	{TEX_METALIC, "texture_metalic"},
-	{TEX_GLOSSINESS,"texture_glossiness"}
+	{TEX_GLOSSINESS,"texture_glossiness"},
+	{TEX_EMISSIVE,"texture_emissive"}
 };
 
 unordered_map<materialTypes, string> materialTypeMap = {
@@ -76,11 +77,11 @@ vector<texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, textur
     return textures;
 }
 
-texture loadPBRTextures(textureTypes typeString,string directory) {
+texture loadPBRTextures(textureTypes typeString,string directory,string matName) {
 	//cout<<directory + "/" + textureTypeMap[typeString]+".png"<<endl;
     texture tex;
-	//cout<<directory + "/textures/" + textureTypeMap[typeString]+".png"<<endl;
-    tex.id = createTexture2D(directory + "/textures/" + textureTypeMap[typeString]+".png",GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
+	//cout<<directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".png"<<endl;
+    tex.id = createTexture2D(directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".png",GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
     tex.type = typeString;
 	return tex;
 }
@@ -339,6 +340,9 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 			glmaterial temp;
 			aiMaterial* mat = scene->mMaterials[m];
 
+			aiString name;
+			mat->Get(AI_MATKEY_NAME,name);
+			cout<<name.data<<endl;
 			aiColor3D color;			
 			mat->Get(AI_MATKEY_COLOR_AMBIENT,color);
 			temp.ambient[0] = color[0];
@@ -369,13 +373,14 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 			
 			if(isPbr){
 				// Load all PBR Textures Manually as assimp is a bitch
-				temp.textures.push_back(loadPBRTextures(TEX_DIFFUSE, path.substr(0, path.find_last_of('/'))));
-				temp.textures.push_back(loadPBRTextures(TEX_NORMAL, path.substr(0, path.find_last_of('/'))));
-				temp.textures.push_back(loadPBRTextures(TEX_METALIC, path.substr(0, path.find_last_of('/'))));
-				temp.textures.push_back(loadPBRTextures(TEX_ROUGHNESS, path.substr(0, path.find_last_of('/'))));
-				temp.textures.push_back(loadPBRTextures(TEX_AO, path.substr(0, path.find_last_of('/'))));
-				temp.textures.push_back(loadPBRTextures(TEX_SPECULAR, path.substr(0, path.find_last_of('/'))));
-				temp.textures.push_back(loadPBRTextures(TEX_GLOSSINESS, path.substr(0, path.find_last_of('/'))));
+				temp.textures.push_back(loadPBRTextures(TEX_DIFFUSE, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_NORMAL, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_METALIC, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_ROUGHNESS, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_AO, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_SPECULAR, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_GLOSSINESS, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_EMISSIVE, path.substr(0, path.find_last_of('/')),name.data));
 			}else {				
 				
 				//diffuse map
@@ -401,7 +406,7 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 	if(scene->HasAnimations()) {
 		createAnimator(scene, this);
 	}
-/*
+
 	cout<<this->animator.size()<<endl;
 	for(auto a : this->animator){
 		cout<<a.duration<<endl;
@@ -409,7 +414,6 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 		cout<<a.bones.size()<<endl;
 		cout<<a.rootNode.name<<endl<<endl;
 	}
-*/
 /*
 	cout<<this->materials.size()<<endl;
 	for(auto m : materials)
@@ -421,7 +425,7 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 		cout<<"shininess : "<<m.shininess<<endl;
 		cout<<"opacity : "<<m.opacity<<endl;
 	}
-*/
+	*/
 	importer.FreeScene();
 }
 void calculateBoneTransformBlended(glmodel* model, 
@@ -660,7 +664,7 @@ void calculateBoneTransform(glmodel* model, glanimator* a, const AssimpNodeData*
 	{
 		int index = boneInfoMap[nodeName].id;
 		mat4 offset = boneInfoMap[nodeName].offset;
-		a->finalBoneMatrices[index] = globalTransformation * offset;
+		a->finalBoneMatrices[index] = globalTransformation;
 	}
 
 	for (int i = 0; i < node->childrenCount; i++) {

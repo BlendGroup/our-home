@@ -16,7 +16,8 @@ enum textureTypes {
 	TEX_AO = 3,
 	TEX_ROUGHNESS = 4,
 	TEX_METALIC = 5,
-	TEX_GLOSSINESS = 6
+	TEX_GLOSSINESS = 6,
+	TEX_EMISSIVE = 7
 };
 
 enum materialTypes {
@@ -111,6 +112,7 @@ public:
 	int boneCounter = 0;
 	glmodel(std::string path, unsigned flags, bool isPbr);
 	void setBoneMatrixUniform(GLuint uniformLocation, unsigned i);
+	void setBoneMatrixUniform(GLuint uniformLocation, GLuint bMat,unsigned i);
 	void update(float dt, int baseAnimation , int layeredAnimation = 0, float blendFactor = 0.0f );
 	void draw(glshaderprogram* program,int instance = 1);
 };

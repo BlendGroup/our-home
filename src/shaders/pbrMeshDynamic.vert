@@ -23,16 +23,13 @@ out VS_OUT {
 void main(void) {
 	vec4 totalPosition = vec4(0.0);
 	vec3 totalNormal = vec3(0.0);
-	for(int i = 0 ; i < 4; i++) {
-		if(vBoneIds[i] == -1) {
-			//continue;
-			
-		}
-		vec4 localPosition = bMat[vBoneIds[i]] * vPos;
-		totalPosition += localPosition * vWeights[i];
-		vec3 localNormal = mat3(bMat[vBoneIds[i]]) * vNor;
+    for(int i = 0; i < 7; i++)
+    {
+		vec4 localPosition = bMat[i] * vPos;
+		totalPosition += localPosition;
+		vec3 localNormal = mat3(bMat[i]) * vNor;
 		totalNormal += localNormal;
-	}
+    }
 	mat4 mvMat = vMat * mMat;
 	vec4 P = mvMat * totalPosition;
 	gl_Position = pMat * P;

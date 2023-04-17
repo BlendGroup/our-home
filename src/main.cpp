@@ -19,7 +19,7 @@
 using namespace std;
 using namespace vmath;
 
-static bool hdrEnabled = false;
+static bool hdrEnabled = true;
 static HDR* hdr;
 static sceneCamera *scenecamera;
 static debugCamera *debugcamera;
