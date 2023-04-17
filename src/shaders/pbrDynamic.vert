@@ -25,8 +25,7 @@ void main(void) {
 	vec3 totalNormal = vec3(0.0);
 	for(int i = 0 ; i < 4; i++) {
 		if(vBoneIds[i] == -1) {
-			//continue;
-			
+			continue;
 		}
 		vec4 localPosition = bMat[vBoneIds[i]] * vPos;
 		totalPosition += localPosition * vWeights[i];

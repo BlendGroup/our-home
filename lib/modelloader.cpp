@@ -83,6 +83,7 @@ texture loadPBRTextures(textureTypes typeString,string directory,string matName)
 	//cout<<directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".png"<<endl;
     tex.id = createTexture2D(directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".png",GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
     tex.type = typeString;
+	//cout<<"id"<<tex.id<<endl;
 	return tex;
 }
 
@@ -342,7 +343,7 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 
 			aiString name;
 			mat->Get(AI_MATKEY_NAME,name);
-			cout<<name.data<<endl;
+			//cout<<name.data<<endl;
 			aiColor3D color;			
 			mat->Get(AI_MATKEY_COLOR_AMBIENT,color);
 			temp.ambient[0] = color[0];
@@ -406,7 +407,7 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 	if(scene->HasAnimations()) {
 		createAnimator(scene, this);
 	}
-
+/*
 	cout<<this->animator.size()<<endl;
 	for(auto a : this->animator){
 		cout<<a.duration<<endl;
@@ -414,7 +415,7 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 		cout<<a.bones.size()<<endl;
 		cout<<a.rootNode.name<<endl<<endl;
 	}
-/*
+
 	cout<<this->materials.size()<<endl;
 	for(auto m : materials)
 	{
@@ -664,7 +665,7 @@ void calculateBoneTransform(glmodel* model, glanimator* a, const AssimpNodeData*
 	{
 		int index = boneInfoMap[nodeName].id;
 		mat4 offset = boneInfoMap[nodeName].offset;
-		a->finalBoneMatrices[index] = globalTransformation;
+		a->finalBoneMatrices[index] = globalTransformation * offset;
 	}
 
 	for (int i = 0; i < node->childrenCount; i++) {
@@ -726,16 +727,19 @@ void glmodel::draw(glshaderprogram *program,int instance) {
 		//setup textures
 		for(int t = 0; t < this->materials[this->meshes[i].materialIndex].textures.size(); t++)
 		{
-			glActiveTexture(GL_TEXTURE0 + t);
-			glUniform1i(program->getUniformLocation(textureTypeMap[this->materials[this->meshes[i].materialIndex].textures[t].type]),t);
-			glBindTexture(GL_TEXTURE_2D, this->materials[this->meshes[i].materialIndex].textures[t].id);
+			if(this->materials[this->meshes[i].materialIndex].textures[t].id > 0)
+			{
+				glActiveTexture(GL_TEXTURE0 + t);
+				glUniform1i(program->getUniformLocation(textureTypeMap[this->materials[this->meshes[i].materialIndex].textures[t].type]),t);
+				glBindTexture(GL_TEXTURE_2D, this->materials[this->meshes[i].materialIndex].textures[t].id);
+			}
 		}
 
 		glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_AMBIENT]),1,this->materials[this->meshes[i].materialIndex].ambient);
 		glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_DIFFUSE]),1,this->materials[this->meshes[i].materialIndex].ambient);
 		glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_SPECULAR]),1,this->materials[this->meshes[i].materialIndex].ambient);
 		glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_EMISSIVE]),1,this->materials[this->meshes[i].materialIndex].ambient);
-		glUniform1f(program->getUniformLocation(materialTypeMap[MAT_SHININESS]),this->materials[this->meshes[i].materialIndex].shininess);
+		//glUniform1f(program->getUniformLocation(materialTypeMap[MAT_SHININESS]),this->materials[this->meshes[i].materialIndex].shininess);
 		glUniform1f(program->getUniformLocation(materialTypeMap[MAT_OPACITY]),this->materials[this->meshes[i].materialIndex].opacity);
 
 		glBindVertexArray(this->meshes[i].vao);

@@ -6,9 +6,11 @@ layout(location = 0)out vec4 fragColor;
 
 struct material_t{
     vec3 diffuse;
-    float metallic;
-    float roughness;
-    float ao;
+    vec3 ambient;
+    vec3 specular;
+    vec3 emissive;
+    float shininess;
+    float opacity;
 };
 
 struct light_t{
@@ -37,6 +39,7 @@ uniform sampler2D texture_normal;
 uniform sampler2D texture_specular;
 uniform sampler2D texture_glossiness;
 uniform sampler2D texture_ao;
+uniform sampler2D texture_emissive;
 
 vec3 getNormalFromMap()
 {
@@ -87,26 +90,18 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 void main(void) {
 
     vec3 diffuse;
+    vec3 emissive;
     float metalness;
     float roughness;
     float ao;
     vec3 N;
-    if(isTextured)
-    {
-        diffuse = texture(texture_diffuse,fs_in.Tex).rgb;
-        metalness = max(max(texture(texture_specular,fs_in.Tex).r,texture(texture_specular,fs_in.Tex).g),texture(texture_specular,fs_in.Tex).b);
-        roughness = 1.0 - texture(texture_glossiness,fs_in.Tex).r;
-        ao = texture(texture_ao,fs_in.Tex).r;
-        N = getNormalFromMap();
-    }
-    else
-    {
-        diffuse = material.diffuse;
-        metalness = material.metallic;
-        roughness = material.roughness;
-        ao = material.ao;
-        N = normalize(fs_in.N);
-    }
+
+    diffuse = texture(texture_diffuse,fs_in.Tex).rgb + material.diffuse;
+    emissive = texture(texture_emissive,fs_in.Tex).rgb + material.emissive;
+    metalness = max(max(texture(texture_specular,fs_in.Tex).r,texture(texture_specular,fs_in.Tex).g),texture(texture_specular,fs_in.Tex).b);
+    roughness = 1.0 - texture(texture_glossiness,fs_in.Tex).r;
+    ao = texture(texture_ao,fs_in.Tex).r;
+    N = getNormalFromMap();
 
     vec3 V = normalize(viewPos - fs_in.P);
 
@@ -139,9 +134,9 @@ void main(void) {
         kD *= 1.0 - metalness;
 
         float NdotL = max(dot(N,L),0.0);
-        Lo += (kD * diffuse / PI + specular) * radiance * NdotL;
+        Lo += (kD * (diffuse+emissive) / PI + (specular+material.specular)) * radiance * NdotL;
     }
 
-    vec3 ambient = vec3(0.03) * diffuse * ao;
-    fragColor = vec4(ambient+Lo,1.0);
+    vec3 ambient = vec3(0.03) * diffuse * ao + material.ambient;
+    fragColor = vec4(ambient+Lo,material.opacity);
 }

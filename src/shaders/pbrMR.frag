@@ -96,8 +96,8 @@ void main(void) {
     float ao;
     vec3 N;
     
-    diffuse = texture(texture_diffuse,fs_in.Tex).rgb;
-    emissive = texture(texture_emissive,fs_in.Tex).rgb;
+    diffuse = texture(texture_diffuse,fs_in.Tex).rgb + material.diffuse;
+    emissive = texture(texture_emissive,fs_in.Tex).rgb + material.emissive;
     metalness = texture(texture_metalic,fs_in.Tex).r;
     roughness = texture(texture_roughness,fs_in.Tex).r;
     ao = texture(texture_ao,fs_in.Tex).r;
@@ -134,7 +134,7 @@ void main(void) {
         kD *= 1.0 - metalness;
 
         float NdotL = max(dot(N,L),0.0);
-        Lo += (kD * (diffuse+emissive) / PI + specular) * radiance * NdotL;
+        Lo += (kD * (diffuse+emissive) / PI + (specular+material.specular)) * radiance * NdotL;
     }
 
     vec3 ambient = vec3(0.03) * diffuse  * ao;

@@ -27,6 +27,8 @@ GLuint createTexture2D(string filename, GLint minFilter, GLint magFilter, GLint 
 			format = GL_RGB;
 		else if(channels == 4)
 			format = GL_RGBA;
+		else
+			return 0;
 	
 		glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, GL_UNSIGNED_BYTE, data);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
