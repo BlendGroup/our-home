@@ -39,6 +39,9 @@ clglcontext* programglobal::oclContext;
 void setupProgram(void) {
 	try {
 		// setupProgramTestEffect();
+		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl"});
+		// programglobal::oclContext->printKernelList(cout);
+	
 #if SHOW_CAMERA_SCENE
 		setupProgramTestCamera();
 #endif
@@ -49,7 +52,6 @@ void setupProgram(void) {
 		setupProgramTestTerrain();
 #endif
 		hdr->setupProgram();
-		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl"});
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -111,7 +113,7 @@ void render(glwindow* window) {
 		renderTestModel(dynamic_cast<camera*>(debugcamera));
 #endif
 #if SHOW_TERRAIN_SCENE
-		renderTestTerrain(currentCamera);
+		renderTestTerrain(dynamic_cast<camera*>(debugcamera));
 #endif
 
 		// renderTestEffect();

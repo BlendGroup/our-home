@@ -8,12 +8,15 @@ in TCS_OUT {
 
 out TES_OUT {
 	vec2 tc;
+	vec3 pos;
+	vec3 nor;
 } tes_out;
 
 uniform mat4 pMat;
 uniform mat4 vMat;
 uniform mat4 mMat;
 uniform sampler2D texHeight;
+uniform sampler2D texNormal;
 
 void main(void) {
 	vec2 tc1 = mix(tes_in[0].tc, tes_in[1].tc, gl_TessCoord.x);
@@ -27,5 +30,7 @@ void main(void) {
 	p.y += texture(texHeight, tc).r * 10.0;
 
 	tes_out.tc = tc;
+	tes_out.nor = mat3(mMat) * texture(texNormal, tc).rgb;
+	tes_out.pos = vec3(mMat * p);
 	gl_Position = pMat * vMat * mMat * p;
 }

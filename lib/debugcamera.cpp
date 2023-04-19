@@ -10,8 +10,8 @@ using namespace vmath;
 
 #define upVector vec3(0.0f, 1.0f, 0.0f)
 
-debugCamera::debugCamera(vmath::vec3 position, float yaw, float pitch) {
-	this->position = position;
+debugCamera::debugCamera(vmath::vec3 pos, float yaw, float pitch) {
+	this->pos = pos;
 	this->yaw = yaw;
 	this->pitch = pitch;
 	this->front = calcFront(this->yaw, this->pitch);
@@ -21,16 +21,16 @@ void debugCamera::keyboardFunc(unsigned int key) {
 	float speed = 0.1f;
 	switch(key) {
 	case XK_W: case XK_w:
-		this->position += speed * this->front;
+		this->pos += speed * this->front;
 		break;
 	case XK_S: case XK_s:
-		this->position -= speed * this->front;
+		this->pos -= speed * this->front;
 		break;
 	case XK_D: case XK_d:
-		this->position += speed * normalize(cross(this->front, upVector));
+		this->pos += speed * normalize(cross(this->front, upVector));
 		break;
 	case XK_A: case XK_a:
-		this->position -= speed * normalize(cross(this->front, upVector));
+		this->pos -= speed * normalize(cross(this->front, upVector));
 		break;
 	}
 }
@@ -68,7 +68,11 @@ void debugCamera::mouseFunc(int action, int x, int y) {
 }
 
 mat4 debugCamera::matrix() const {
-	return lookat(this->position, this->front + this->position, upVector);
+	return lookat(this->pos, this->front + this->pos, upVector);
+}
+
+vec3 debugCamera::position() const {
+	return this->pos;
 }
 
 debugCamera::~debugCamera() {

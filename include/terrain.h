@@ -6,9 +6,9 @@
 #include<GL/glew.h>
 #include<vmath.h>
 #include<camera.h>
-#include<CL/cl.h>
+#include<clhelper.h>
 
-#define TEXTURE_SIZE 1024
+#define TEXTURE_SIZE 512
 #define MAX_PATCH_TESS_LEVEL 32
 #define MIN_PATCH_TESS_LEVEL 5
 #define MESH_SIZE 64

@@ -3,6 +3,7 @@
 
 #define CL_TARGET_OPENCL_VERSION 120
 #include<CL/cl.h>
+#include<CL/cl_gl.h>
 #include<vector>
 #include<iostream>
 #include<GL/gl.h>
@@ -10,7 +11,7 @@
 
 extern cl_int clhelpererr;
 
-#define param(p, x) {p, &x, sizeof(x)}
+#define param(pos, mem) {pos, &mem, sizeof(mem)}
 
 struct clkernelparamater {
 	int position;
@@ -33,6 +34,8 @@ public:
 	cl_mem createGLCLBuffer(cl_mem_flags memFlags, GLuint buffer);
 	cl_mem createGLCLTexture(cl_mem_flags memFlags, GLenum texTarget, GLuint mipMapLevel, GLuint texture);
 	void runCLKernel(cl_kernel kernel, cl_uint workDims, size_t *globalSize, size_t *localSize, std::vector<cl_mem> globjects);
+	void printKernelList(std::ostream& out);
+	cl_command_queue getCommandQueue(void);
 	~clglcontext();
 };
 

@@ -41,6 +41,10 @@ mat4 sceneCamera::matrix() const
     return lookat(eye, center, up);
 }
 
+vec3 sceneCamera::position() const {
+	return this->m_bspPositions->interpolate(t);
+}
+
 sceneCamera::~sceneCamera()
 {
     if (m_bspFront)

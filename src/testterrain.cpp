@@ -25,7 +25,7 @@ void initTestTerrain(void) {
 }
 
 void renderTestTerrain(camera* cam) {
-	glActiveTexture(GL_TEXTURE1);
+	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, colortex);
 	plainTerrain->render(cam);
 }

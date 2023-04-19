@@ -1,7 +1,6 @@
 #include<clhelper.h>
 #include<fstream>
 #include<vector>
-#include<CL/cl_gl.h>
 #include<GL/glx.h>
 #include<string>
 #include<errorlog.h>
@@ -129,7 +128,7 @@ void clglcontext::compilePrograms(vector<string> programNames) {
 		for(int i = 0; i < programNames.size(); i++) {
 			ifstream prog(programNames[i]);
 			if(prog.fail()) {
-				// errorString<<"Error: file '"<<programNames[i]<<"' couldn't be opened"<<endl;
+				throwErr("file '" + programNames[i] + "' couldn't be opened");
 			}
 			string programSrc((istreambuf_iterator<char>(prog)), istreambuf_iterator<char>());
 			strs[i] = programSrc;
@@ -144,7 +143,7 @@ void clglcontext::compilePrograms(vector<string> programNames) {
 			clhelpererr = clGetProgramBuildInfo(program, this->device, CL_PROGRAM_BUILD_LOG, 0, NULL, &s);
 			buffer = (char*)alloca(s);
 			clhelpererr = clGetProgramBuildInfo(program, this->device, CL_PROGRAM_BUILD_LOG, s, buffer, NULL);
-			// errorString<<"Error:"<<buffer<<endl;
+			throwErr(buffer);
 		}
 		CLErr(clhelpererr = clCreateKernelsInProgram(program, 0, NULL, &num));
 		cl_kernel *kernels = (cl_kernel*)alloca(sizeof(cl_kernel) * num);
@@ -223,10 +222,22 @@ cl_mem clglcontext::createGLCLTexture(cl_mem_flags memFlags, GLenum texTarget, G
 
 void clglcontext::runCLKernel(cl_kernel kernel, cl_uint workDim, size_t *globalSize, size_t *localSize, vector<cl_mem> globjects) {
 	try {
+		CLErr(clhelpererr = clEnqueueAcquireGLObjects(this->cmdQueue, globjects.size(), globjects.data(), 0, NULL, NULL));
 		CLErr(clhelpererr = clEnqueueNDRangeKernel(this->cmdQueue, kernel, workDim, NULL, globalSize, localSize, 0, NULL, NULL));
+		CLErr(clhelpererr = clEnqueueReleaseGLObjects(this->cmdQueue, globjects.size(), globjects.data(), 0, NULL, NULL));
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
+}
+
+void clglcontext::printKernelList(ostream& out) {
+	for(std::pair<std::string, cl_kernel> kernelPair : this->kernels) {
+		out<<kernelPair.first<<endl;
+	}
+}
+
+cl_command_queue clglcontext::getCommandQueue(void) {
+	return this->cmdQueue;
 }
 
 clglcontext::~clglcontext() {
