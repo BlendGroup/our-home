@@ -2,6 +2,7 @@
 #include<terrain.h>
 #include<vmath.h>
 #include<gltextureloader.h>
+#include<X11/keysym.h>
 
 using namespace vmath;
 
@@ -28,6 +29,14 @@ void renderTestTerrain(camera* cam) {
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, colortex);
 	plainTerrain->render(cam);
+}
+
+void keyboardFuncTestTerrain(int key) {
+	switch(key) {
+	case XK_T: case XK_t:
+		// plainTerrain->absToogle = !plainTerrain->absToogle;
+		break;
+	}
 }
 
 void uninitTestTerrain(void) {

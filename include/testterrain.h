@@ -7,5 +7,6 @@ void setupProgramTestTerrain();
 void initTestTerrain();
 void renderTestTerrain(camera* cam);
 void uninitTestTerrain();
+void keyboardFuncTestTerrain(int key);
 
 #endif

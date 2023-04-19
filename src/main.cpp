@@ -59,7 +59,7 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
+		debugcamera = new debugCamera(vec3(0.0f, 5.0f, 5.0f), -90.0f, 0.0f);
 		setupSceneCameraTestCamera(scenecamera);
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -150,6 +150,9 @@ void keyboard(glwindow* window, int key) {
 	}
 	hdr->keyboardfunc(key);
 	debugcamera->keyboardFunc(key);
+#if SHOW_TERRAIN_SCENE
+	keyboardFuncTestTerrain(key);
+#endif
 }
 
 void mouse(glwindow* window, int button, int action, int x, int y) {

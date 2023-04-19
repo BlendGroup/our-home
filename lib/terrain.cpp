@@ -22,7 +22,7 @@ void terrain::setupProgram(void) {
 
 		programglobal::oclContext->setKernelParameters(this->normalKernel, {param(0, this->heightMapCl), param(1, this->normalMapCl)});
 		size_t globalWorkSize[] = { 512, 512 };
-		size_t localWorkSize[] = { 32, 32 };
+		size_t localWorkSize[] = { 16, 16 };
 		programglobal::oclContext->runCLKernel(this->normalKernel, 2, globalWorkSize, localWorkSize, {this->heightMapCl, this->normalMapCl});
 		CLErr(clhelpererr = clFinish(programglobal::oclContext->getCommandQueue()));
 	} catch(string errorstring) {
@@ -34,7 +34,7 @@ void terrain::init(void) {
 	try {
 		glGenTextures(1, &this->nomralMap);
 		glBindTexture(GL_TEXTURE_2D, this->nomralMap);
-		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, TEXTURE_SIZE, TEXTURE_SIZE);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, TEXTURE_SIZE, TEXTURE_SIZE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -68,7 +68,7 @@ void terrain::render(camera* cam) {
 	glUniform3fv(this->renderHeightMap->getUniformLocation("cameraPos"), 1, cam->position());
 	glUniform1i(this->renderHeightMap->getUniformLocation("texHeight"), 0);
 	glUniform1i(this->renderHeightMap->getUniformLocation("texNormal"), 1);
-	// glUniform1i(this->renderHeightMap->getUniformLocation("texColor"), 2);
+	glUniform1i(this->renderHeightMap->getUniformLocation("texColor"), 2);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, this->heightMap);
 	glActiveTexture(GL_TEXTURE1);

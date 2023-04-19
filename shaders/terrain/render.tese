@@ -30,7 +30,7 @@ void main(void) {
 	p.y += texture(texHeight, tc).r * 10.0;
 
 	tes_out.tc = tc;
-	tes_out.nor = mat3(mMat) * texture(texNormal, tc).rgb;
+	tes_out.nor = mat3(mMat) * (texture(texNormal, tc).rgb);
 	tes_out.pos = vec3(mMat * p);
 	gl_Position = pMat * vMat * mMat * p;
 }
