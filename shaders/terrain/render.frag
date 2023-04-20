@@ -2,9 +2,7 @@
 
 layout(location = 0)out vec4 FragColor;
 
-uniform sampler2D texColor;
 uniform vec3 cameraPos;
-uniform bool absToogle;
 
 in TES_OUT {
 	vec2 tc;
@@ -24,5 +22,5 @@ void calcPhongLightInWorld(in vec3 posInWorld, in vec3 norInWorld, in vec3 light
 void main(void) {
 	float diffuse, specular;
 	calcPhongLightInWorld(fs_in.pos, fs_in.nor, vec3(0.0, 30.0, 0.0), cameraPos, 45.0, diffuse, specular);
-	FragColor = vec4(texture(texColor, fs_in.tc).rgb * diffuse + vec3(0.1, 0.1, 0.1) * specular, 1.0);
+	FragColor = vec4(vec3(fs_in.tc, 1.0) * diffuse + vec3(0.1, 0.1, 0.1) * specular, 1.0);
 }

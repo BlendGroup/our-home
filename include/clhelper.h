@@ -2,16 +2,22 @@
 #define __OPENCLDL__
 
 #define CL_TARGET_OPENCL_VERSION 120
+#include<GL/glew.h>
+#include<GL/gl.h>
 #include<CL/cl.h>
 #include<CL/cl_gl.h>
 #include<vector>
 #include<iostream>
-#include<GL/gl.h>
 #include<unordered_map>
 
 extern cl_int clhelpererr;
 
 #define param(pos, mem) {pos, &mem, sizeof(mem)}
+
+struct clglmem {
+	GLuint gl;
+	cl_mem cl;
+};
 
 struct clkernelparamater {
 	int position;
@@ -31,9 +37,11 @@ public:
 	cl_kernel getKernel(std::string name);
 	void setKernelParameters(cl_kernel kernel, std::vector<clkernelparamater> kernelList);
 	void setKernelParameters(std::string kernelName, std::vector<clkernelparamater> kernelList);
-	cl_mem createGLCLBuffer(cl_mem_flags memFlags, GLuint buffer);
-	cl_mem createGLCLTexture(cl_mem_flags memFlags, GLenum texTarget, GLuint mipMapLevel, GLuint texture);
-	void runCLKernel(cl_kernel kernel, cl_uint workDims, size_t *globalSize, size_t *localSize, std::vector<cl_mem> globjects);
+	clglmem createCLfromGLBuffer(cl_mem_flags memFlags, GLuint buffer);
+	clglmem createCLfromGLTexture(cl_mem_flags memFlags, GLenum texTarget, GLuint mipMapLevel, GLuint texture);
+	clglmem createCLGLBuffer(GLsizei size, GLbitfield glflags, cl_mem_flags clflags);
+	clglmem createCLGLTexture(GLenum texTarget, GLenum format, GLsizei width, GLsizei height, cl_mem_flags clflags);
+	void runCLKernel(cl_kernel kernel, cl_uint workDims, size_t *globalSize, size_t *localSize, std::vector<clglmem> globjects);
 	void printKernelList(std::ostream& out);
 	cl_command_queue getCommandQueue(void);
 	~clglcontext();

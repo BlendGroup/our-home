@@ -113,7 +113,7 @@ void render(glwindow* window) {
 		renderTestModel(dynamic_cast<camera*>(debugcamera));
 #endif
 #if SHOW_TERRAIN_SCENE
-		renderTestTerrain(dynamic_cast<camera*>(debugcamera));
+		renderTestTerrain(currentCamera);
 #endif
 
 		// renderTestEffect();

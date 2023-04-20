@@ -15,16 +15,12 @@
 
 class terrain : public glbase {
 private:
-	GLuint heightMap;
-	cl_mem heightMapCl;
-	GLuint nomralMap;
-	cl_mem normalMapCl;
+	clglmem heightMap;
+	clglmem normalMap;
 	GLuint vao;
-	GLuint vbo;
-	glshaderprogram* normalCalculator;
 	glshaderprogram* renderHeightMap;
-	vmath::mat4 modelMatrix;
 	cl_kernel normalKernel;
+	vmath::mat4 modelMatrix;
 public:
 	terrain(vmath::mat4 modelMatrix, GLuint heightMap);
 	void setupProgram(void) override;

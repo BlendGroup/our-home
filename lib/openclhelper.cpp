@@ -1,9 +1,9 @@
-#include<clhelper.h>
 #include<fstream>
 #include<vector>
-#include<GL/glx.h>
 #include<string>
 #include<errorlog.h>
+#include<clhelper.h>
+#include<GL/glx.h>
 
 using namespace std;
 
@@ -198,39 +198,75 @@ void clglcontext::setKernelParameters(string kernelName, vector<clkernelparamate
 	}
 }
 
-cl_mem clglcontext::createGLCLBuffer(cl_mem_flags memFlags, GLuint buffer) {
+clglmem clglcontext::createCLfromGLBuffer(cl_mem_flags memFlags, GLuint buffer) {
+	clglmem mem;
 	try {
-		cl_mem mem;
-		CLErr(mem = clCreateFromGLBuffer(this->context, memFlags, buffer, &clhelpererr));
+		mem.gl = buffer;
+		CLErr(mem.cl = clCreateFromGLBuffer(this->context, memFlags, buffer, &clhelpererr));
 		return mem;
 	} catch(string errorString) {
 		throwErr(errorString);
-		return NULL;
+		return mem;
 	}
 }
 
-cl_mem clglcontext::createGLCLTexture(cl_mem_flags memFlags, GLenum texTarget, GLuint mipMapLevel, GLuint texture) {
+clglmem clglcontext::createCLGLBuffer(GLsizei size, GLbitfield glflags, cl_mem_flags clflags) {
+	clglmem mem;
 	try {
-		cl_mem mem;
-		CLErr(mem = clCreateFromGLTexture(this->context, memFlags, texTarget, mipMapLevel, texture, &clhelpererr));
+		glGenBuffers(1, &mem.gl);
+		glBindBuffer(GL_ARRAY_BUFFER, mem.gl);
+		glBufferStorage(GL_ARRAY_BUFFER, size, NULL, glflags);
+		CLErr(mem.cl = clCreateFromGLBuffer(this->context, clflags, mem.gl, &clhelpererr));
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		return mem;
 	} catch(string errorString) {
 		throwErr(errorString);
-		return NULL;
+		return mem;
 	}
 }
 
-void clglcontext::runCLKernel(cl_kernel kernel, cl_uint workDim, size_t *globalSize, size_t *localSize, vector<cl_mem> globjects) {
+clglmem clglcontext::createCLfromGLTexture(cl_mem_flags memFlags, GLenum texTarget, GLuint mipMapLevel, GLuint texture) {
+	clglmem mem;
 	try {
-		CLErr(clhelpererr = clEnqueueAcquireGLObjects(this->cmdQueue, globjects.size(), globjects.data(), 0, NULL, NULL));
+		mem.gl = texture;
+		CLErr(mem.cl = clCreateFromGLTexture(this->context, memFlags, texTarget, mipMapLevel, texture, &clhelpererr));
+		return mem;
+	} catch(string errorString) {
+		throwErr(errorString);
+		return mem;
+	}
+}
+
+clglmem clglcontext::createCLGLTexture(GLenum texTarget, GLenum format, GLsizei width, GLsizei height, cl_mem_flags clflags) {
+	clglmem mem;
+	try {
+		glGenTextures(1, &mem.gl);
+		glBindTexture(texTarget, mem.gl);
+		glTexStorage2D(texTarget, 1, format, width, height);
+		CLErr(mem.cl = clCreateFromGLTexture(this->context, clflags, texTarget, 0, mem.gl, &clhelpererr));
+		glBindTexture(texTarget, 0);
+		return mem;
+	} catch(string errorString) {
+		throwErr(errorString);
+		return mem;
+	}
+}
+
+void clglcontext::runCLKernel(cl_kernel kernel, cl_uint workDim, size_t *globalSize, size_t *localSize, vector<clglmem> globjects) {
+	try {
+		vector<cl_mem> memcl;
+		for(clglmem m : globjects) {
+			memcl.push_back(m.cl);
+		}
+		CLErr(clhelpererr = clEnqueueAcquireGLObjects(this->cmdQueue, memcl.size(), memcl.data(), 0, NULL, NULL));
 		CLErr(clhelpererr = clEnqueueNDRangeKernel(this->cmdQueue, kernel, workDim, NULL, globalSize, localSize, 0, NULL, NULL));
-		CLErr(clhelpererr = clEnqueueReleaseGLObjects(this->cmdQueue, globjects.size(), globjects.data(), 0, NULL, NULL));
+		CLErr(clhelpererr = clEnqueueReleaseGLObjects(this->cmdQueue, memcl.size(), memcl.data(), 0, NULL, NULL));
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
 }
 
-void clglcontext::printKernelList(ostream& out) {
+void clglcontext::printKernelList(ostream & out) {
 	for(std::pair<std::string, cl_kernel> kernelPair : this->kernels) {
 		out<<kernelPair.first<<endl;
 	}
