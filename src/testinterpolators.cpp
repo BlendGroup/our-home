@@ -31,14 +31,14 @@ void initTestInterpolators(void) {
 
     bspline = new BsplineInterpolator(points);
     renderer = new SplineRenderer(bspline);
+    renderer->setRenderPoints(true);
+    renderer->setRenderControlPoints(true);
 }
 
 void renderTestInterpolators(int winWidth, int winHeight) {
-    mat4 projMat = perspective(45.0f, (float)winWidth / (float)winHeight, 0.01f, 100.0f);
-    mat4 viewMat = translate(0.0f, 0.0f, -20.0f);
-    renderer->render(viewMat, projMat, vec4(0.0f, 0.0f, 0.0f, 1.0f));
-    renderer->renderPoints(viewMat, projMat);
-    renderer->renderControlPoints(viewMat, projMat);
+    // mat4 projMat = perspective(45.0f, (float)winWidth / (float)winHeight, 0.01f, 100.0f);
+    // mat4 viewMat = translate(0.0f, 0.0f, -20.0f);
+    // renderer->render(viewMat, projMat, vec4(1.0f, 0.0f, 0.0f, 1.0f));
 }
 
 void uninitTestInterpolators(void) {

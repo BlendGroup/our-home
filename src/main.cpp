@@ -1,4 +1,5 @@
 #include<iostream>
+#include<memory>
 
 #include<GL/glew.h>
 #include<GL/gl.h>
@@ -23,14 +24,16 @@ using namespace vmath;
 
 static bool hdrEnabled = false;
 static HDR* hdr;
-static sceneCamera* scenecamera;
-static debugCamera* debugcamera;
+static unique_ptr<sceneCamera> scenecamera;
+static unique_ptr<sceneCameraRig> scenecamerarig;
+static debugCamera *debugcamera;
 static bool isDebugCameraOn = false;
 static bool isAnimating = false;
 
-#define SHOW_TEST_SCENE 		1
+#define SHOW_TEST_SCENE 		0
 #define SHOW_MODEL_SCENE 		0
-#define SHOW_CAMERA_SCENE 		0
+#define SHOW_CAMERA_SCENE 		1
+#define SHOW_CAMERA_RIG			1
 #define SHOW_TERRAIN_SCENE 		0
 
 mat4 programglobal::perspective;
@@ -63,6 +66,9 @@ void setupSceneCamera(void) {
 	try {
 		debugcamera = new debugCamera(vec3(0.0f, 5.0f, 5.0f), -90.0f, 0.0f);
 		setupSceneCameraTestCamera(scenecamera);
+#if SHOW_CAMERA_RIG
+		setupSceneCameraRigTestCamera(scenecamera, scenecamerarig);
+#endif // SHOW_CAMERA_RIG
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -107,7 +113,6 @@ void render(glwindow* window) {
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 		}
 
-
 		glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.3f, 0.2f, 1.0f));
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().height, 0.1f, 1000.0f);
@@ -116,8 +121,11 @@ void render(glwindow* window) {
 		renderTestEffect();
 #endif
 #if SHOW_CAMERA_SCENE
-		renderTestCamera();
-#endif
+#if SHOW_CAMERA_RIG
+		renderCameraRigTestCamera(currentCamera, scenecamerarig);
+#endif // SHOW_CAMERA_RIG
+		renderTestCamera(currentCamera);
+#endif // SHOW_CAMERA_SCENE
 #if SHOW_MODEL_SCENE
 		renderTestModel(dynamic_cast<camera*>(debugcamera));
 #endif
@@ -136,7 +144,13 @@ void render(glwindow* window) {
 }
 
 void update(void) {
-	scenecamera->updateT(0.001f);
+#if SHOW_CAMERA_SCENE
+#if SHOW_CAMERA_RIG
+	scenecamerarig->updateT(0.0005f);
+#else
+	scenecamera->updateT(0.0005f);
+#endif // SHOW_CAMERA_RIG
+#endif // SHOW_CAMERA
 }
 
 void keyboard(glwindow* window, int key) {
@@ -175,8 +189,16 @@ void uninit(void) {
 	uninitTestEffect();
 #endif
 #if SHOW_CAMERA_SCENE
+#if SHOW_CAMERA_RIG
+	if(scenecamerarig) {
+		scenecamerarig.release();
+	}
+#endif // SHOW_CAMERA_RIG
+	if(scenecamera) {
+		scenecamera.release();
+	}
 	uninitTestCamera();
-#endif
+#endif // SHOW_CAMERA_SCENE
 #if SHOW_MODEL_SCENE
 	uninitTestModel();
 #endif
@@ -187,6 +209,11 @@ void uninit(void) {
 
 	delete programglobal::oclContext;
 	delete hdr;
+
+	if(debugcamera) {
+		delete debugcamera;
+		debugcamera = NULL;
+	}
 }
 
 int main(int argc, char **argv) {

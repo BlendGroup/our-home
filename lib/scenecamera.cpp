@@ -21,7 +21,6 @@ sceneCamera::sceneCamera(const PathDescriptor *pdesc)
 
     m_bspPositions = new BsplineInterpolator(pdesc->positionKeyFrames);
     m_bspFront = new BsplineInterpolator(pdesc->frontKeyFrames);
-    m_pdesc = pdesc;
 	this->t = 0.0f;
 }
 
