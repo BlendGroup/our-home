@@ -15,8 +15,7 @@ sceneCameraRig::sceneCameraRig(sceneCamera *camera)
       isRenderPathToFront(false),
       t(0.0f)
 {
-    program = new glshaderprogram({"src/shaders/cameraRig.vert",
-								   "src/shaders/cameraRig.frag"});
+    program = new glshaderprogram({"shaders/cameraRig.vert", "shaders/cameraRig.frag"});
 
     glCreateVertexArrays(1, &vaoPoint);
     glCreateBuffers(1, &vboPoint);
@@ -135,12 +134,12 @@ void sceneCameraRig::loadGeometry(void)
     glEnableVertexAttribArray(0);
 }
 
-void sceneCameraRig::render(const camera* &camera) const
+void sceneCameraRig::render() const
 {
     if (isRenderPath)
-        pathRenderer->render(camera, PATH_COLOR);
+        pathRenderer->render(PATH_COLOR);
     if (isRenderFront)
-        frontRenderer->render(camera, FRONT_COLOR);
+        frontRenderer->render(FRONT_COLOR);
 
     if (isRenderPathToFront)
     {
@@ -150,7 +149,7 @@ void sceneCameraRig::render(const camera* &camera) const
             mountCamera->m_bspFront->interpolate(t)};
 
         program->use();
-        glUniformMatrix4fv(1, 1, GL_FALSE, camera->matrix());
+        glUniformMatrix4fv(1, 1, GL_FALSE, programglobal::currentCamera->matrix());
         glUniformMatrix4fv(2, 1, GL_FALSE, programglobal::perspective);
 
         // draw a line connecting the 2 points

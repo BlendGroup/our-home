@@ -24,17 +24,17 @@ using namespace vmath;
 
 static bool hdrEnabled = false;
 static HDR* hdr;
-static unique_ptr<sceneCamera> scenecamera;
-static unique_ptr<sceneCameraRig> scenecamerarig;
+static sceneCamera* scenecamera;
+static sceneCameraRig* scenecamerarig;
 static debugCamera *debugcamera;
 static bool isDebugCameraOn = false;
 static bool isAnimating = false;
 
 #define SHOW_TEST_SCENE 		0
 #define SHOW_MODEL_SCENE 		0
-#define SHOW_CAMERA_SCENE 		1
-#define SHOW_CAMERA_RIG			1
-#define SHOW_TERRAIN_SCENE 		0
+#define SHOW_CAMERA_SCENE 		0
+#define SHOW_CAMERA_RIG			0
+#define SHOW_TERRAIN_SCENE 		1
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
@@ -122,9 +122,9 @@ void render(glwindow* window) {
 #endif
 #if SHOW_CAMERA_SCENE
 #if SHOW_CAMERA_RIG
-		renderCameraRigTestCamera(currentCamera, scenecamerarig);
+		renderCameraRigTestCamera(scenecamerarig);
 #endif // SHOW_CAMERA_RIG
-		renderTestCamera(currentCamera);
+		renderTestCamera();
 #endif // SHOW_CAMERA_SCENE
 #if SHOW_MODEL_SCENE
 		renderTestModel(dynamic_cast<camera*>(debugcamera));
@@ -144,13 +144,11 @@ void render(glwindow* window) {
 }
 
 void update(void) {
-#if SHOW_CAMERA_SCENE
 #if SHOW_CAMERA_RIG
 	scenecamerarig->updateT(0.0005f);
 #else
 	scenecamera->updateT(0.0005f);
 #endif // SHOW_CAMERA_RIG
-#endif // SHOW_CAMERA
 }
 
 void keyboard(glwindow* window, int key) {
@@ -191,11 +189,11 @@ void uninit(void) {
 #if SHOW_CAMERA_SCENE
 #if SHOW_CAMERA_RIG
 	if(scenecamerarig) {
-		scenecamerarig.release();
+		delete scenecamerarig;
 	}
 #endif // SHOW_CAMERA_RIG
 	if(scenecamera) {
-		scenecamera.release();
+		delete scenecamera;
 	}
 	uninitTestCamera();
 #endif // SHOW_CAMERA_SCENE

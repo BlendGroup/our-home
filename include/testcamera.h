@@ -7,11 +7,11 @@
 #include<memory>
 
 void setupProgramTestCamera();
-void setupSceneCameraTestCamera(std::unique_ptr<sceneCamera> &scenecam);
-void setupSceneCameraRigTestCamera(std::unique_ptr<sceneCamera> &scenecam, std::unique_ptr<sceneCameraRig> &scenecamrig);
+void setupSceneCameraTestCamera(sceneCamera* &scenecam);
+void setupSceneCameraRigTestCamera(sceneCamera* scenecam, sceneCameraRig* &scenecamrig);
 void initTestCamera();
-void renderTestCamera(const camera *camera);
-void renderCameraRigTestCamera(const camera *camera, const std::unique_ptr<sceneCameraRig> &scenecamrig);
+void renderTestCamera();
+void renderCameraRigTestCamera(const sceneCameraRig* scenecamrig);
 void uninitTestCamera();
 
 #endif // __TEST_CAMERA__

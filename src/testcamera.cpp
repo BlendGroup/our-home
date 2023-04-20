@@ -29,7 +29,7 @@ void setupProgramTestCamera(void) {
 	}
 }
 
-void setupSceneCameraTestCamera(unique_ptr<sceneCamera> &scenecam) {
+void setupSceneCameraTestCamera(sceneCamera* &scenecam) {
 	PathDescriptor path;
 	path.positionKeyFrames.push_back(vec3(0.0f, 20.0f, 35.0f));
     path.positionKeyFrames.push_back(vec3(5.0f, 15.0f, 15.0f));
@@ -43,11 +43,11 @@ void setupSceneCameraTestCamera(unique_ptr<sceneCamera> &scenecam) {
     path.frontKeyFrames.push_back(vec3(-8.0f, -1.0f, 5.0f));
     path.frontKeyFrames.push_back(vec3(10.0f, 1.0f, 10.0f));
 
-	scenecam.reset(new sceneCamera(&path));
+	scenecam = new sceneCamera(&path);
 }
 
-void setupSceneCameraRigTestCamera(unique_ptr<sceneCamera> &scenecam, unique_ptr<sceneCameraRig> &scenecamrig) {
-	scenecamrig.reset(new sceneCameraRig(scenecam.get()));
+void setupSceneCameraRigTestCamera(sceneCamera* scenecam, sceneCameraRig* &scenecamrig) {
+	scenecamrig = new sceneCameraRig(scenecam);
 	scenecamrig->setRenderPath(true);
 	scenecamrig->setRenderPathPoints(true);
 	scenecamrig->setRenderFront(true);
@@ -132,11 +132,7 @@ void initTestCamera() {
 	glEnableVertexAttribArray(0);
 }
 
-void renderTestCamera(const camera *camera) {
-	if(camera == NULL) {
-		throwErr("Camera Not Inititalized Correctly");
-	}
-
+void renderTestCamera() {
 	testCameraProgram->use();
 	glUniformMatrix4fv(1, 1, GL_FALSE, programglobal::currentCamera->matrix());
 	glUniformMatrix4fv(2, 1, GL_FALSE, programglobal::perspective);
@@ -183,8 +179,8 @@ void renderTestCamera(const camera *camera) {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-void renderCameraRigTestCamera(const camera *camera, const unique_ptr<sceneCameraRig> &scenecamrig) {
-	scenecamrig->render(camera);
+void renderCameraRigTestCamera(const sceneCameraRig* scenecamrig) {
+	scenecamrig->render();
 }
 
 void uninitTestCamera(void) {
