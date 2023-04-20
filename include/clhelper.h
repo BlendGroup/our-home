@@ -44,6 +44,8 @@ public:
 	void runCLKernel(cl_kernel kernel, cl_uint workDims, size_t *globalSize, size_t *localSize, std::vector<clglmem> globjects);
 	void printKernelList(std::ostream& out);
 	cl_command_queue getCommandQueue(void);
+	void releaseCLGLBuffer(clglmem& clglmem);
+	void releaseCLGLTexture(clglmem& clglmem);
 	~clglcontext();
 };
 

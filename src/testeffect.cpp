@@ -11,7 +11,8 @@ using namespace vmath;
 
 static glshaderprogram* program;
 static GLuint texture;
-
+static GLuint tempVao;
+	
 void setupProgramTestEffect() {
 	try {
 		program = new glshaderprogram({"shaders/point.vert", "shaders/point.frag"});
@@ -24,7 +25,6 @@ void initTestEffect() {
 	try {
 		glPointSize(480.0f);
 
-		GLuint tempVao;
 		glGenVertexArrays(1, &tempVao);
 		glBindVertexArray(tempVao);
 
@@ -38,6 +38,7 @@ void renderTestEffect() {
 	try {
 		program->use();
 		glUniform1i(program->getUniformLocation("texSampler"), 0);
+		glBindVertexArray(tempVao);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glDrawArrays(GL_POINTS, 0, 1);

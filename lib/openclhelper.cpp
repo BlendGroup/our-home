@@ -276,6 +276,16 @@ cl_command_queue clglcontext::getCommandQueue(void) {
 	return this->cmdQueue;
 }
 
+void clglcontext::releaseCLGLBuffer(clglmem& memObj) {
+	clReleaseMemObject(memObj.cl);
+	glDeleteBuffers(1, &memObj.gl);
+}
+
+void clglcontext::releaseCLGLTexture(clglmem& memObj) {
+	clReleaseMemObject(memObj.cl);
+	glDeleteTextures(1, &memObj.gl);
+}
+
 clglcontext::~clglcontext() {
 	for(std::pair<std::string, cl_kernel> kernelPair : this->kernels) {
 		clReleaseKernel(kernelPair.second);

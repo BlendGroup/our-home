@@ -14,15 +14,12 @@ terrain::terrain(mat4 modelMatrix, GLuint heightMap) {
 
 void terrain::setupProgram(void) {
 	try {
-		// this->normalCalculator = new glshaderprogram({"shaders/terrain/calculatenormals.vert", "shaders/terrain/calculatenormals.frag"});
 		this->renderHeightMap = new glshaderprogram({"shaders/terrain/render.vert", "shaders/terrain/render.tesc", "shaders/terrain/render.tese", "shaders/terrain/render.frag"});
 		this->normalKernel = programglobal::oclContext->getKernel("calcNormal");
 
-		// this->renderHeightMap->printUniforms(cout);
-
 		programglobal::oclContext->setKernelParameters(this->normalKernel, {param(0, this->heightMap.cl), param(1, this->normalMap.cl)});
-		size_t globalWorkSize[] = { 512, 512 };
-		size_t localWorkSize[] = { 16, 16 };
+		size_t globalWorkSize[] = { TEXTURE_SIZE, TEXTURE_SIZE };
+		size_t localWorkSize[] = { 32, 32 };
 		programglobal::oclContext->runCLKernel(this->normalKernel, 2, globalWorkSize, localWorkSize, {this->heightMap, this->normalMap});
 		CLErr(clhelpererr = clFinish(programglobal::oclContext->getCommandQueue()));
 	} catch(string errorstring) {
@@ -52,17 +49,14 @@ void terrain::init(void) {
 }
 
 void terrain::render(void) {
-}
-
-void terrain::render(camera* cam) {
 	this->renderHeightMap->use();
 	glUniformMatrix4fv(this->renderHeightMap->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	glUniformMatrix4fv(this->renderHeightMap->getUniformLocation("vMat"), 1, GL_FALSE, cam->matrix());
+	glUniformMatrix4fv(this->renderHeightMap->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
 	glUniformMatrix4fv(this->renderHeightMap->getUniformLocation("mMat"), 1, GL_FALSE, this->modelMatrix);
 	glUniform1i(this->renderHeightMap->getUniformLocation("numMeshes"), MESH_SIZE);
 	glUniform1f(this->renderHeightMap->getUniformLocation("maxTess"), MAX_PATCH_TESS_LEVEL);
 	glUniform1f(this->renderHeightMap->getUniformLocation("minTess"), MIN_PATCH_TESS_LEVEL);
-	glUniform3fv(this->renderHeightMap->getUniformLocation("cameraPos"), 1, cam->position());
+	glUniform3fv(this->renderHeightMap->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
 	glUniform1i(this->renderHeightMap->getUniformLocation("texHeight"), 0);
 	glUniform1i(this->renderHeightMap->getUniformLocation("texNormal"), 1);
 	glActiveTexture(GL_TEXTURE0);
@@ -73,6 +67,11 @@ void terrain::render(camera* cam) {
 }
 
 void terrain::uninit(void) {
-	// delete this->normalCalculator;
 	delete this->renderHeightMap;
+	glDeleteVertexArrays(1, &this->vao);
+	programglobal::oclContext->releaseCLGLTexture(this->normalMap);
+}
+
+terrain::~terrain() {
+	programglobal::oclContext->releaseCLGLTexture(this->heightMap);
 }

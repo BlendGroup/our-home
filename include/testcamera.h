@@ -7,7 +7,7 @@
 void setupProgramTestCamera();
 void setupSceneCameraTestCamera(sceneCamera* &scenecam);
 void initTestCamera();
-void renderTestCamera(camera* cam);
+void renderTestCamera();
 void uninitTestCamera();
 
 #endif // __TEST_CAMERA__

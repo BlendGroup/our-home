@@ -7,6 +7,7 @@
 namespace programglobal {
 	extern vmath::mat4 perspective;
 	extern clglcontext* oclContext;
+	extern camera* currentCamera;
 } // namespace programglobal
 
 #endif

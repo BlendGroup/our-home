@@ -122,13 +122,9 @@ void initTestCamera() {
 	glEnableVertexAttribArray(0);
 }
 
-void renderTestCamera(camera* camera) {
-	if(camera == NULL) {
-		throwErr("Camera Not Inititalized Correctly");
-	}
-
+void renderTestCamera() {
 	testCameraProgram->use();
-	glUniformMatrix4fv(1, 1, GL_FALSE, camera->matrix());
+	glUniformMatrix4fv(1, 1, GL_FALSE, programglobal::currentCamera->matrix());
 	glUniformMatrix4fv(2, 1, GL_FALSE, programglobal::perspective);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
