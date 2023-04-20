@@ -81,7 +81,7 @@ texture loadPBRTextures(textureTypes typeString,string directory,string matName)
 	//cout<<directory + "/" + textureTypeMap[typeString]+".png"<<endl;
     texture tex;
 	//cout<<directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".png"<<endl;
-    tex.id = createTexture2D(directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".png",GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
+    tex.id = createTexture2D(directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".jpg",GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
     tex.type = typeString;
 	//cout<<"id"<<tex.id<<endl;
 	return tex;
@@ -383,22 +383,9 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 				temp.textures.push_back(loadPBRTextures(TEX_GLOSSINESS, path.substr(0, path.find_last_of('/')),name.data));
 				temp.textures.push_back(loadPBRTextures(TEX_EMISSIVE, path.substr(0, path.find_last_of('/')),name.data));
 			}else {				
-				
-				//diffuse map
-				std::vector<texture> diffuseMap = loadMaterialTextures(mat, aiTextureType_DIFFUSE, TEX_DIFFUSE,path.substr(0, path.find_last_of('/')));
-				temp.textures.insert(temp.textures.end(), diffuseMap.begin(), diffuseMap.end());
-				
-				//normal map
-				std::vector<texture> normalMap = loadMaterialTextures(mat, aiTextureType_NORMALS, TEX_NORMAL,path.substr(0, path.find_last_of('/')));
-				temp.textures.insert(temp.textures.end(), normalMap.begin(), normalMap.end());
-
-				//specular map
-				std::vector<texture> specularMap = loadMaterialTextures(mat, aiTextureType_SPECULAR, TEX_SPECULAR,path.substr(0, path.find_last_of('/')));
-				temp.textures.insert(temp.textures.end(), specularMap.begin(), specularMap.end());
-
-				// glossiness map
-				std::vector<texture> glossinessMap = loadMaterialTextures(mat, aiTextureType_UNKNOWN, TEX_GLOSSINESS, path.substr(0, path.find_last_of('/')));
-				temp.textures.insert(temp.textures.end(), glossinessMap.begin(), glossinessMap.end());
+				temp.textures.push_back(loadPBRTextures(TEX_DIFFUSE, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_NORMAL, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_EMISSIVE, path.substr(0, path.find_last_of('/')),name.data));
 			}
 			this->materials.push_back(temp);
 		}
@@ -727,9 +714,11 @@ void glmodel::draw(glshaderprogram *program,int instance) {
 		//setup textures
 		for(int t = 0; t < this->materials[this->meshes[i].materialIndex].textures.size(); t++)
 		{
+
 			if(this->materials[this->meshes[i].materialIndex].textures[t].id > 0)
 			{
 				glActiveTexture(GL_TEXTURE0 + t);
+				//cout<<t<<" "<<this->materials[this->meshes[i].materialIndex].textures[t].id<<" "<<textureTypeMap[this->materials[this->meshes[i].materialIndex].textures[t].type]<<endl;				
 				glUniform1i(program->getUniformLocation(textureTypeMap[this->materials[this->meshes[i].materialIndex].textures[t].type]),t);
 				glBindTexture(GL_TEXTURE_2D, this->materials[this->meshes[i].materialIndex].textures[t].id);
 			}

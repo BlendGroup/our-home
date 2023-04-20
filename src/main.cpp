@@ -9,7 +9,8 @@
 #include<testcamera.h>
 #include<scenecamera.h>
 #include<debugcamera.h>
-#include<testPBR.h>
+#include <testPBR.h>
+#include<testLab.h>
 #include<testmodel.h>
 #include<hdr.h>
 #include<windowing.h>
@@ -29,7 +30,8 @@ static bool isAnimating = false;
 #define SHOW_TEST_SCENE 		0
 #define SHOW_MODEL_SCENE 		0
 #define SHOW_CAMERA_SCENE 		0
-#define SHOW_PBR_SCENE			1
+#define SHOW_PBR_SCENE			0
+#define SHOW_LAB_SCENE			1
 
 mat4 programglobal::perspective;
 
@@ -44,6 +46,9 @@ void setupProgram(void) {
 #endif
 #if SHOW_PBR_SCENE
 	setupProgramTestPbr();
+#endif
+#if SHOW_LAB_SCENE
+	setupProgramTestLab();
 #endif
 		hdr->setupProgram();
 	} catch(string errorString) {
@@ -76,6 +81,9 @@ void init(void) {
 #if SHOW_PBR_SCENE
 		initTestPbr();
 #endif
+#if SHOW_LAB_SCENE
+	initTestLab();
+#endif
 		hdr->init();
 
 		glDepthFunc(GL_LEQUAL);
@@ -107,6 +115,9 @@ void render(glwindow* window) {
 #endif
 #if SHOW_PBR_SCENE
 		renderTestPbr(dynamic_cast<camera*>(debugcamera),debugcamera->getPosition());
+#endif
+#if SHOW_LAB_SCENE
+	renderTestLab(dynamic_cast<camera*>(debugcamera), debugcamera->getPosition());
 #endif
 		// renderTestEffect();
 
@@ -160,6 +171,9 @@ void uninit(void) {
 #endif
 #if SHOW_PBR_SCENE
 	uninitTestPbr();
+#endif
+#if SHOW_LAB_SCENE
+	uninitTestLab();
 #endif
 	hdr->uninit();
 

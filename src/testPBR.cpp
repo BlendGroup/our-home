@@ -12,7 +12,7 @@
 #include "../include/testPBR.h"
 #include "../include/global.h"
 
-#define DYNAMIC 1
+#define DYNAMIC 0
 
 using namespace std;
 using namespace vmath;
@@ -37,7 +37,7 @@ void setupProgramTestPbr(){
             program = new glshaderprogram({"src/shaders/pbrDynamic.vert", "src/shaders/pbrSG.frag"});
         #else
             //program = new glshaderprogram({"src/shaders/pbr.vert", "src/shaders/pbr.frag"});
-            program = new glshaderprogram({"src/shaders/pbr.vert", "src/shaders/pbrSG.frag"});
+            program = new glshaderprogram({"src/shaders/pbr.vert", "src/shaders/pbrMR.frag"});
         #endif
         lightProgram = new glshaderprogram({"src/shaders/testStatic.vert", "src/shaders/point.frag"});
         //program->printUniforms(cout);
@@ -51,7 +51,7 @@ void initTestPbr(){
         #if DYNAMIC  
         model = new glmodel("resources/models/robot/robot.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
         #else
-        model = new glmodel("resources/models/robot/robot.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_RemoveRedundantMaterials | aiProcess_FlipUVs,true);
+        model = new glmodel("resources/models/spaceship/SpaceLab.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
         
         //model = new glmodel("resources/models/door/door.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_RemoveRedundantMaterials | aiProcess_FlipUVs,true);
         #endif
@@ -110,6 +110,7 @@ void initTestPbr(){
         lights.push_back({vec3(100.0f,100.0f,100.0f),vec3(-5.0f,  5.0f, 5.0f)});
         lights.push_back({vec3(100.0f,100.0f,100.0f),vec3(-5.0f, 5.0f, -5.0f)});
         lights.push_back({vec3(100.0f,100.0f,100.0f),vec3(5.0f, 5.0f, -5.0f)});
+        lights.push_back({vec3(100.0f,100.0f,100.0f),vec3(5.0f,  5.0f, 5.0f)});
     } catch (string errorString) {
         throwErr(errorString);
     }
@@ -125,7 +126,7 @@ void renderTestPbr(camera *cam,vec3 camPos){
         model->update(0.005f, 0);
         model->setBoneMatrixUniform(program->getUniformLocation("bMat[0]"), 0);
         #else
-        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) *scale(1.0f,1.0f,1.0f));
+        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) * scale(1.0f,1.0f,1.0f));
         #endif
         glUniform3fv(program->getUniformLocation("viewPos"),1,camPos);
         // Lights data
@@ -135,7 +136,7 @@ void renderTestPbr(camera *cam,vec3 camPos){
             glUniform3fv(program->getUniformLocation("light["+to_string(i)+"].position"),1,lights[i].position);
         }
         model->draw(program,1);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        //glBindTexture(GL_TEXTURE_2D, 0);
 
         for(auto l : lights){
             lightProgram->use();
