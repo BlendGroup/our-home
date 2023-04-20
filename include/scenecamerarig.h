@@ -4,12 +4,12 @@
 #include <vector>
 #include <GL/glew.h>
 #include <GL/gl.h>
-#include "../include/vmath.h"
-#include "../include/glshaderloader.h"
-#include "../include/scenecamera.h"
-#include "../include/interpolators.h"
-#include "../include/splinerenderer.h"
-#include "../include/global.h"
+#include <vmath.h>
+#include <glshaderloader.h>
+#include <scenecamera.h>
+#include <interpolators.h>
+#include <splinerenderer.h>
+#include <global.h>
 
 class sceneCameraRig
 {
@@ -28,7 +28,7 @@ private:
 public:
     sceneCameraRig(sceneCamera *camera);
     ~sceneCameraRig();
-    void render(const camera* &camera) const;
+    void render() const;
     void updateT(float speed);
     void setRenderPath(bool setting);
     void setRenderPathPoints(bool setting);

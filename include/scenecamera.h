@@ -29,6 +29,7 @@ public:
     float getDistanceOnSpline() const;
     void updateT(float speed);
     vmath::mat4 matrix() const override;
+	vmath::vec3 position() const override;
 };
 
 #endif // __SCENE_CAMERA_H__

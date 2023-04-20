@@ -21,7 +21,7 @@ sceneCamera::sceneCamera(const PathDescriptor *pdesc)
 
     m_bspPositions = new BsplineInterpolator(pdesc->positionKeyFrames);
     m_bspFront = new BsplineInterpolator(pdesc->frontKeyFrames);
-    // m_pdesc = pdesc;
+	this->t = 0.0f;
 }
 
 void sceneCamera::updateT(float speed) {
@@ -39,6 +39,10 @@ mat4 sceneCamera::matrix() const
     vec3 eye = m_bspPositions->interpolate(t);
     vec3 center = m_bspFront->interpolate(t);
     return lookat(eye, center, up);
+}
+
+vec3 sceneCamera::position() const {
+	return this->m_bspPositions->interpolate(t);
 }
 
 sceneCamera::~sceneCamera()

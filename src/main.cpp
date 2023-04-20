@@ -6,42 +6,55 @@
 
 #include<vmath.h>
 #include<glshaderloader.h>
-#include<testeffect.h>
-#include<testcamera.h>
 #include<scenecamera.h>
 #include<debugcamera.h>
-#include<testmodel.h>
 #include<hdr.h>
 #include<windowing.h>
 #include<errorlog.h>
 #include<global.h>
+#include<clhelper.h>
+
+#include<testeffect.h>
+#include<testcamera.h>
+#include<testmodel.h>
+#include<testterrain.h>
 
 using namespace std;
 using namespace vmath;
 
 static bool hdrEnabled = false;
 static HDR* hdr;
-static unique_ptr<sceneCamera> scenecamera;
-static unique_ptr<sceneCameraRig> scenecamerarig;
+static sceneCamera* scenecamera;
+static sceneCameraRig* scenecamerarig;
 static debugCamera *debugcamera;
 static bool isDebugCameraOn = false;
 static bool isAnimating = false;
 
 #define SHOW_TEST_SCENE 		0
 #define SHOW_MODEL_SCENE 		0
-#define SHOW_CAMERA_SCENE 		1
-#define SHOW_CAMERA_RIG			1
+#define SHOW_CAMERA_SCENE 		0
+#define SHOW_CAMERA_RIG			0
+#define SHOW_TERRAIN_SCENE 		1
 
 mat4 programglobal::perspective;
+clglcontext* programglobal::oclContext;
+camera* programglobal::currentCamera;
 
 void setupProgram(void) {
 	try {
-		// setupProgramTestEffect();
+		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl"});
+	
+#if SHOW_TEST_SCENE
+		setupProgramTestEffect();
+#endif
 #if SHOW_CAMERA_SCENE
 		setupProgramTestCamera();
 #endif
 #if SHOW_MODEL_SCENE
 		setupProgramTestModel();
+#endif
+#if SHOW_TERRAIN_SCENE
+		setupProgramTestTerrain();
 #endif
 		hdr->setupProgram();
 	} catch(string errorString) {
@@ -51,7 +64,7 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
+		debugcamera = new debugCamera(vec3(0.0f, 5.0f, 5.0f), -90.0f, 0.0f);
 		setupSceneCameraTestCamera(scenecamera);
 #if SHOW_CAMERA_RIG
 		setupSceneCameraRigTestCamera(scenecamera, scenecamerarig);
@@ -65,14 +78,20 @@ void init(void) {
 	try {
 		//Object Creation
 		hdr = new HDR(1.5f, 1.0f, 2048);
+		programglobal::oclContext = new clglcontext(1);
 
 		//Inititalize
-		// initTestEffect();
+#if SHOW_TEST_SCENE
+		initTestEffect();
+#endif
 #if SHOW_CAMERA_SCENE
 		initTestCamera();
 #endif
 #if SHOW_MODEL_SCENE
 		initTestModel();
+#endif
+#if SHOW_TERRAIN_SCENE
+		initTestTerrain();
 #endif
 		hdr->init();
 
@@ -85,6 +104,8 @@ void init(void) {
 
 void render(glwindow* window) {
 	try {
+		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamera);
+
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
 			glViewport(0, 0, hdr->getSize(), hdr->getSize());
@@ -92,22 +113,25 @@ void render(glwindow* window) {
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 		}
 
-		camera* currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamera.get());
-
-		glClearBufferfv(GL_COLOR, 0, vec4(0.5f, 1.0f, 0.2f, 1.0f));
+		glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.3f, 0.2f, 1.0f));
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().height, 0.1f, 1000.0f);
+
+#if SHOW_TEST_SCENE
+		renderTestEffect();
+#endif
 #if SHOW_CAMERA_SCENE
 #if SHOW_CAMERA_RIG
-		renderCameraRigTestCamera(currentCamera, scenecamerarig);
+		renderCameraRigTestCamera(scenecamerarig);
 #endif // SHOW_CAMERA_RIG
-		renderTestCamera(currentCamera);
+		renderTestCamera();
 #endif // SHOW_CAMERA_SCENE
 #if SHOW_MODEL_SCENE
 		renderTestModel(dynamic_cast<camera*>(debugcamera));
 #endif
-		// renderTestEffect();
-
+#if SHOW_TERRAIN_SCENE
+		renderTestTerrain();
+#endif
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
 			glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
@@ -120,13 +144,11 @@ void render(glwindow* window) {
 }
 
 void update(void) {
-#if SHOW_CAMERA_SCENE
 #if SHOW_CAMERA_RIG
 	scenecamerarig->updateT(0.0005f);
 #else
 	scenecamera->updateT(0.0005f);
 #endif // SHOW_CAMERA_RIG
-#endif // SHOW_CAMERA
 }
 
 void keyboard(glwindow* window, int key) {
@@ -140,12 +162,18 @@ void keyboard(glwindow* window, int key) {
 	case XK_F2:
 		isDebugCameraOn = !isDebugCameraOn;
 		break;
+	case XK_F3:
+		hdrEnabled = !hdrEnabled;
+		break;
 	case XK_space:
 		isAnimating = !isAnimating;
 		break;
 	}
 	hdr->keyboardfunc(key);
 	debugcamera->keyboardFunc(key);
+#if SHOW_TERRAIN_SCENE
+	keyboardFuncTestTerrain(key);
+#endif
 }
 
 void mouse(glwindow* window, int button, int action, int x, int y) {
@@ -155,23 +183,29 @@ void mouse(glwindow* window, int button, int action, int x, int y) {
 }
 
 void uninit(void) {
-	// uninitTestEffect();
+#if SHOW_TEST_SCENE
+	uninitTestEffect();
+#endif
 #if SHOW_CAMERA_SCENE
 #if SHOW_CAMERA_RIG
 	if(scenecamerarig) {
-		scenecamerarig.release();
+		delete scenecamerarig;
 	}
 #endif // SHOW_CAMERA_RIG
 	if(scenecamera) {
-		scenecamera.release();
+		delete scenecamera;
 	}
 	uninitTestCamera();
 #endif // SHOW_CAMERA_SCENE
 #if SHOW_MODEL_SCENE
 	uninitTestModel();
 #endif
+#if SHOW_TERRAIN_SCENE
+	uninitTestTerrain();
+#endif
 	hdr->uninit();
 
+	delete programglobal::oclContext;
 	delete hdr;
 
 	if(debugcamera) {

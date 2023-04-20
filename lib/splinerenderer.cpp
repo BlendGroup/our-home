@@ -25,8 +25,8 @@ SplineRenderer::SplineRenderer(SplineInterpolator *interpolator, const float lin
 	glCreateBuffers(1, &m_vboCtrlPoly);
 
 	/* create program for rendering a spline */
-	m_program = new glshaderprogram({"src/shaders/spline.vert",
-									 "src/shaders/spline.frag"});
+	m_program = new glshaderprogram({"shaders/spline.vert",
+									 "shaders/spline.frag"});
 
 	/* get user-specified spline points from the interpolator */
 	m_points = m_interpolator->getPoints();
@@ -123,10 +123,10 @@ void SplineRenderer::loadGeometry(void)
 	glEnableVertexAttribArray(0);
 }
 
-void SplineRenderer::render(const camera* &camera, const vec4 &color) const
+void SplineRenderer::render(const vec4 color) const
 {
 	m_program->use();
-	glUniformMatrix4fv(0, 1, GL_FALSE, programglobal::perspective * camera->matrix());
+	glUniformMatrix4fv(0, 1, GL_FALSE, programglobal::perspective * programglobal::currentCamera->matrix());
 	glUniform4fv(1, 1, color);
 	glUniform1i(2, 0); // isPoint = false
 	glBindVertexArray(m_vaoSpline);
@@ -141,7 +141,7 @@ void SplineRenderer::render(const camera* &camera, const vec4 &color) const
 		for (vec3 point : *m_points)
 		{
 			glUniformMatrix4fv(0, 1, GL_FALSE,
-							programglobal::perspective * camera->matrix() *
+							programglobal::perspective * programglobal::currentCamera->matrix() *
 								translate(point[0], point[1], point[2]) *
 								scale(0.1f, 0.1f, 0.1f));
 			glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -157,7 +157,7 @@ void SplineRenderer::render(const camera* &camera, const vec4 &color) const
 		for (vec3 ctrlp : *m_ctrlps)
 		{
 			glUniformMatrix4fv(0, 1, GL_FALSE,
-							programglobal::perspective * camera->matrix() *
+							programglobal::perspective * programglobal::currentCamera->matrix() *
 								translate(ctrlp[0], ctrlp[1], ctrlp[2]) *
 								scale(0.1f, 0.1f, 0.1f));
 			glDrawArrays(GL_TRIANGLES, 0, 36);
