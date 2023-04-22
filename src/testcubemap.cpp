@@ -13,6 +13,7 @@ using namespace vmath;
 using namespace std;
 
 static glshaderprogram* program;
+static glshaderprogram* tester;
 static GLuint vao;
 static GLuint vbo;
 static vector<pair<vec3, vec3>> randomData;
@@ -151,17 +152,15 @@ void initTestRenderToCubemap() {
 
 void setupProgramTestRenderToCubemap() {
 	program = new glshaderprogram({"shaders/debug/color.vert", "shaders/debug/color.geom", "shaders/debug/color.frag"});
+	tester = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
 }
 
 void renderTestRenderToCubemap(camera* cam) {
-
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
+	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 1.0f, 0.0f, 1.0f));
 	program->use();
-	// if(cameraIndex == 0) {
-	// 	glUniformMatrix4fv(program->getUniformLocation("mvpMat"), 1, GL_FALSE, programglobal::perspective * cam->matrix());
-	// } else {
-		glUniformMatrix4fv(program->getUniformLocation("mvpMat[0]"), 6, GL_FALSE, (float*)&lookatarray[0][0][0]);
-	// }
+	glUniformMatrix4fv(program->getUniformLocation("mvpMat[0]"), 6, GL_FALSE, (float*)&lookatarray[0][0][0]);
 	for(int i = 0; i < randomData.size(); i++) {
 		glUniform3fv(program->getUniformLocation("trans"), 1, randomData[i].first);
 		glUniform3fv(program->getUniformLocation("color"), 1, randomData[i].second);
@@ -169,6 +168,10 @@ void renderTestRenderToCubemap(camera* cam) {
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	tester->use();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texColor);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 void keyboardFuncTestRenderToCubemap(int key) {
