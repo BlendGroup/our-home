@@ -11,7 +11,6 @@ using namespace std;
 using namespace vmath;
 
 static glshaderprogram* program;
-static GLuint texture;
 static glmodel* model;
 //static model* m;
 
@@ -20,9 +19,9 @@ static glmodel* model;
 void setupProgramTestModel() {
 	try {
 #if DYNAMIC
-		program = new glshaderprogram({"src/shaders/testDynamic.vert", "src/shaders/testDynamic.frag"});
+		program = new glshaderprogram({"shaders/testDynamic.vert", "shaders/testDynamic.frag"});
 #else
-		program = new glshaderprogram({"src/shaders/testStatic.vert", "src/shaders/testStatic.frag"});
+		program = new glshaderprogram({"shaders/testStatic.vert", "shaders/testStatic.frag"});
 #endif
 	// program->printUniforms(cerr);
 	} catch(string errorString) {

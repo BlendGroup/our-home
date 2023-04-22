@@ -1,8 +1,9 @@
 #include<iostream>
-#include<memory.h>
+#include<memory>
 #include<glshaderloader.h>
 #include<camera.h>
 #include<scenecamera.h>
+#include<scenecamerarig.h>
 #include<errorlog.h>
 #include<global.h>
 
@@ -22,7 +23,7 @@ static struct test_camera_vbos {
 
 void setupProgramTestCamera(void) {
     try {
-		testCameraProgram = new glshaderprogram({"src/shaders/testcamera.vert", "src/shaders/testcamera.frag"});
+		testCameraProgram = new glshaderprogram({"shaders/testcamera.vert", "shaders/testcamera.frag"});
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -43,6 +44,15 @@ void setupSceneCameraTestCamera(sceneCamera* &scenecam) {
     path.frontKeyFrames.push_back(vec3(10.0f, 1.0f, 10.0f));
 
 	scenecam = new sceneCamera(&path);
+}
+
+void setupSceneCameraRigTestCamera(sceneCamera* scenecam, sceneCameraRig* &scenecamrig) {
+	scenecamrig = new sceneCameraRig(scenecam);
+	scenecamrig->setRenderPath(true);
+	scenecamrig->setRenderPathPoints(true);
+	scenecamrig->setRenderFront(true);
+	scenecamrig->setRenderFrontPoints(true);
+	scenecamrig->setRenderPathToFront(true);
 }
 
 void initTestCamera() {
@@ -122,13 +132,9 @@ void initTestCamera() {
 	glEnableVertexAttribArray(0);
 }
 
-void renderTestCamera(camera* camera) {
-	if(camera == NULL) {
-		throwErr("Camera Not Inititalized Correctly");
-	}
-
+void renderTestCamera() {
 	testCameraProgram->use();
-	glUniformMatrix4fv(1, 1, GL_FALSE, camera->matrix());
+	glUniformMatrix4fv(1, 1, GL_FALSE, programglobal::currentCamera->matrix());
 	glUniformMatrix4fv(2, 1, GL_FALSE, programglobal::perspective);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -171,6 +177,10 @@ void renderTestCamera(camera* camera) {
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
+void renderCameraRigTestCamera(const sceneCameraRig* scenecamrig) {
+	scenecamrig->render();
 }
 
 void uninitTestCamera(void) {
