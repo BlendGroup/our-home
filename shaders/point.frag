@@ -2,8 +2,8 @@
 
 layout(location = 0)out vec4 FragColor;
 
-uniform sampler2D texSampler;
+uniform vec3 color;
 
 void main(void) {
-	FragColor = texture(texSampler, gl_PointCoord.xy);
+	FragColor = vec4(normalize(color),1.0);
 }

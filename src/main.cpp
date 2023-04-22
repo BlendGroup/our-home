@@ -8,6 +8,9 @@
 #include<glshaderloader.h>
 #include<scenecamera.h>
 #include<debugcamera.h>
+#include<testPBR.h>
+#include<testLab.h>
+#include<testmodel.h>
 #include<hdr.h>
 #include<windowing.h>
 #include<errorlog.h>
@@ -22,7 +25,7 @@
 using namespace std;
 using namespace vmath;
 
-static bool hdrEnabled = false;
+static bool hdrEnabled = true;
 static HDR* hdr;
 static sceneCamera* scenecamera;
 static sceneCameraRig* scenecamerarig;
@@ -33,8 +36,10 @@ static bool isAnimating = false;
 #define SHOW_TEST_SCENE 		0
 #define SHOW_MODEL_SCENE 		0
 #define SHOW_CAMERA_SCENE 		0
+#define SHOW_PBR_SCENE			0
+#define SHOW_LAB_SCENE			1
 #define SHOW_CAMERA_RIG			0
-#define SHOW_TERRAIN_SCENE 		1
+#define SHOW_TERRAIN_SCENE 		0
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
@@ -52,6 +57,12 @@ void setupProgram(void) {
 #endif
 #if SHOW_MODEL_SCENE
 		setupProgramTestModel();
+#endif
+#if SHOW_PBR_SCENE
+	setupProgramTestPbr();
+#endif
+#if SHOW_LAB_SCENE
+	setupProgramTestLab();
 #endif
 #if SHOW_TERRAIN_SCENE
 		setupProgramTestTerrain();
@@ -89,6 +100,12 @@ void init(void) {
 #endif
 #if SHOW_MODEL_SCENE
 		initTestModel();
+#endif
+#if SHOW_PBR_SCENE
+		initTestPbr();
+#endif
+#if SHOW_LAB_SCENE
+	initTestLab();
 #endif
 #if SHOW_TERRAIN_SCENE
 		initTestTerrain();
@@ -129,6 +146,14 @@ void render(glwindow* window) {
 #if SHOW_MODEL_SCENE
 		renderTestModel(dynamic_cast<camera*>(debugcamera));
 #endif
+#if SHOW_PBR_SCENE
+		renderTestPbr(dynamic_cast<camera*>(debugcamera),debugcamera->getPosition());
+#endif
+#if SHOW_LAB_SCENE
+	renderTestLab(dynamic_cast<camera*>(debugcamera), debugcamera->position());
+#endif
+		// renderTestEffect();
+
 #if SHOW_TERRAIN_SCENE
 		renderTestTerrain();
 #endif
@@ -199,6 +224,12 @@ void uninit(void) {
 #endif // SHOW_CAMERA_SCENE
 #if SHOW_MODEL_SCENE
 	uninitTestModel();
+#endif
+#if SHOW_PBR_SCENE
+	uninitTestPbr();
+#endif
+#if SHOW_LAB_SCENE
+	uninitTestLab();
 #endif
 #if SHOW_TERRAIN_SCENE
 	uninitTestTerrain();

@@ -1,3 +1,7 @@
+#include <assimp/material.h>
+#include <assimp/types.h>
+#include <assimp/vector3.h>
+#include <cmath>
 #include<string>
 #include<fstream>
 #include<sstream>
@@ -9,11 +13,11 @@
 #include<assimp/Importer.hpp>
 #include<assimp/scene.h>
 #include<assimp/postprocess.h>
-
-#include<gltextureloader.h>
+#include"../include/glshaderloader.h"
+#include"../include/gltextureloader.h"
 #include<vmath.h>
-#include<glmodelloader.h>
-#include<errorlog.h>
+#include"../include/glmodelloader.h"
+#include"../include/errorlog.h"
 
 using namespace vmath;
 using namespace std;
@@ -28,6 +32,26 @@ struct Vertex {
 	float Weights[MAX_BONE_INFLUENCE];
 };
 
+unordered_map<textureTypes, string> textureTypeMap = {
+	{TEX_DIFFUSE, "texture_diffuse"},
+	{TEX_NORMAL, "texture_normal"},
+	{TEX_SPECULAR, "texture_specular"},
+	{TEX_AO, "texture_ao"},
+	{TEX_ROUGHNESS, "texture_roughness"},
+	{TEX_METALIC, "texture_metalic"},
+	{TEX_GLOSSINESS,"texture_glossiness"},
+	{TEX_EMISSIVE,"texture_emissive"}
+};
+
+unordered_map<materialTypes, string> materialTypeMap = {
+    {MAT_AMBIENT,"material.ambient"},
+    {MAT_DIFFUSE,"material.diffuse"},
+    {MAT_SPECULAR,"material.specular"},
+	{MAT_EMISSIVE,"material.emissive"},
+    {MAT_SHININESS,"material.shininess"},
+    {MAT_OPACITY,"material.opacity"}
+};
+
 static vector<mat4> boneArrayDefault;
 
 mat4 convertMatrixToVmathFormat(const aiMatrix4x4* from) {
@@ -39,14 +63,43 @@ mat4 convertMatrixToVmathFormat(const aiMatrix4x4* from) {
 	return to;
 }
 
-GLuint loadMaterialTextures(aiMaterial *mat, aiTextureType type, string directory) {
-	if(mat->GetTextureCount(type) > 0) {
-		aiString str;
-		mat->GetTexture(type, 0, &str);
-		return createTexture2D(directory + '/' + str.C_Str());
-	} else {
-		return 0;
-	}
+vector<texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, textureTypes typeString,string directory) {
+	vector<texture> textures;
+    for(size_t i = 0; i < mat->GetTextureCount(type); i++){
+        aiString str;
+        mat->GetTexture(type, i, &str);
+		//cout<<directory + "/"<<str.data<<endl;
+        texture tex;
+        tex.id = createTexture2D(directory + "/" + str.C_Str(),GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
+        tex.type = typeString;
+        textures.push_back(tex);
+    }
+    return textures;
+}
+
+texture loadPBRTextures(textureTypes typeString,string directory,string matName) {
+	//cout<<directory + "/" + textureTypeMap[typeString]+".png"<<endl;
+    texture tex;
+	//cout<<directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".png"<<endl;
+    tex.id = createTexture2D(directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".jpg",GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
+    tex.type = typeString;
+	//cout<<"id"<<tex.id<<endl;
+	return tex;
+}
+
+vector<material> loadMaterialColor(aiMaterial *mat, const char *type, int one, int two, materialTypes typeString){
+    vector<material> materials;
+    aiColor3D color;
+    mat->Get(type,one,two,color);
+
+    material matInfo;
+    matInfo.type = typeString;
+    matInfo.value[0] = color[0];
+    matInfo.value[1] = color[1];
+    matInfo.value[2] = color[2];
+
+    materials.push_back(matInfo);
+    return materials;
 }
 
 glbone* findBone(glanimator* a, string name) {
@@ -194,11 +247,11 @@ void createMesh(const aiScene* scene, glmodel *model, string directory) {
 					indices.push_back(face.mIndices[j]);
 				}
 			}
-
 			//Fill Textures
-			aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-			m.diffuseTextures = loadMaterialTextures(material, aiTextureType_DIFFUSE, directory);
-			m.specularTextures = loadMaterialTextures(material, aiTextureType_SPECULAR, directory);
+			if(mesh->mMaterialIndex >= 0)
+			{
+				m.materialIndex = mesh->mMaterialIndex;
+			}
 
 			// Fill Bones and Weights
 			for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
@@ -267,7 +320,7 @@ void createMesh(const aiScene* scene, glmodel *model, string directory) {
 	}
 }
 
-glmodel::glmodel(string path, unsigned flags) {
+glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 	//Open File
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path, flags);
@@ -282,11 +335,246 @@ glmodel::glmodel(string path, unsigned flags) {
 		createMesh(scene, this, path.substr(0, path.find_last_of('/')));
 	}
 
+	if(scene->HasMaterials()){
+		for(size_t m = 0; m < scene->mNumMaterials; m++){
+
+			glmaterial temp;
+			aiMaterial* mat = scene->mMaterials[m];
+
+			aiString name;
+			mat->Get(AI_MATKEY_NAME,name);
+			//cout<<name.data<<endl;
+			aiColor3D color;			
+			mat->Get(AI_MATKEY_COLOR_AMBIENT,color);
+			temp.ambient[0] = color[0];
+			temp.ambient[1] = color[1];
+			temp.ambient[2] = color[2];
+
+			mat->Get(AI_MATKEY_COLOR_DIFFUSE,color);
+			temp.diffuse[0] = color[0];
+			temp.diffuse[1] = color[1];
+			temp.diffuse[2] = color[2];
+
+			mat->Get(AI_MATKEY_COLOR_SPECULAR,color);
+			temp.specular[0] = color[0];
+			temp.specular[1] = color[1];
+			temp.specular[2] = color[2];
+
+			mat->Get(AI_MATKEY_COLOR_EMISSIVE,color);
+			temp.emissive[0] = color[0];
+			temp.emissive[1] = color[1];
+			temp.emissive[2] = color[2];
+
+			float value;
+			mat->Get(AI_MATKEY_SHININESS,value);
+			temp.shininess = value;
+
+			mat->Get(AI_MATKEY_OPACITY,value);
+			temp.opacity = value;
+			
+			if(isPbr){
+				// Load all PBR Textures Manually as assimp is a bitch
+				temp.textures.push_back(loadPBRTextures(TEX_DIFFUSE, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_NORMAL, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_METALIC, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_ROUGHNESS, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_AO, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_SPECULAR, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_GLOSSINESS, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_EMISSIVE, path.substr(0, path.find_last_of('/')),name.data));
+			}else {				
+				temp.textures.push_back(loadPBRTextures(TEX_DIFFUSE, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_NORMAL, path.substr(0, path.find_last_of('/')),name.data));
+				temp.textures.push_back(loadPBRTextures(TEX_EMISSIVE, path.substr(0, path.find_last_of('/')),name.data));
+			}
+			this->materials.push_back(temp);
+		}
+	}
+
 	if(scene->HasAnimations()) {
 		createAnimator(scene, this);
 	}
+/*
+	cout<<this->animator.size()<<endl;
+	for(auto a : this->animator){
+		cout<<a.duration<<endl;
+		cout<<a.ticksPerSecond<<endl;
+		cout<<a.bones.size()<<endl;
+		cout<<a.rootNode.name<<endl<<endl;
+	}
 
+	cout<<this->materials.size()<<endl;
+	for(auto m : materials)
+	{
+		cout<<"ambient : "<<m.ambient[0]<<m.ambient[1]<<m.ambient[2]<<endl;
+		cout<<"diffuse : "<<m.diffuse[0]<<m.diffuse[1]<<m.diffuse[2]<<endl;
+		cout<<"specular : "<<m.specular[0]<<m.specular[1]<<m.specular[2]<<endl;
+		cout<<"emissive : "<<m.emissive[0]<<m.emissive[1]<<m.emissive[2]<<endl;
+		cout<<"shininess : "<<m.shininess<<endl;
+		cout<<"opacity : "<<m.opacity<<endl;
+	}
+	*/
 	importer.FreeScene();
+}
+void calculateBoneTransformBlended(glmodel* model, 
+glanimator* base,const AssimpNodeData* node,
+glanimator* layer,const AssimpNodeData* nodeLayer,
+const float currentTimeBase, const float currentTimeLayered,
+mat4 parentTransform,float blendFactor) {
+
+	string nodeName = node->name;
+	mat4 nodeTransform = node->transformation;
+
+	glbone* startBone = findBone(base, nodeName);
+
+	if(startBone) {
+		mat4 translationMat;
+		mat4 rotationMat;
+		mat4 scalingMat;
+		int p0Index = -1;
+		int p1Index = -1;
+
+		//Calculate Translation
+		if (startBone->positions.size() == 1) {
+			translationMat = translate(startBone->positions[0].position);
+		} else {
+			for(p0Index = 0; p0Index < startBone->positions.size() - 1; ++p0Index) {
+				if (currentTimeBase < startBone->positions[p0Index + 1].timeStamp) {
+					break;
+				}
+			}
+			if(p0Index == startBone->positions.size() - 1) {
+				translationMat = translate(startBone->positions[p0Index].position);
+			} else {
+				p1Index = p0Index + 1;
+				translationMat = translate(mix(startBone->positions[p0Index].position, startBone->positions[p1Index].position, getScaleFactor(startBone->positions[p0Index].timeStamp, startBone->positions[p1Index].timeStamp, currentTimeBase)));
+			}
+		}
+
+		//Calculate Rotation
+		if (startBone->rotations.size() == 1) {
+			rotationMat = quaternionToMatrix(normalize(startBone->rotations[0].orientation));
+		} else {
+			for(p0Index = 0; p0Index < startBone->rotations.size() - 1; ++p0Index) {
+				if (currentTimeBase < startBone->rotations[p0Index + 1].timeStamp) {
+					break;
+				}
+			}
+			if(p0Index == startBone->rotations.size() - 1) {
+				rotationMat = quaternionToMatrix(normalize(startBone->rotations[p0Index].orientation));
+			} else {
+				p1Index = p0Index + 1;
+				rotationMat = quaternionToMatrix(normalize(slerp(startBone->rotations[p0Index].orientation, startBone->rotations[p1Index].orientation, getScaleFactor(startBone->rotations[p0Index].timeStamp, startBone->rotations[p1Index].timeStamp, currentTimeBase))));
+			}
+		}
+
+		//Calculate Scale
+		if (startBone->scales.size() == 1) {
+			scalingMat = scale(startBone->scales[0].scale);
+		} else {
+			for(p0Index = 0; p0Index < startBone->scales.size() - 1; ++p0Index) {
+				if (currentTimeBase < startBone->scales[p0Index + 1].timeStamp) {
+					break;
+				}
+			}
+			if(p0Index == startBone->scales.size() - 1) {
+				scalingMat = scale(startBone->scales[p0Index].scale);
+			} else {
+				p1Index = p0Index + 1;
+				scalingMat = scale(mix(startBone->scales[p0Index].scale, startBone->scales[p1Index].scale, getScaleFactor(startBone->scales[p0Index].timeStamp, startBone->scales[p1Index].timeStamp, currentTimeBase)));
+			}
+		}
+		startBone->localTransform = translationMat * rotationMat * scalingMat;
+		nodeTransform = startBone->localTransform;
+	}
+
+	mat4 layeredNodeTransform = nodeLayer->transformation;
+
+	glbone* endBone = findBone(layer, nodeName);
+
+	if(endBone) {
+		mat4 translationMat;
+		mat4 rotationMat;
+		mat4 scalingMat;
+		int p0Index = -1;
+		int p1Index = -1;
+
+		//Calculate Translation
+		if (endBone->positions.size() == 1) {
+			translationMat = translate(endBone->positions[0].position);
+		} else {
+			for(p0Index = 0; p0Index < endBone->positions.size() - 1; ++p0Index) {
+				if (currentTimeLayered < endBone->positions[p0Index + 1].timeStamp) {
+					break;
+				}
+			}
+			if(p0Index == endBone->positions.size() - 1) {
+				translationMat = translate(endBone->positions[p0Index].position);
+			} else {
+				p1Index = p0Index + 1;
+				translationMat = translate(mix(endBone->positions[p0Index].position, endBone->positions[p1Index].position, getScaleFactor(endBone->positions[p0Index].timeStamp, endBone->positions[p1Index].timeStamp, currentTimeLayered)));
+			}
+		}
+
+		//Calculate Rotation
+		if (endBone->rotations.size() == 1) {
+			rotationMat = quaternionToMatrix(normalize(endBone->rotations[0].orientation));
+		} else {
+			for(p0Index = 0; p0Index < endBone->rotations.size() - 1; ++p0Index) {
+				if (currentTimeLayered < endBone->rotations[p0Index + 1].timeStamp) {
+					break;
+				}
+			}
+			if(p0Index == endBone->rotations.size() - 1) {
+				rotationMat = quaternionToMatrix(normalize(endBone->rotations[p0Index].orientation));
+			} else {
+				p1Index = p0Index + 1;
+				rotationMat = quaternionToMatrix(normalize(slerp(endBone->rotations[p0Index].orientation, endBone->rotations[p1Index].orientation, getScaleFactor(endBone->rotations[p0Index].timeStamp, endBone->rotations[p1Index].timeStamp, currentTimeLayered))));
+			}
+		}
+
+		//Calculate Scale
+		if (endBone->scales.size() == 1) {
+			scalingMat = scale(endBone->scales[0].scale);
+		} else {
+			for(p0Index = 0; p0Index < endBone->scales.size() - 1; ++p0Index) {
+				if (currentTimeLayered < endBone->scales[p0Index + 1].timeStamp) {
+					break;
+				}
+			}
+			if(p0Index == endBone->scales.size() - 1) {
+				scalingMat = scale(endBone->scales[p0Index].scale);
+			} else {
+				p1Index = p0Index + 1;
+				scalingMat = scale(mix(endBone->scales[p0Index].scale, endBone->scales[p1Index].scale, getScaleFactor(endBone->scales[p0Index].timeStamp, endBone->scales[p1Index].timeStamp, currentTimeLayered)));
+			}
+		}
+		endBone->localTransform = translationMat * rotationMat * scalingMat;
+		layeredNodeTransform = endBone->localTransform;
+	}
+
+/*
+	quaternion rot0 = quaternion(nodeTransform);
+	quaternion rot1 = quaternion(layeredNodeTransform);
+	quaternion finalRot = slerp(rot0, rot1, blendFactor);
+	mat4 blendedMat = quaternionToMatrix(finalRot);
+	blendedMat[3] = (1.0f - blendFactor) * nodeTransform[3] + layeredNodeTransform[3] * blendFactor;
+*/
+	mat4 blendedMat = (nodeTransform * (1-blendFactor)) + (layeredNodeTransform * blendFactor);
+	mat4 globalTransformation = parentTransform * blendedMat;
+
+	unordered_map<string, BoneInfo> boneInfoMap = model->boneInfoMap;
+	if (boneInfoMap.count(nodeName) != 0)
+	{
+		int index = boneInfoMap[nodeName].id;
+		mat4 offset = boneInfoMap[nodeName].offset;
+		base->finalBoneMatrices[index] = globalTransformation * offset;
+		layer->finalBoneMatrices[index] = globalTransformation * offset;
+	}
+
+	for (int i = 0; i < node->childrenCount; i++) {
+		calculateBoneTransformBlended(model, base, &node->children[i], layer, &nodeLayer->children[i], currentTimeBase, currentTimeLayered, globalTransformation, blendFactor);
+	}
 }
 
 void calculateBoneTransform(glmodel* model, glanimator* a, const AssimpNodeData* node, mat4 parentTransform) {
@@ -372,6 +660,28 @@ void calculateBoneTransform(glmodel* model, glanimator* a, const AssimpNodeData*
 	}
 }
 
+void BlendTwoAnimations(glmodel* model,glanimator* baseAnimation,glanimator* layeredAnimation,float blendFactor,float dt){
+
+	float a = 1.0f;
+	float b = baseAnimation->duration / layeredAnimation->duration;
+	const float animSpeedMultiplierUp = (1.0f - blendFactor) * a + b * blendFactor;
+
+	a = layeredAnimation->duration / baseAnimation->duration;
+	b = 1.0f;
+	const float animSpeedMultiplierDown = (1.0f - blendFactor) * a + b * blendFactor;
+
+	static float currentTimeBase = 0.0f;
+	currentTimeBase += baseAnimation->ticksPerSecond * dt * animSpeedMultiplierUp;
+	currentTimeBase = fmod(currentTimeBase,baseAnimation->duration);
+
+	static float currentTimeLayered = 0.0f;
+	currentTimeLayered += layeredAnimation->ticksPerSecond * dt * animSpeedMultiplierDown;
+	currentTimeLayered = fmod(currentTimeLayered,layeredAnimation->duration);
+
+	calculateBoneTransformBlended(model,baseAnimation,&baseAnimation->rootNode,layeredAnimation,&layeredAnimation->rootNode,currentTimeBase,currentTimeLayered,mat4::identity(),blendFactor);
+}
+
+
 void glmodel::setBoneMatrixUniform(GLuint uniformLocation, unsigned i) {
 	vector<mat4> m;
 	if(i < this->animator.size() && i >= 0) {
@@ -387,20 +697,40 @@ void glmodel::setBoneMatrixUniform(GLuint uniformLocation, unsigned i) {
 	glUniformMatrix4fv(uniformLocation, MAX_BONE_COUNT, GL_FALSE, *m.data());
 }
 
-void glmodel::update(float dt, int i) {
-	if(i < this->animator.size()) {
-		this->animator[i].currentTime += this->animator[i].ticksPerSecond * dt;
-		this->animator[i].currentTime = fmod(this->animator[i].currentTime, this->animator[i].duration);
-		calculateBoneTransform(this, &this->animator[i], &this->animator[i].rootNode, mat4::identity());
+void glmodel::update(float dt, int baseAnimation , int layeredAnimation , float blendFactor) {
+	if(baseAnimation == layeredAnimation && baseAnimation < this->animator.size()) {
+		this->animator[baseAnimation].currentTime += this->animator[baseAnimation].ticksPerSecond * dt;
+		this->animator[baseAnimation].currentTime = fmod(this->animator[baseAnimation].currentTime, this->animator[baseAnimation].duration);
+		calculateBoneTransform(this, &this->animator[baseAnimation], &this->animator[baseAnimation].rootNode, mat4::identity());
+	}
+	else {
+		BlendTwoAnimations(this,&this->animator[baseAnimation],&this->animator[layeredAnimation],blendFactor,dt);
 	}
 }
 
-void glmodel::draw(int instance) {
+void glmodel::draw(glshaderprogram *program,int instance) {
 	for(unsigned int i = 0; i < this->meshes.size(); i++) {
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, this->meshes[i].diffuseTextures);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, this->meshes[i].specularTextures);
+		
+		//setup textures
+		for(int t = 0; t < this->materials[this->meshes[i].materialIndex].textures.size(); t++)
+		{
+
+			if(this->materials[this->meshes[i].materialIndex].textures[t].id > 0)
+			{
+				glActiveTexture(GL_TEXTURE0 + t);
+				//cout<<t<<" "<<this->materials[this->meshes[i].materialIndex].textures[t].id<<" "<<textureTypeMap[this->materials[this->meshes[i].materialIndex].textures[t].type]<<endl;				
+				glUniform1i(program->getUniformLocation(textureTypeMap[this->materials[this->meshes[i].materialIndex].textures[t].type]),t);
+				glBindTexture(GL_TEXTURE_2D, this->materials[this->meshes[i].materialIndex].textures[t].id);
+			}
+		}
+
+		// glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_AMBIENT]),1,this->materials[this->meshes[i].materialIndex].ambient);
+		glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_DIFFUSE]),1,this->materials[this->meshes[i].materialIndex].ambient);
+		glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_SPECULAR]),1,this->materials[this->meshes[i].materialIndex].ambient);
+		glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_EMISSIVE]),1,this->materials[this->meshes[i].materialIndex].ambient);
+		//glUniform1f(program->getUniformLocation(materialTypeMap[MAT_SHININESS]),this->materials[this->meshes[i].materialIndex].shininess);
+		glUniform1f(program->getUniformLocation(materialTypeMap[MAT_OPACITY]),this->materials[this->meshes[i].materialIndex].opacity);
+
 		glBindVertexArray(this->meshes[i].vao);
 		glDrawElementsInstanced(GL_TRIANGLES, this->meshes[i].trianglePointCount, GL_UNSIGNED_INT, 0, instance);
 	}

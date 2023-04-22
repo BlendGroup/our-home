@@ -1,20 +1,20 @@
 #include<iostream>
 #include<assimp/postprocess.h>
-
-#include"../include/glshaderloader.h"
-#include"../include/glmodelloader.h"
-#include"../include/vmath.h"
-#include"../include/errorlog.h"
-#include"../include/testmodel.h"
-#include"../include/global.h"
+#include<glshaderloader.h>
+#include<glmodelloader.h>
+#include<vmath.h>
+#include<errorlog.h>
+#include<testmodel.h>
+#include<global.h>
 
 using namespace std;
 using namespace vmath;
 
 static glshaderprogram* program;
 static glmodel* model;
+//static model* m;
 
-#define DYNAMIC 1
+#define DYNAMIC 0
 
 void setupProgramTestModel() {
 	try {
@@ -32,9 +32,10 @@ void setupProgramTestModel() {
 void initTestModel() {
 	try {
 #if DYNAMIC
-		model = new glmodel("resources/models/vampire/dancing_vampire.dae", aiProcess_FlipUVs);
+		model = new glmodel("resources/models/vampire/vamp.fbx", aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,false);
 #else
-		model = new glmodel("resources/models/backpack/backpack.obj", 0);
+		model = new glmodel("resources/models/spaceship/SpaceLab.fbx", aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,false);
+		//m = new model("resources/models/vampire/dancing_vampire.dae");
 #endif
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -48,12 +49,12 @@ void renderTestModel(camera* cam) {
 		glUniformMatrix4fv(program->getUniformLocation("vMat"), 1, GL_FALSE, cam->matrix());
 #if DYNAMIC
 		glUniformMatrix4fv(program->getUniformLocation("mMat"), 1, GL_FALSE, rotate(0.0f, vec3(0.0f, 1.0f, 0.0f)) * translate(0.0f, -0.7f, 0.0f) * scale(1.5f));
-		model->update(0.01f, 0);
-		model->setBoneMatrixUniform(program->getUniformLocation("bMat[0]"), 0);
+		model->update(0.005f, 1,2,0.5f);
+		model->setBoneMatrixUniform(program->getUniformLocation("bMat[0]"), 1);
 #else
 		glUniformMatrix4fv(program->getUniformLocation("mMat"), 1, GL_FALSE, rotate(0.0f, vec3(0.0f, 1.0f, 0.0f)));
 #endif
-		model->draw();
+		model->draw(program);
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
