@@ -75,10 +75,6 @@ vec3 debugCamera::position() const {
 	return this->pos;
 }
 
-vec3 debugCamera::getPosition(){
-	return this->position;
-}
-
 debugCamera::~debugCamera() {
 
 }

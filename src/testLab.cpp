@@ -34,9 +34,9 @@ vector<Light>lightsLab;
 void setupProgramTestLab(){
     try 
     {
-        programStaticPBR = new glshaderprogram({"src/shaders/pbr.vert", "src/shaders/pbrMR.frag"});
-        programDynamicPBR = new glshaderprogram({"src/shaders/pbrDynamic.vert", "src/shaders/pbrSG.frag"});
-        lightProgram = new glshaderprogram({"src/shaders/testStatic.vert", "src/shaders/point.frag"});
+        programStaticPBR = new glshaderprogram({"shaders/pbr.vert", "shaders/pbrMR.frag"});
+        programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrSG.frag"});
+        lightProgram = new glshaderprogram({"shaders/testStatic.vert", "shaders/point.frag"});
         //program->printUniforms(cout);
     } catch (string errorString) {
         throwErr(errorString);
