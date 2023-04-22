@@ -724,7 +724,7 @@ void glmodel::draw(glshaderprogram *program,int instance) {
 			}
 		}
 
-		glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_AMBIENT]),1,this->materials[this->meshes[i].materialIndex].ambient);
+		// glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_AMBIENT]),1,this->materials[this->meshes[i].materialIndex].ambient);
 		glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_DIFFUSE]),1,this->materials[this->meshes[i].materialIndex].ambient);
 		glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_SPECULAR]),1,this->materials[this->meshes[i].materialIndex].ambient);
 		glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_EMISSIVE]),1,this->materials[this->meshes[i].materialIndex].ambient);
