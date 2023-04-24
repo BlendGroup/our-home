@@ -7,6 +7,7 @@
 #include<vmath.h>
 #include<glshaderloader.h>
 #include<scenecamera.h>
+#include<scenecamerarig.h>
 #include<debugcamera.h>
 #include<testPBR.h>
 #include<testLab.h>
@@ -16,11 +17,6 @@
 #include<errorlog.h>
 #include<global.h>
 #include<clhelper.h>
-
-#include<testeffect.h>
-#include<testcamera.h>
-#include<testmodel.h>
-#include<testterrain.h>
 
 using namespace std;
 using namespace vmath;

@@ -21,11 +21,12 @@
 #include<testcamera.h>
 #include<testmodel.h>
 #include<testterrain.h>
+#include<testcubemap.h>
 
 using namespace std;
 using namespace vmath;
 
-static bool hdrEnabled = true;
+static bool hdrEnabled = false;
 static HDR* hdr;
 static sceneCamera* scenecamera;
 static sceneCameraRig* scenecamerarig;
@@ -37,9 +38,10 @@ static bool isAnimating = false;
 #define SHOW_MODEL_SCENE 		0
 #define SHOW_CAMERA_SCENE 		0
 #define SHOW_PBR_SCENE			0
-#define SHOW_LAB_SCENE			1
+#define SHOW_LAB_SCENE			0
 #define SHOW_CAMERA_RIG			0
 #define SHOW_TERRAIN_SCENE 		0
+#define SHOW_CUBEMAP_SCENE		1
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
@@ -66,6 +68,9 @@ void setupProgram(void) {
 #endif
 #if SHOW_TERRAIN_SCENE
 		setupProgramTestTerrain();
+#endif
+#if SHOW_CUBEMAP_SCENE
+		setupProgramTestRenderToCubemap();
 #endif
 		hdr->setupProgram();
 	} catch(string errorString) {
@@ -110,6 +115,9 @@ void init(void) {
 #if SHOW_TERRAIN_SCENE
 		initTestTerrain();
 #endif
+#if SHOW_CUBEMAP_SCENE
+		initTestRenderToCubemap();
+#endif
 		hdr->init();
 
 		glDepthFunc(GL_LEQUAL);
@@ -153,10 +161,13 @@ void render(glwindow* window) {
 	renderTestLab(dynamic_cast<camera*>(debugcamera), debugcamera->position());
 #endif
 		// renderTestEffect();
-
 #if SHOW_TERRAIN_SCENE
 		renderTestTerrain();
 #endif
+#if SHOW_CUBEMAP_SCENE
+		renderTestRenderToCubemap(dynamic_cast<camera*>(debugcamera));
+#endif
+
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
 			glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
@@ -199,6 +210,10 @@ void keyboard(glwindow* window, int key) {
 #if SHOW_TERRAIN_SCENE
 	keyboardFuncTestTerrain(key);
 #endif
+#if SHOW_CUBEMAP_SCENE
+	keyboardFuncTestRenderToCubemap(key);
+#endif
+
 }
 
 void mouse(glwindow* window, int button, int action, int x, int y) {
@@ -233,6 +248,9 @@ void uninit(void) {
 #endif
 #if SHOW_TERRAIN_SCENE
 	uninitTestTerrain();
+#endif
+#if SHOW_CUBEMAP_SCENE
+	uninitTestRenderToCubemap();
 #endif
 	hdr->uninit();
 
