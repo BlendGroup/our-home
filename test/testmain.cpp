@@ -21,11 +21,12 @@
 #include<testcamera.h>
 #include<testmodel.h>
 #include<testterrain.h>
+#include<testcubemap.h>
 
 using namespace std;
 using namespace vmath;
 
-static bool hdrEnabled = true;
+static bool hdrEnabled = false;
 static HDR* hdr;
 static sceneCamera* scenecamera;
 static sceneCameraRig* scenecamerarig;
@@ -37,10 +38,10 @@ static bool isAnimating = false;
 #define SHOW_MODEL_SCENE 		0
 #define SHOW_CAMERA_SCENE 		0
 #define SHOW_PBR_SCENE			0
-#define SHOW_LAB_SCENE			1
+#define SHOW_LAB_SCENE			0
 #define SHOW_CAMERA_RIG			0
 #define SHOW_TERRAIN_SCENE 		0
-#define SHOW_CUBEMAP_SCENE		0
+#define SHOW_CUBEMAP_SCENE		1
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
