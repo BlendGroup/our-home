@@ -224,194 +224,198 @@ void create2DNoiseTexture(cl_kernel kernel, cl_mem inputGrid, clglmem &outputNoi
 	}
 }
 
-string create3DNoiseTexture(cl_kernel kernel, cl_mem inputGrid, clglmem &outputNoise, ivec3 dim, float amplitude, long seed) {
-	static dvec3 gradients3d[PSIZE];
-	static latticepoint3D_t lookup3d[NUM_LATTICE * NUM_POINTS_PER_3D_LATICE];
-	static short perm[PSIZE];
-	static dvec3 permGrad3d[PSIZE];
+void create3DNoiseTexture(cl_kernel kernel, cl_mem inputGrid, clglmem &outputNoise, ivec3 dim, float amplitude, long seed) {
+	try {
+		static dvec3 gradients3d[PSIZE];
+		static latticepoint3D_t lookup3d[NUM_LATTICE * NUM_POINTS_PER_3D_LATICE];
+		static short perm[PSIZE];
+		static dvec3 permGrad3d[PSIZE];
 
-	//Fill Gradients Array -- TODO find out why this array and N2
+		//Fill Gradients Array -- TODO find out why this array and N2
 
-	const double N3 = 0.2781926117527186;
+		const double N3 = 0.2781926117527186;
 
-	static const dvec3 arr[] = {
-		dvec3(-2.22474487139, -2.22474487139, -1.0) / N3,
-		dvec3(-2.22474487139, -2.22474487139, 1.0) / N3,
-		dvec3(-3.0862664687972017, -1.1721513422464978, 0.0) / N3,
-		dvec3(-1.1721513422464978, -3.0862664687972017, 0.0) / N3,
-		dvec3(-2.22474487139, -1.0, -2.22474487139) / N3,
-		dvec3(-2.22474487139, 1.0, -2.22474487139) / N3,
-		dvec3(-1.1721513422464978, 0.0, -3.0862664687972017) / N3,
-		dvec3(-3.0862664687972017, 0.0, -1.1721513422464978) / N3,
-		dvec3(-2.22474487139, -1.0, 2.22474487139) / N3,
-		dvec3(-2.22474487139, 1.0, 2.22474487139) / N3,
-		dvec3(-3.0862664687972017, 0.0, 1.1721513422464978) / N3,
-		dvec3(-1.1721513422464978, 0.0, 3.0862664687972017) / N3,
-		dvec3(-2.22474487139, 2.22474487139, -1.0) / N3,
-		dvec3(-2.22474487139, 2.22474487139, 1.0) / N3,
-		dvec3(-1.1721513422464978, 3.0862664687972017, 0.0) / N3,
-		dvec3(-3.0862664687972017, 1.1721513422464978, 0.0) / N3,
-		dvec3(-1.0, -2.22474487139, -2.22474487139) / N3,
-		dvec3(1.0, -2.22474487139, -2.22474487139) / N3,
-		dvec3(0.0, -3.0862664687972017, -1.1721513422464978) / N3,
-		dvec3(0.0, -1.1721513422464978, -3.0862664687972017) / N3,
-		dvec3(-1.0, -2.22474487139, 2.22474487139) / N3,
-		dvec3(1.0, -2.22474487139, 2.22474487139) / N3,
-		dvec3(0.0, -1.1721513422464978, 3.0862664687972017) / N3,
-		dvec3(0.0, -3.0862664687972017, 1.1721513422464978) / N3,
-		dvec3(-1.0, 2.22474487139, -2.22474487139) / N3,
-		dvec3(1.0, 2.22474487139, -2.22474487139) / N3,
-		dvec3(0.0, 1.1721513422464978, -3.0862664687972017) / N3,
-		dvec3(0.0, 3.0862664687972017, -1.1721513422464978) / N3,
-		dvec3(-1.0, 2.22474487139, 2.22474487139) / N3,
-		dvec3(1.0, 2.22474487139, 2.22474487139) / N3,
-		dvec3(0.0, 3.0862664687972017, 1.1721513422464978) / N3,
-		dvec3(0.0, 1.1721513422464978, 3.0862664687972017) / N3,
-		dvec3(2.22474487139, -2.22474487139, -1.0) / N3,
-		dvec3(2.22474487139, -2.22474487139, 1.0) / N3,
-		dvec3(1.1721513422464978, -3.0862664687972017, 0.0) / N3,
-		dvec3(3.0862664687972017, -1.1721513422464978, 0.0) / N3,
-		dvec3(2.22474487139, -1.0, -2.22474487139) / N3,
-		dvec3(2.22474487139, 1.0, -2.22474487139) / N3,
-		dvec3(3.0862664687972017, 0.0, -1.1721513422464978) / N3,
-		dvec3(1.1721513422464978, 0.0, -3.0862664687972017) / N3,
-		dvec3(2.22474487139, -1.0, 2.22474487139) / N3,
-		dvec3(2.22474487139, 1.0, 2.22474487139) / N3,
-		dvec3(1.1721513422464978, 0.0, 3.0862664687972017) / N3,
-		dvec3(3.0862664687972017, 0.0, 1.1721513422464978) / N3,
-		dvec3(2.22474487139, 2.22474487139, -1.0) / N3,
-		dvec3(2.22474487139, 2.22474487139, 1.0) / N3,
-		dvec3(3.0862664687972017, 1.1721513422464978, 0.0) / N3,
-		dvec3(1.1721513422464978, 3.0862664687972017, 0.0) / N3
-	};
+		static const dvec3 arr[] = {
+			dvec3(-2.22474487139, -2.22474487139, -1.0) / N3,
+			dvec3(-2.22474487139, -2.22474487139, 1.0) / N3,
+			dvec3(-3.0862664687972017, -1.1721513422464978, 0.0) / N3,
+			dvec3(-1.1721513422464978, -3.0862664687972017, 0.0) / N3,
+			dvec3(-2.22474487139, -1.0, -2.22474487139) / N3,
+			dvec3(-2.22474487139, 1.0, -2.22474487139) / N3,
+			dvec3(-1.1721513422464978, 0.0, -3.0862664687972017) / N3,
+			dvec3(-3.0862664687972017, 0.0, -1.1721513422464978) / N3,
+			dvec3(-2.22474487139, -1.0, 2.22474487139) / N3,
+			dvec3(-2.22474487139, 1.0, 2.22474487139) / N3,
+			dvec3(-3.0862664687972017, 0.0, 1.1721513422464978) / N3,
+			dvec3(-1.1721513422464978, 0.0, 3.0862664687972017) / N3,
+			dvec3(-2.22474487139, 2.22474487139, -1.0) / N3,
+			dvec3(-2.22474487139, 2.22474487139, 1.0) / N3,
+			dvec3(-1.1721513422464978, 3.0862664687972017, 0.0) / N3,
+			dvec3(-3.0862664687972017, 1.1721513422464978, 0.0) / N3,
+			dvec3(-1.0, -2.22474487139, -2.22474487139) / N3,
+			dvec3(1.0, -2.22474487139, -2.22474487139) / N3,
+			dvec3(0.0, -3.0862664687972017, -1.1721513422464978) / N3,
+			dvec3(0.0, -1.1721513422464978, -3.0862664687972017) / N3,
+			dvec3(-1.0, -2.22474487139, 2.22474487139) / N3,
+			dvec3(1.0, -2.22474487139, 2.22474487139) / N3,
+			dvec3(0.0, -1.1721513422464978, 3.0862664687972017) / N3,
+			dvec3(0.0, -3.0862664687972017, 1.1721513422464978) / N3,
+			dvec3(-1.0, 2.22474487139, -2.22474487139) / N3,
+			dvec3(1.0, 2.22474487139, -2.22474487139) / N3,
+			dvec3(0.0, 1.1721513422464978, -3.0862664687972017) / N3,
+			dvec3(0.0, 3.0862664687972017, -1.1721513422464978) / N3,
+			dvec3(-1.0, 2.22474487139, 2.22474487139) / N3,
+			dvec3(1.0, 2.22474487139, 2.22474487139) / N3,
+			dvec3(0.0, 3.0862664687972017, 1.1721513422464978) / N3,
+			dvec3(0.0, 1.1721513422464978, 3.0862664687972017) / N3,
+			dvec3(2.22474487139, -2.22474487139, -1.0) / N3,
+			dvec3(2.22474487139, -2.22474487139, 1.0) / N3,
+			dvec3(1.1721513422464978, -3.0862664687972017, 0.0) / N3,
+			dvec3(3.0862664687972017, -1.1721513422464978, 0.0) / N3,
+			dvec3(2.22474487139, -1.0, -2.22474487139) / N3,
+			dvec3(2.22474487139, 1.0, -2.22474487139) / N3,
+			dvec3(3.0862664687972017, 0.0, -1.1721513422464978) / N3,
+			dvec3(1.1721513422464978, 0.0, -3.0862664687972017) / N3,
+			dvec3(2.22474487139, -1.0, 2.22474487139) / N3,
+			dvec3(2.22474487139, 1.0, 2.22474487139) / N3,
+			dvec3(1.1721513422464978, 0.0, 3.0862664687972017) / N3,
+			dvec3(3.0862664687972017, 0.0, 1.1721513422464978) / N3,
+			dvec3(2.22474487139, 2.22474487139, -1.0) / N3,
+			dvec3(2.22474487139, 2.22474487139, 1.0) / N3,
+			dvec3(3.0862664687972017, 1.1721513422464978, 0.0) / N3,
+			dvec3(1.1721513422464978, 3.0862664687972017, 0.0) / N3
+		};
 
-	for (int i = 0; i < PSIZE; i++){
-		gradients3d[i] = arr[i % 48];
-	}
-
-	//Fill Lookup Array -- TODO find out why
-
-	int j = 7;
-	for (int i = 0; i < NUM_LATTICE; i++){
-		int i1, j1, k1, i2, j2, k2;
-		i1 = (i >> 0) & 1;
-		j1 = (i >> 1) & 1;
-		k1 = (i >> 2) & 1;
-		i2 = i1 ^ 1;
-		j2 = j1 ^ 1;
-		k2 = k1 ^ 1;
-
-		// The two points within this octant, one from each of the two cubic half-lattices.
-		latticepoint3D_t c0 = latticepoint3D(i1, j1, k1, 0);
-		latticepoint3D_t c1 = latticepoint3D(i1 + i2, j1 + j2, k1 + k2, 1);
-
-		// (1, 0, 0) vs (0, 1, 1) away from octant.
-		latticepoint3D_t c2 = latticepoint3D(i1 ^ 1, j1, k1, 0);
-		latticepoint3D_t c3 = latticepoint3D(i1, j1 ^ 1, k1 ^ 1, 0);
-
-		// (1, 0, 0) vs (0, 1, 1) away from octant, on second half-lattice.
-		latticepoint3D_t c4 = latticepoint3D(i1 + (i2 ^ 1), j1 + j2, k1 + k2, 1);
-		latticepoint3D_t c5 = latticepoint3D(i1 + i2, j1 + (j2 ^ 1), k1 + (k2 ^ 1), 1);
-
-		// (0, 1, 0) vs (1, 0, 1) away from octant.
-		latticepoint3D_t c6 = latticepoint3D(i1, j1 ^ 1, k1, 0);
-		latticepoint3D_t c7 = latticepoint3D(i1 ^ 1, j1, k1 ^ 1, 0);
-
-		// (0, 1, 0) vs (1, 0, 1) away from octant, on second half-lattice.
-		latticepoint3D_t c8 = latticepoint3D(i1 + i2, j1 + (j2 ^ 1), k1 + k2, 1);
-		latticepoint3D_t c9 = latticepoint3D(i1 + (i2 ^ 1), j1 + j2, k1 + (k2 ^ 1), 1);
-
-		// (0, 0, 1) vs (1, 1, 0) away from octant.
-		latticepoint3D_t cA = latticepoint3D(i1, j1, k1 ^ 1, 0);
-		latticepoint3D_t cB = latticepoint3D(i1 ^ 1, j1 ^ 1, k1, 0);
-
-		// (0, 0, 1) vs (1, 1, 0) away from octant, on second half-lattice.
-		latticepoint3D_t cC = latticepoint3D(i1 + i2, j1 + j2, k1 + (k2 ^ 1), 1);
-		latticepoint3D_t cD = latticepoint3D(i1 + (i2 ^ 1), j1 + (j2 ^ 1), k1 + k2, 1);
-
-		// First two points are guaranteed.
-		c0.nextOnFailure = c0.nextOnSuccess = j + 1;
-		c1.nextOnFailure = c1.nextOnSuccess = j + 2;
-
-		// If c2 is in range, then we know c3 and c4 are not.
-		c2.nextOnFailure = j + 3;
-		c2.nextOnSuccess = j + 5;
-		c3.nextOnFailure = j + 4;
-		c3.nextOnSuccess = j + 4;
-
-		// If c4 is in range, then we know c5 is not.
-		c4.nextOnFailure = j + 5;
-		c4.nextOnSuccess = j + 6;
-		c5.nextOnFailure = c5.nextOnSuccess = j + 6;
-
-		// If c6 is in range, then we know c7 and c8 are not.
-		c6.nextOnFailure = j + 7;
-		c6.nextOnSuccess = j + 9;
-		c7.nextOnFailure = j + 8;
-		c7.nextOnSuccess = j + 8;
-
-		// If c8 is in range, then we know c9 is not.
-		c8.nextOnFailure = j + 9;
-		c8.nextOnSuccess = j + 10;
-		c9.nextOnFailure = c9.nextOnSuccess = j + 10;
-
-		// If cA is in range, then we know cB and cC are not.
-		cA.nextOnFailure = j + 11;
-		cA.nextOnSuccess = j + 13;
-		cB.nextOnFailure = j + 12;
-		cB.nextOnSuccess = j + 12;
-
-		// If cC is in range, then we know cD is not.
-		cC.nextOnFailure = j + 13;
-		cC.nextOnSuccess = -1;
-		cD.nextOnFailure = cD.nextOnSuccess = -1;
-
-		lookup3d[i] = c0;
-		lookup3d[++j] = c1;
-		lookup3d[++j] = c2;
-		lookup3d[++j] = c3;
-		lookup3d[++j] = c4;
-		lookup3d[++j] = c5;
-		lookup3d[++j] = c6;
-		lookup3d[++j] = c7;
-		lookup3d[++j] = c8;
-		lookup3d[++j] = c9;
-		lookup3d[++j] = cA;
-		lookup3d[++j] = cB;
-		lookup3d[++j] = cC;
-		lookup3d[++j] = cD;
-	}
-	
-	//Fill Perm Array -- TODO find why
-
-	short source[PSIZE];
-	for(int i = 0; i < PSIZE; i++) {
-		source[i] = i;
-	}
-	for(int i = PSIZE - 1; i >= 0; i--) {
-		//Whyyyy
-		seed = seed * 6364136223846793005L + 1442695040888963407L;
-		int r = (int)((seed + 31) % (i + 1));
-		if (r < 0) {
-			r += (i + 1);
+		for (int i = 0; i < PSIZE; i++){
+			gradients3d[i] = arr[i % 48];
 		}
-		perm[i] = source[r];
-		permGrad3d[i] = gradients3d[perm[i]];
-		source[r] = source[i];
+
+		//Fill Lookup Array -- TODO find out why
+
+		int j = 7;
+		for (int i = 0; i < NUM_LATTICE; i++){
+			int i1, j1, k1, i2, j2, k2;
+			i1 = (i >> 0) & 1;
+			j1 = (i >> 1) & 1;
+			k1 = (i >> 2) & 1;
+			i2 = i1 ^ 1;
+			j2 = j1 ^ 1;
+			k2 = k1 ^ 1;
+
+			// The two points within this octant, one from each of the two cubic half-lattices.
+			latticepoint3D_t c0 = latticepoint3D(i1, j1, k1, 0);
+			latticepoint3D_t c1 = latticepoint3D(i1 + i2, j1 + j2, k1 + k2, 1);
+
+			// (1, 0, 0) vs (0, 1, 1) away from octant.
+			latticepoint3D_t c2 = latticepoint3D(i1 ^ 1, j1, k1, 0);
+			latticepoint3D_t c3 = latticepoint3D(i1, j1 ^ 1, k1 ^ 1, 0);
+
+			// (1, 0, 0) vs (0, 1, 1) away from octant, on second half-lattice.
+			latticepoint3D_t c4 = latticepoint3D(i1 + (i2 ^ 1), j1 + j2, k1 + k2, 1);
+			latticepoint3D_t c5 = latticepoint3D(i1 + i2, j1 + (j2 ^ 1), k1 + (k2 ^ 1), 1);
+
+			// (0, 1, 0) vs (1, 0, 1) away from octant.
+			latticepoint3D_t c6 = latticepoint3D(i1, j1 ^ 1, k1, 0);
+			latticepoint3D_t c7 = latticepoint3D(i1 ^ 1, j1, k1 ^ 1, 0);
+
+			// (0, 1, 0) vs (1, 0, 1) away from octant, on second half-lattice.
+			latticepoint3D_t c8 = latticepoint3D(i1 + i2, j1 + (j2 ^ 1), k1 + k2, 1);
+			latticepoint3D_t c9 = latticepoint3D(i1 + (i2 ^ 1), j1 + j2, k1 + (k2 ^ 1), 1);
+
+			// (0, 0, 1) vs (1, 1, 0) away from octant.
+			latticepoint3D_t cA = latticepoint3D(i1, j1, k1 ^ 1, 0);
+			latticepoint3D_t cB = latticepoint3D(i1 ^ 1, j1 ^ 1, k1, 0);
+
+			// (0, 0, 1) vs (1, 1, 0) away from octant, on second half-lattice.
+			latticepoint3D_t cC = latticepoint3D(i1 + i2, j1 + j2, k1 + (k2 ^ 1), 1);
+			latticepoint3D_t cD = latticepoint3D(i1 + (i2 ^ 1), j1 + (j2 ^ 1), k1 + k2, 1);
+
+			// First two points are guaranteed.
+			c0.nextOnFailure = c0.nextOnSuccess = j + 1;
+			c1.nextOnFailure = c1.nextOnSuccess = j + 2;
+
+			// If c2 is in range, then we know c3 and c4 are not.
+			c2.nextOnFailure = j + 3;
+			c2.nextOnSuccess = j + 5;
+			c3.nextOnFailure = j + 4;
+			c3.nextOnSuccess = j + 4;
+
+			// If c4 is in range, then we know c5 is not.
+			c4.nextOnFailure = j + 5;
+			c4.nextOnSuccess = j + 6;
+			c5.nextOnFailure = c5.nextOnSuccess = j + 6;
+
+			// If c6 is in range, then we know c7 and c8 are not.
+			c6.nextOnFailure = j + 7;
+			c6.nextOnSuccess = j + 9;
+			c7.nextOnFailure = j + 8;
+			c7.nextOnSuccess = j + 8;
+
+			// If c8 is in range, then we know c9 is not.
+			c8.nextOnFailure = j + 9;
+			c8.nextOnSuccess = j + 10;
+			c9.nextOnFailure = c9.nextOnSuccess = j + 10;
+
+			// If cA is in range, then we know cB and cC are not.
+			cA.nextOnFailure = j + 11;
+			cA.nextOnSuccess = j + 13;
+			cB.nextOnFailure = j + 12;
+			cB.nextOnSuccess = j + 12;
+
+			// If cC is in range, then we know cD is not.
+			cC.nextOnFailure = j + 13;
+			cC.nextOnSuccess = -1;
+			cD.nextOnFailure = cD.nextOnSuccess = -1;
+
+			lookup3d[i] = c0;
+			lookup3d[++j] = c1;
+			lookup3d[++j] = c2;
+			lookup3d[++j] = c3;
+			lookup3d[++j] = c4;
+			lookup3d[++j] = c5;
+			lookup3d[++j] = c6;
+			lookup3d[++j] = c7;
+			lookup3d[++j] = c8;
+			lookup3d[++j] = c9;
+			lookup3d[++j] = cA;
+			lookup3d[++j] = cB;
+			lookup3d[++j] = cC;
+			lookup3d[++j] = cD;
+		}
+		
+		//Fill Perm Array -- TODO find why
+
+		short source[PSIZE];
+		for(int i = 0; i < PSIZE; i++) {
+			source[i] = i;
+		}
+		for(int i = PSIZE - 1; i >= 0; i--) {
+			//Whyyyy
+			seed = seed * 6364136223846793005L + 1442695040888963407L;
+			int r = (int)((seed + 31) % (i + 1));
+			if (r < 0) {
+				r += (i + 1);
+			}
+			perm[i] = source[r];
+			permGrad3d[i] = gradients3d[perm[i]];
+			source[r] = source[i];
+		}
+
+		CLErr(cl_mem clPerm = clCreateBuffer(programglobal::oclContext->getContext(), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(perm), perm, &clhelpererr));
+		CLErr(cl_mem clPermGrad3d = clCreateBuffer(programglobal::oclContext->getContext(), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(permGrad3d), permGrad3d, &clhelpererr));
+		CLErr(cl_mem clLookup3d = clCreateBuffer(programglobal::oclContext->getContext(), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(lookup3d), lookup3d, &clhelpererr));
+		cl_uint pointCount = dim[0] * dim[1] * dim[2];
+		size_t globalWorkSize = pointCount;
+
+		programglobal::oclContext->setKernelParameters(kernel, { param(0, clPerm), param(1, clPermGrad3d), param(2, clLookup3d), param(3, inputGrid), param(4, outputNoise), param(5, pointCount) });
+		programglobal::oclContext->runCLKernel(kernel, 1, &globalWorkSize, NULL, {outputNoise});
+
+		clReleaseMemObject(clPerm);
+		clReleaseMemObject(clPermGrad3d);
+		clReleaseMemObject(clLookup3d);
+	} catch(string errorString) {
+		throwErr(errorString);
 	}
-
-	CLErr(cl_mem clPerm = clCreateBuffer(programglobal::oclContext->getContext(), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(perm), perm, &clhelpererr));
-	CLErr(cl_mem clPermGrad3d = clCreateBuffer(programglobal::oclContext->getContext(), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(permGrad3d), permGrad3d, &clhelpererr));
-	CLErr(cl_mem clLookup3d = clCreateBuffer(programglobal::oclContext->getContext(), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(lookup3d), lookup3d, &clhelpererr));
-	cl_uint pointCount = dim[0] * dim[1] * dim[2];
-	size_t globalWorkSize = pointCount;
-
-	programglobal::oclContext->setKernelParameters(kernel, { param(0, clPerm), param(1, clPermGrad3d), param(2, clLookup3d), param(3, inputGrid), param(4, outputNoise), param(5, pointCount) });
-	programglobal::oclContext->runCLKernel(kernel, 1, &globalWorkSize, NULL, {outputNoise});
-
-	clReleaseMemObject(clPerm);
-	clReleaseMemObject(clPermGrad3d);
-	clReleaseMemObject(clLookup3d);
 }
 
 void createNoiseTexture(cl_kernel kernel, noisetype type, cl_mem inputGrid, clglmem &outputNoise, const int* dim, float amplitude, long seed) {
