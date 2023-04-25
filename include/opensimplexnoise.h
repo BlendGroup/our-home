@@ -2,6 +2,8 @@
 #include<vmath.h>
 #include<clhelper.h>
 #include<iostream>
+#include<GL/glew.h>
+#include<GL/gl.h>
 
 enum noisetype {
 	Noise2D,
@@ -12,5 +14,5 @@ enum noisetype {
 class opensimplexnoise {
 public:
 	opensimplexnoise();
-	void createNoiseTextureOnUniformInput(clglmem &outputNoise, noisetype type, const int* dim, const int* offset, float timeInterval, float amplitude, long seed);
+	GLuint createNoiseTextureOnUniformInput(noisetype type, const int* dim, const int* offset, float timeInterval, float amplitude, long seed);
 };

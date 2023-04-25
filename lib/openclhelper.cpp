@@ -182,22 +182,6 @@ void clglcontext::setKernelParameters(cl_kernel kernel, vector<clkernelparamater
 	}
 }
 
-void clglcontext::setKernelParameters(string kernelName, vector<clkernelparamater> kernelList) {
-	cl_int err;
-	if(this->kernels.count(kernelName) == 0) {
-		throwErr("kernel named : '" + kernelName + "'" + " not found.");
-		return;
-	}
-	try {
-		cl_kernel kernel = this->kernels[kernelName];
-		for(int i = 0; i < kernelList.size(); i++) {
-			CLErr(clhelpererr = clSetKernelArg(kernel, kernelList[i].position, kernelList[i].size, kernelList[i].param));
-		}
-	} catch(string errorString) {
-		throwErr(errorString);
-	}
-}
-
 clglmem clglcontext::createCLfromGLBuffer(cl_mem_flags memFlags, GLuint buffer) {
 	clglmem mem;
 	try {

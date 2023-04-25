@@ -1,9 +1,9 @@
+#include<opensimplexnoise.h>
 #include<vmath.h>
 #include<clhelper.h>
 #include<iostream>
 #include<vector>
 #include<global.h>
-#include<opensimplexnoise.h>
 #include<unordered_map>
 #include<errorlog.h>
 
@@ -108,7 +108,7 @@ cl_mem createUniformInput(noisetype type, const int* dim, const int* offset, flo
 	}
 }
 
-void create2DNoiseTexture(cl_kernel kernel, cl_mem inputGrid, clglmem &outputNoise, ivec2 dim, float amplitude, long seed) {
+void create2DNoiseTexture(cl_kernel kernel, cl_mem inputGrid, clglmem outputNoise, ivec2 dim, float amplitude, long seed) {
 	try {
 		static dvec2 gradients2d[PSIZE];
 		static latticepoint2D_t lookup2d[NUM_LATTICE * NUM_POINTS_PER_2D_LATICE];
@@ -213,7 +213,7 @@ void create2DNoiseTexture(cl_kernel kernel, cl_mem inputGrid, clglmem &outputNoi
 		cl_uint pointCount = dim[0] * dim[1];
 		size_t globalWorkSize = pointCount;
 
-		programglobal::oclContext->setKernelParameters(kernel, { param(0, clPerm), param(1, clPermGrad2d), param(2, clLookup2d), param(3, inputGrid), param(4, outputNoise), param(5, pointCount), param(6, amplitude) });
+		programglobal::oclContext->setKernelParameters(kernel, { param(0, clPerm), param(1, clPermGrad2d), param(2, clLookup2d), param(3, inputGrid), param(4, outputNoise.cl), param(5, pointCount), param(6, amplitude) });
 		programglobal::oclContext->runCLKernel(kernel, 1, &globalWorkSize, NULL, { outputNoise });
 
 		clReleaseMemObject(clPerm);
@@ -407,7 +407,7 @@ void create3DNoiseTexture(cl_kernel kernel, cl_mem inputGrid, clglmem &outputNoi
 		cl_uint pointCount = dim[0] * dim[1] * dim[2];
 		size_t globalWorkSize = pointCount;
 
-		programglobal::oclContext->setKernelParameters(kernel, { param(0, clPerm), param(1, clPermGrad3d), param(2, clLookup3d), param(3, inputGrid), param(4, outputNoise), param(5, pointCount) });
+		programglobal::oclContext->setKernelParameters(kernel, { param(0, clPerm), param(1, clPermGrad3d), param(2, clLookup3d), param(3, inputGrid), param(4, outputNoise.cl), param(5, pointCount) });
 		programglobal::oclContext->runCLKernel(kernel, 1, &globalWorkSize, NULL, {outputNoise});
 
 		clReleaseMemObject(clPerm);
@@ -418,28 +418,46 @@ void create3DNoiseTexture(cl_kernel kernel, cl_mem inputGrid, clglmem &outputNoi
 	}
 }
 
-void createNoiseTexture(cl_kernel kernel, noisetype type, cl_mem inputGrid, clglmem &outputNoise, const int* dim, float amplitude, long seed) {
+GLuint createNoiseTexture(cl_kernel kernel, noisetype type, cl_mem inputGrid, const int* dim, float amplitude, long seed) {
+	GLuint tex;
+	glGenTextures(1, &tex);
 	try {
+		clglmem outputNoise;
 		if(type == Noise2D) {
+			outputNoise = programglobal::oclContext->createCLGLBuffer(sizeof(float) * dim[0] * dim[1], GL_MAP_WRITE_BIT | GL_MAP_READ_BIT, CL_MEM_READ_WRITE);
 			create2DNoiseTexture(kernel, inputGrid, outputNoise, ivec2(dim[0], dim[1]), amplitude, seed);
+			glBindTexture(GL_TEXTURE_2D, tex);
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, outputNoise.gl);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, dim[0], dim[1], 0, GL_RED, GL_FLOAT, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 		} else if(type == Noise3D) {
+			outputNoise = programglobal::oclContext->createCLGLBuffer(sizeof(float) * dim[0] * dim[1] * dim[2], GL_MAP_WRITE_BIT | GL_MAP_READ_BIT, CL_MEM_READ_WRITE);
 			create3DNoiseTexture(kernel, inputGrid, outputNoise, ivec3(dim[0], dim[1], dim[2]), amplitude, seed);
+			glBindTexture(GL_TEXTURE_3D, tex);
+			// glTexImage3D();
 		} else {
 			throwErr(ERROR_INVALID_NOISE);
 		}
 	} catch(string errString) {
 		throwErr(errString);
 	}
+	return tex;
 }
 
-void opensimplexnoise::createNoiseTextureOnUniformInput(clglmem &outputNoise, noisetype type, const int* dim, const int* offset, float timeInterval, float amplitude, long seed) {
+GLuint opensimplexnoise::createNoiseTextureOnUniformInput(noisetype type, const int* dim, const int* offset, float timeInterval, float amplitude, long seed) {
 	if(kernelnamelookup.count(type) == 0) {
 		throwErr("Invalid Noise Type");
 	}
 	cl_kernel noiseKernel = programglobal::oclContext->getKernel(kernelnamelookup[type]);
-	
+	// programglobal::oclContext->printKernelList(cout);
 	cl_mem inputGrid;
 	inputGrid = createUniformInput(type, dim, offset, timeInterval);
-	createNoiseTexture(noiseKernel, type, inputGrid, outputNoise, dim, amplitude, seed);
+	GLuint outputNoise = createNoiseTexture(noiseKernel, type, inputGrid, dim, amplitude, seed);
 	clReleaseMemObject(inputGrid);
+
+	return outputNoise;
 }
