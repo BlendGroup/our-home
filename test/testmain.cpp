@@ -16,12 +16,14 @@
 #include<errorlog.h>
 #include<global.h>
 #include<clhelper.h>
+#include<opensimplexnoise.h>
 
 #include<testeffect.h>
 #include<testcamera.h>
 #include<testmodel.h>
 #include<testterrain.h>
 #include<testcubemap.h>
+#include<testnoise.h>
 
 using namespace std;
 using namespace vmath;
@@ -40,12 +42,14 @@ static bool isAnimating = false;
 #define SHOW_PBR_SCENE			0
 #define SHOW_LAB_SCENE			0
 #define SHOW_CAMERA_RIG			0
-#define SHOW_TERRAIN_SCENE 		0
-#define SHOW_CUBEMAP_SCENE		1
+#define SHOW_TERRAIN_SCENE 		1
+#define SHOW_CUBEMAP_SCENE		0
+#define SHOW_NOISE_SCENE 		0
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
 camera* programglobal::currentCamera;
+opensimplexnoise* programglobal::noiseGenerator;
 
 void setupProgram(void) {
 	try {
@@ -61,10 +65,10 @@ void setupProgram(void) {
 		setupProgramTestModel();
 #endif
 #if SHOW_PBR_SCENE
-	setupProgramTestPbr();
+		setupProgramTestPbr();
 #endif
 #if SHOW_LAB_SCENE
-	setupProgramTestLab();
+		setupProgramTestLab();
 #endif
 #if SHOW_TERRAIN_SCENE
 		setupProgramTestTerrain();
@@ -72,6 +76,10 @@ void setupProgram(void) {
 #if SHOW_CUBEMAP_SCENE
 		setupProgramTestRenderToCubemap();
 #endif
+#if SHOW_NOISE_SCENE
+		setupProgramTestNoise();
+#endif
+
 		hdr->setupProgram();
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -95,6 +103,7 @@ void init(void) {
 		//Object Creation
 		hdr = new HDR(1.5f, 1.0f, 2048);
 		programglobal::oclContext = new clglcontext(1);
+		programglobal::noiseGenerator = new opensimplexnoise();	
 
 		//Inititalize
 #if SHOW_TEST_SCENE
@@ -117,6 +126,9 @@ void init(void) {
 #endif
 #if SHOW_CUBEMAP_SCENE
 		initTestRenderToCubemap();
+#endif
+#if SHOW_NOISE_SCENE
+		initTestNoise();
 #endif
 		hdr->init();
 
@@ -166,6 +178,9 @@ void render(glwindow* window) {
 #endif
 #if SHOW_CUBEMAP_SCENE
 		renderTestRenderToCubemap(dynamic_cast<camera*>(debugcamera));
+#endif
+#if SHOW_NOISE_SCENE
+		renderTestNoise();
 #endif
 
 		if(hdrEnabled) {
