@@ -56,15 +56,10 @@ latticepoint3D_t latticepoint3D(int xrv, int yrv, int zrv, int lattice) {
 	return lp3D;
 }
 
-opensimplexnoise::opensimplexnoise(noisetype type) {
+opensimplexnoise::opensimplexnoise() {
 	try {
-		this->type = type;
 		string programName;
 		programglobal::oclContext->compilePrograms({"shaders/opensimplexnoise.cl"});
-		if(kernelnamelookup.count(type) == 0) {
-			throwErr("Invalid Noise Type");
-		}
-		this->noiseKernel = programglobal::oclContext->getKernel(kernelnamelookup[type]);
 	} catch(string errString) {
 		throwErr(errString);
 	}
@@ -433,9 +428,14 @@ void createNoiseTexture(cl_kernel kernel, noisetype type, cl_mem inputGrid, clgl
 	}
 }
 
-void opensimplexnoise::createNoiseTextureOnUniformInput(clglmem &outputNoise, const int* dim, const int* offset, float timeInterval, float amplitude, long seed) {
+void opensimplexnoise::createNoiseTextureOnUniformInput(clglmem &outputNoise, noisetype type, const int* dim, const int* offset, float timeInterval, float amplitude, long seed) {
+	if(kernelnamelookup.count(type) == 0) {
+		throwErr("Invalid Noise Type");
+	}
+	cl_kernel noiseKernel = programglobal::oclContext->getKernel(kernelnamelookup[type]);
+	
 	cl_mem inputGrid;
-	inputGrid = createUniformInput(this->type, dim, offset, timeInterval);
-	createNoiseTexture(this->noiseKernel, this->type, inputGrid, outputNoise, dim, amplitude, seed);
+	inputGrid = createUniformInput(type, dim, offset, timeInterval);
+	createNoiseTexture(noiseKernel, type, inputGrid, outputNoise, dim, amplitude, seed);
 	clReleaseMemObject(inputGrid);
 }

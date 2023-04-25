@@ -10,12 +10,7 @@ enum noisetype {
 };
 
 class opensimplexnoise {
-private:
-    clglcontext* context;
-    cl_kernel noiseKernel;
-    noisetype type;
 public:
-	opensimplexnoise(noisetype type);
-	void createNoiseTextureOnUniformInput(clglmem &outputNoise, const int* dim, const int* offset, float timeInterval, float amplitude, long seed);
+	opensimplexnoise();
+	void createNoiseTextureOnUniformInput(clglmem &outputNoise, noisetype type, const int* dim, const int* offset, float timeInterval, float amplitude, long seed);
 };
-
