@@ -12,7 +12,7 @@
 #include "../include/testPBR.h"
 #include "../include/global.h"
 
-#define DYNAMIC 0
+#define DYNAMIC 1
 
 using namespace std;
 using namespace vmath;
@@ -34,12 +34,12 @@ void setupProgramTestPbr(){
     try 
     {
         #if DYNAMIC
-            program = new glshaderprogram({"src/shaders/pbrDynamic.vert", "src/shaders/pbrSG.frag"});
+            program = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrSG.frag"});
         #else
             //program = new glshaderprogram({"src/shaders/pbr.vert", "src/shaders/pbr.frag"});
             program = new glshaderprogram({"src/shaders/pbr.vert", "src/shaders/pbrMR.frag"});
         #endif
-        lightProgram = new glshaderprogram({"src/shaders/testStatic.vert", "src/shaders/point.frag"});
+        lightProgram = new glshaderprogram({"shaders/testStatic.vert", "shaders/point.frag"});
         //program->printUniforms(cout);
     } catch (string errorString) {
         throwErr(errorString);

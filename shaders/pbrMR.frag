@@ -3,6 +3,7 @@
 const float PI = 3.14159265359;
 
 layout(location = 0)out vec4 fragColor;
+layout(location = 1)out vec4 emmitColor;
 
 struct material_t{
     vec3 diffuse;
@@ -134,9 +135,10 @@ void main(void) {
         kD *= 1.0 - metalness;
 
         float NdotL = max(dot(N,L),0.0);
-        Lo += (kD * (diffuse+emissive) / PI + (specular+material.specular)) * radiance * NdotL;
+        Lo += (kD * (diffuse) / PI + (specular+material.specular)) * radiance * NdotL;
     }
 
     vec3 ambient = vec3(0.03) * diffuse  * ao;
     fragColor = vec4(ambient+Lo,material.opacity);
+    emmitColor = vec4(emissive,1.0f);
 }

@@ -26,7 +26,8 @@
 using namespace std;
 using namespace vmath;
 
-static bool hdrEnabled = false;
+static bool hdrEnabled = true;
+static bool bloomEnabled = false;
 static HDR* hdr;
 static sceneCamera* scenecamera;
 static sceneCameraRig* scenecamerarig;
@@ -37,11 +38,11 @@ static bool isAnimating = false;
 #define SHOW_TEST_SCENE 		0
 #define SHOW_MODEL_SCENE 		0
 #define SHOW_CAMERA_SCENE 		0
-#define SHOW_PBR_SCENE			0
+#define SHOW_PBR_SCENE			1
 #define SHOW_LAB_SCENE			0
 #define SHOW_CAMERA_RIG			0
 #define SHOW_TERRAIN_SCENE 		0
-#define SHOW_CUBEMAP_SCENE		1
+#define SHOW_CUBEMAP_SCENE		0
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
@@ -80,7 +81,7 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 5.0f, 5.0f), -90.0f, 0.0f);
+		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
 		setupSceneCameraTestCamera(scenecamera);
 #if SHOW_CAMERA_RIG
 		setupSceneCameraRigTestCamera(scenecamera, scenecamerarig);
@@ -132,7 +133,9 @@ void render(glwindow* window) {
 		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamera);
 
 		if(hdrEnabled) {
+			hdr->toggleBloom(bloomEnabled);
 			glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
+			glClearBufferfv(GL_COLOR, 1, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 			glViewport(0, 0, hdr->getSize(), hdr->getSize());
 		} else {
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
@@ -155,7 +158,7 @@ void render(glwindow* window) {
 		renderTestModel(dynamic_cast<camera*>(debugcamera));
 #endif
 #if SHOW_PBR_SCENE
-		renderTestPbr(dynamic_cast<camera*>(debugcamera),debugcamera->getPosition());
+		renderTestPbr(dynamic_cast<camera*>(debugcamera),debugcamera->position());
 #endif
 #if SHOW_LAB_SCENE
 	renderTestLab(dynamic_cast<camera*>(debugcamera), debugcamera->position());
@@ -204,6 +207,10 @@ void keyboard(glwindow* window, int key) {
 	case XK_space:
 		isAnimating = !isAnimating;
 		break;
+	case XK_F4:
+		bloomEnabled = !bloomEnabled;
+		cout<<"bloom "<<bloomEnabled;
+	break;
 	}
 	hdr->keyboardfunc(key);
 	debugcamera->keyboardFunc(key);
