@@ -27,7 +27,6 @@ using namespace std;
 using namespace vmath;
 
 static bool hdrEnabled = true;
-static bool bloomEnabled = false;
 static HDR* hdr;
 static sceneCamera* scenecamera;
 static sceneCameraRig* scenecamerarig;
@@ -94,7 +93,7 @@ void setupSceneCamera(void) {
 void init(void) {
 	try {
 		//Object Creation
-		hdr = new HDR(1.5f, 1.0f, 2048);
+		hdr = new HDR(1.0f, 1.0f, 2048);
 		programglobal::oclContext = new clglcontext(1);
 
 		//Inititalize
@@ -133,7 +132,6 @@ void render(glwindow* window) {
 		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamera);
 
 		if(hdrEnabled) {
-			hdr->toggleBloom(bloomEnabled);
 			glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
 			glClearBufferfv(GL_COLOR, 1, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 			glViewport(0, 0, hdr->getSize(), hdr->getSize());
@@ -207,10 +205,6 @@ void keyboard(glwindow* window, int key) {
 	case XK_space:
 		isAnimating = !isAnimating;
 		break;
-	case XK_F4:
-		bloomEnabled = !bloomEnabled;
-		cout<<"bloom "<<bloomEnabled;
-	break;
 	}
 	hdr->keyboardfunc(key);
 	debugcamera->keyboardFunc(key);

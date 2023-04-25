@@ -3,10 +3,8 @@
 layout(binding = 0)			 uniform sampler2D u_input_texture;
 layout(rgba32f, binding = 0) uniform writeonly image2D u_output_image;
 
-uniform vec4  u_threshold; // x -> threshold, yzw -> (threshold - knee, 2.0 * knee, 0.25 * knee)
 uniform vec2  u_texel_size;
 uniform int   u_mip_level;
-uniform bool  u_use_threshold;
 
 const float epsilon = 1.0e-4;
 
@@ -105,11 +103,5 @@ void main()
          c += karis_avg((B + C + H + G) * div.y);
          c += karis_avg((F + G + L + K) * div.y);
          c += karis_avg((G + H + M + L) * div.y);
-
-	if (u_use_threshold)
-    {
-        c = quadratic_threshold(c, u_threshold.x, u_threshold.yzw);
-    }
-
 	imageStore(u_output_image, pixel_coords, c);
 }

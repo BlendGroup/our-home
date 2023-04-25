@@ -101,7 +101,6 @@ void HDR::render(void) {
 		// Bloom pass / Blur Pass
 		// Down scale pass
 		this->downscaleprogram->use();
-		glUniform4fv(this->downscaleprogram->getUniformLocation("u_threshold"),1,vec4(threshhold,threshhold - knee, 2.0f * knee, 0.25f * knee));
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, this->ETex);
 		uvec2 mip_size = uvec2(this->getSize()/2,this->getSize()/2);
@@ -109,7 +108,6 @@ void HDR::render(void) {
 			
 			glUniform2fv(this->downscaleprogram->getUniformLocation("u_texel_size"),1,1.0f/vec2(mip_size[0],mip_size[1]));
 			glUniform1i(this->downscaleprogram->getUniformLocation("u_mip_level"),i);
-			glUniform1i(this->downscaleprogram->getUniformLocation("u_use_threshold"),false);
 			glBindImageTexture(0,this->ETex,i+1,GL_FALSE,0,GL_WRITE_ONLY,GL_RGBA32F);
 			glDispatchCompute(ceil(float(mip_size[0])/8),ceil(float(mip_size[1])/8),1);
 			mip_size = mip_size / 2u;
@@ -164,17 +162,30 @@ void HDR::updateExposure(GLfloat delta) {
 	this->exposure += delta;
 }
 
+void HDR::updateBloomIntensity(GLfloat delta){
+	this->bloom_intensity += delta;
+}
+
 GLfloat HDR::getExposure() {
 	return this->exposure;
 }
 
 void HDR::keyboardfunc(int key) {
 	switch(key) {
-	case XK_e:
-		this->updateExposure(-0.1f);
+		case XK_e:
+			this->updateExposure(-0.1f);
 		break;
-	case XK_r:
-		this->updateExposure(0.1f);
+		case XK_r:
+			this->updateExposure(0.1f);
+		break;
+		case XK_m:
+			this->updateBloomIntensity(0.1f);
+		break;
+		case XK_n:
+			this->updateBloomIntensity(-0.1f);
+		break;
+		case XK_space:
+			this->bloomEnabled = !this->bloomEnabled;
 		break;
 	}
 }

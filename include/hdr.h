@@ -33,6 +33,7 @@ public:
 	GLsizei getSize(void);
 	GLfloat getExposure(void);
 	void updateExposure(GLfloat delta);
+	void updateBloomIntensity(GLfloat delta);
 };
 
 #endif
