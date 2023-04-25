@@ -3,6 +3,7 @@
 
 #include<vmath.h>
 #include<clhelper.h>
+#include<camera.h>
 
 namespace programglobal {
 	extern vmath::mat4 perspective;

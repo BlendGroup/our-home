@@ -276,6 +276,10 @@ cl_command_queue clglcontext::getCommandQueue(void) {
 	return this->cmdQueue;
 }
 
+cl_context clglcontext::getContext(void) {
+	return this->context;
+}
+
 void clglcontext::releaseCLGLBuffer(clglmem& memObj) {
 	clReleaseMemObject(memObj.cl);
 	glDeleteBuffers(1, &memObj.gl);
