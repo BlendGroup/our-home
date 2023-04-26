@@ -9,14 +9,14 @@
 #include<scenecamera.h>
 #include<scenecamerarig.h>
 #include<debugcamera.h>
-#include<testPBR.h>
-#include<testLab.h>
-#include<testmodel.h>
 #include<hdr.h>
 #include<windowing.h>
 #include<errorlog.h>
 #include<global.h>
 #include<clhelper.h>
+
+#include<scenes/base.h>
+#include<scenes/lab.h>
 
 using namespace std;
 using namespace vmath;
@@ -28,6 +28,8 @@ static sceneCameraRig* scenecamerarig;
 static debugCamera* debugcamera;
 static bool isDebugCameraOn = false;
 static bool isAnimating = false;
+static basescene* currentScene;
+static labscene* labScene;
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
@@ -55,9 +57,11 @@ void init(void) {
 		//Object Creation
 		hdr = new HDR(1.5f, 1.0f, 2048);
 		programglobal::oclContext = new clglcontext(1);
+		labScene = new labscene();
 
 		//Inititalize
 		hdr->init();
+		labScene->init();
 
 		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);
@@ -125,6 +129,7 @@ void mouse(glwindow* window, int button, int action, int x, int y) {
 
 void uninit(void) {
 	hdr->uninit();
+	labScene->uninit();
 
 	delete programglobal::oclContext;
 	delete hdr;
