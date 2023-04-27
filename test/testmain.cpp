@@ -24,6 +24,7 @@
 #include<testterrain.h>
 #include<testcubemap.h>
 #include<testnoise.h>
+#include<testLake.h>
 
 using namespace std;
 using namespace vmath;
@@ -42,9 +43,10 @@ static bool isAnimating = false;
 #define SHOW_PBR_SCENE			0
 #define SHOW_LAB_SCENE			0
 #define SHOW_CAMERA_RIG			0
-#define SHOW_TERRAIN_SCENE 		1
+#define SHOW_TERRAIN_SCENE 		0
 #define SHOW_CUBEMAP_SCENE		0
 #define SHOW_NOISE_SCENE 		0
+#define SHOW_LAKE_SCENE 		1
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
@@ -79,7 +81,9 @@ void setupProgram(void) {
 #if SHOW_NOISE_SCENE
 		setupProgramTestNoise();
 #endif
-
+#if SHOW_LAKE_SCENE
+		setupProgramTestLake();
+#endif
 		hdr->setupProgram();
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -88,7 +92,7 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 5.0f, 5.0f), -90.0f, 0.0f);
+		debugcamera = new debugCamera(vec3(0.0f, 2.0f, 5.0f), -90.0f, 0.0f);
 		setupSceneCameraTestCamera(scenecamera);
 #if SHOW_CAMERA_RIG
 		setupSceneCameraRigTestCamera(scenecamera, scenecamerarig);
@@ -129,6 +133,9 @@ void init(void) {
 #endif
 #if SHOW_NOISE_SCENE
 		initTestNoise();
+#endif
+#if SHOW_LAKE_SCENE
+		initTestLake();
 #endif
 		hdr->init();
 
@@ -181,6 +188,9 @@ void render(glwindow* window) {
 #endif
 #if SHOW_NOISE_SCENE
 		renderTestNoise();
+#endif
+#if SHOW_LAKE_SCENE
+		renderTestLake();
 #endif
 
 		if(hdrEnabled) {
@@ -266,6 +276,9 @@ void uninit(void) {
 #endif
 #if SHOW_CUBEMAP_SCENE
 	uninitTestRenderToCubemap();
+#endif
+#if SHOW_LAKE_SCENE
+	uninitTestLake();
 #endif
 	hdr->uninit();
 
