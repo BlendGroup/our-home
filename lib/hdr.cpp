@@ -1,9 +1,4 @@
 #include <X11/keysym.h>
-#include <cmath>
-#include <cstddef>
-#include <iostream>
-#include <iterator>
-#include <string>
 
 #include<glshaderloader.h>
 #include<gltextureloader.h>
@@ -22,9 +17,6 @@ HDR::HDR(GLfloat exposure, GLfloat fade, GLsizei size) : threshhold(1.5f) ,knee(
 	// calculate max mip map levels
 	GLuint width = size/2;
 	GLuint height = size / 2;
-	
-	cout<<"Mip Level "<<0<<" w : "<<size<<" h : "<<size<<endl;
-	cout<<"Mip Level "<<1<<" w : "<<width<<" h : "<<height<<endl;
 	this->mipLevels = 1;
 
 	for(size_t i = 0; i < 16; i++){
@@ -33,9 +25,7 @@ HDR::HDR(GLfloat exposure, GLfloat fade, GLsizei size) : threshhold(1.5f) ,knee(
 
 		if(width < 10 || height < 10)
 			break;
-		
 		++this->mipLevels;
-		cout<<"Mip Level "<<this->mipLevels<<" w : "<<width<<"h : "<<height<<endl;
 	}
 	//this->mipLevels += 1;
 	//cout<<"Final Mip Level "<<this->mipLevels<<" w : "<<width<<"h : "<<height<<endl;
@@ -197,4 +187,7 @@ void HDR::uninit(void) {
 	glDeleteTextures(1, &this->ETex);
 	glDeleteVertexArrays(1, &tempVao);
 	delete this->hdrprogram;
+	delete this->downscaleprogram;
+	delete this->upscaleprogram;
 }
+

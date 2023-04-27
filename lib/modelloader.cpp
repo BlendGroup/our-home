@@ -714,7 +714,6 @@ void glmodel::draw(glshaderprogram *program,int instance) {
 		//setup textures
 		for(int t = 0; t < this->materials[this->meshes[i].materialIndex].textures.size(); t++)
 		{
-
 			if(this->materials[this->meshes[i].materialIndex].textures[t].id > 0)
 			{
 				glActiveTexture(GL_TEXTURE0 + t);

@@ -8,9 +8,6 @@
 #include<glshaderloader.h>
 #include<scenecamera.h>
 #include<debugcamera.h>
-#include<testPBR.h>
-#include<testLab.h>
-#include<testmodel.h>
 #include<hdr.h>
 #include<windowing.h>
 #include<errorlog.h>
@@ -22,6 +19,9 @@
 #include<testmodel.h>
 #include<testterrain.h>
 #include<testcubemap.h>
+#include<testPBR.h>
+#include<testLab.h>
+#include<testmodel.h>
 
 using namespace std;
 using namespace vmath;
@@ -37,8 +37,8 @@ static bool isAnimating = false;
 #define SHOW_TEST_SCENE 		0
 #define SHOW_MODEL_SCENE 		0
 #define SHOW_CAMERA_SCENE 		0
-#define SHOW_PBR_SCENE			1
-#define SHOW_LAB_SCENE			0
+#define SHOW_PBR_SCENE			0
+#define SHOW_LAB_SCENE			1
 #define SHOW_CAMERA_RIG			0
 #define SHOW_TERRAIN_SCENE 		0
 #define SHOW_CUBEMAP_SCENE		0
@@ -80,7 +80,7 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
+		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 0.0f), -90.0f, 0.0f);
 		setupSceneCameraTestCamera(scenecamera);
 #if SHOW_CAMERA_RIG
 		setupSceneCameraRigTestCamera(scenecamera, scenecamerarig);
@@ -208,6 +208,7 @@ void keyboard(glwindow* window, int key) {
 	}
 	hdr->keyboardfunc(key);
 	debugcamera->keyboardFunc(key);
+	keyboardFuncTestLab(key);
 #if SHOW_TERRAIN_SCENE
 	keyboardFuncTestTerrain(key);
 #endif
