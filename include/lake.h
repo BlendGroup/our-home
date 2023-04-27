@@ -5,6 +5,7 @@
 
 class lake : public glbase {
 private:
+	GLuint vao;
 public:
 	lake();
 	void setupProgram(void) override;
