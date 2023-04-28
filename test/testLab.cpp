@@ -11,6 +11,7 @@
 #include <errorlog.h>
 #include <testLab.h>
 #include <global.h>
+#include <glLight.h>
 #include <CubeMapRenderTarget.h>
 #include<X11/keysym.h>
 
@@ -23,24 +24,17 @@ static glshaderprogram* diffusePass;
 static vector<glmodel*> static_model;
 static vector<glmodel*> dynamic_model;
 static CubeMapRenderTarget* envMap;
+static SceneLight* sceneLights;
 static bool crt = true;
 static int v = 0;
-GLuint cubeVao;
-
-struct Light{
-    vec3 diffuse;
-    vec3 position;
-};
-
-vector<Light>lightsLab;
 
 void setupProgramTestLab(){
     try 
     {
-        programStaticPBR = new glshaderprogram({"shaders/pbr.vert", "shaders/pbrMR.frag"});
-        programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrSG.frag"});
-        lightProgram = new glshaderprogram({"shaders/testStatic.vert", "shaders/point.frag"});
-        diffusePass = new glshaderprogram({"shaders/testStatic.vert", "shaders/testStatic.frag"});
+        programStaticPBR = new glshaderprogram({"shaders/pbr.vert", "shaders/pbrMain.frag"});
+        programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
+        lightProgram = new glshaderprogram({"shaders/debug/lightSrc.vert", "shaders/debug/lightSrc.frag"});
+        diffusePass = new glshaderprogram({"shaders/pbr.vert", "shaders/common.frag"});
         //program->printUniforms(cout);
     } catch (string errorString) {
         throwErr(errorString);
@@ -52,66 +46,18 @@ void initTestLab(){
 
         static_model.push_back(new glmodel("resources/models/spaceship/SpaceLab.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs, true));
         dynamic_model.push_back(new glmodel("resources/models/robot/robot.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true));
-
-        const float cubeVerts[] = {
-            -0.5f, -0.5f, -0.5f, 
-            0.5f, -0.5f, -0.5f, 
-            0.5f,  0.5f, -0.5f, 
-            0.5f,  0.5f, -0.5f, 
-            -0.5f,  0.5f, -0.5f, 
-            -0.5f, -0.5f, -0.5f, 
-            -0.5f, -0.5f, 0.5f,  
-            0.5f, -0.5f, 0.5f,  
-            0.5f,  0.5f, 0.5f,  
-            0.5f,  0.5f, 0.5f, 
-            -0.5f,  0.5f, 0.5f,
-            -0.5f, -0.5f, 0.5f,
-                                                
-            -0.5f,  0.5f,  0.5f,
-            -0.5f,  0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f,  0.5f,
-            -0.5f,  0.5f,  0.5f,
-                                                
-            0.5f,  0.5f,  0.5f,
-            0.5f,  0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f,  0.5f,
-            0.5f,  0.5f,  0.5f,
-                                                
-            -0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f,  0.5f,
-            0.5f, -0.5f,  0.5f,
-            -0.5f, -0.5f,  0.5f,
-            -0.5f, -0.5f, -0.5f,
-                                                
-            -0.5f, 0.5f, -0.5f,
-            0.5f, 0.5f, -0.5f,
-            0.5f, 0.5f,  0.5f,
-            0.5f, 0.5f,  0.5f,
-            -0.5f, 0.5f,  0.5f,
-            -0.5f, 0.5f, -0.5f
-        };
-        glCreateVertexArrays(1, &cubeVao);
-        glBindVertexArray(cubeVao);
-        GLuint vbo;
-        glCreateBuffers(1, &vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVerts), cubeVerts, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-        glEnableVertexAttribArray(0);
-
         envMap = new CubeMapRenderTarget(2048,2048,false);
         envMap->setPosition(vec3(0.0f,0.0f,0.0f));
 
-        lightsLab.push_back({vec3(100.0f,100.0f,100.0f),vec3(5.0f,  5.0f, 5.0f)});
-        lightsLab.push_back({vec3(100.0f,100.0f,100.0f),vec3(-5.0f,  5.0f, 5.0f)});
-        lightsLab.push_back({vec3(100.0f,100.0f,100.0f),vec3(-5.0f, 5.0f, -5.0f)});
-        lightsLab.push_back({vec3(100.0f,100.0f,100.0f),vec3(5.0f, 5.0f, -5.0f)});
-        lightsLab.push_back({vec3(100.0f,100.0f,100.0f),vec3(5.0f,  5.0f, 5.0f)});
+        // Lighting setup
+        sceneLights = new SceneLight();
+        sceneLights->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,0.0,-1.0f)));
+        sceneLights->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(-5.0f,5.0f,-5.0f),25.0f));
+        sceneLights->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,-5.0f),25.0f));
+        sceneLights->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,5.0f),25.0f));
+        sceneLights->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(-5.0f,5.0f,5.0f),25.0f));
+        //sceneLights->addSpotLight(SpotLight(vec3(0.0f,1.0f,0.0f),100.0f,vec3(-6.0f,8.0f,3.5f),35.0f,vec3(0.0f,0.0f,-1.0f),30.0f,45.0f));
+
     } catch (string errorString) {
         throwErr(errorString);
     }
@@ -119,13 +65,6 @@ void initTestLab(){
 
 void renderTestLab(camera *cam,vec3 camPos){
     try {
-/*
-        diffusePass->use();
-        glUniformMatrix4fv(diffusePass->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
-        glUniformMatrix4fv(diffusePass->getUniformLocation("vMat"),1,GL_FALSE,cam->matrix());
-        glUniformMatrix4fv(diffusePass->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) * scale(1.0f,1.0f,1.0f));
-        static_model[0]->draw(diffusePass,1);
-*/
         // Static Objects Pass
 
         if(crt){
@@ -141,14 +80,11 @@ void renderTestLab(camera *cam,vec3 camPos){
                 programStaticPBR->use();
                 glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"),1,GL_FALSE,envMap->projection);
                 glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"),1,GL_FALSE,envMap->view[side]);
+                glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) * scale(1.0f,1.0f,1.0f));
                 glUniform3fv(programStaticPBR->getUniformLocation("viewPos"),1,envMap->position);
                 // Lights data
-                glUniform1i(programStaticPBR->getUniformLocation("numOfLights"),lightsLab.size());
-                for(int i = 0; i < lightsLab.size(); i++){
-                    glUniform3fv(programStaticPBR->getUniformLocation("light["+to_string(i)+"].diffuse"),1,lightsLab[i].diffuse);
-                    glUniform3fv(programStaticPBR->getUniformLocation("light["+to_string(i)+"].position"),1,lightsLab[i].position);
-                }
-                glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) * scale(1.0f,1.0f,1.0f));
+                glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
+                sceneLights->setLightUniform(programStaticPBR);
                 static_model[0]->draw(programStaticPBR,1);
             }
             glBindFramebuffer(GL_FRAMEBUFFER,0);
@@ -156,16 +92,13 @@ void renderTestLab(camera *cam,vec3 camPos){
         }
 
         programStaticPBR->use();
-        glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"),1,GL_FALSE,envMap->projection);
-        glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"),1,GL_FALSE,envMap->view[v]);
+        glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
+        glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"),1,GL_FALSE,cam->matrix());
+        glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) * scale(1.0f,1.0f,1.0f));
         glUniform3fv(programStaticPBR->getUniformLocation("viewPos"),1,camPos);
         // Lights data
-        glUniform1i(programStaticPBR->getUniformLocation("numOfLights"),lightsLab.size());
-        for(int i = 0; i < lightsLab.size(); i++){
-            glUniform3fv(programStaticPBR->getUniformLocation("light["+to_string(i)+"].diffuse"),1,lightsLab[i].diffuse);
-            glUniform3fv(programStaticPBR->getUniformLocation("light["+to_string(i)+"].position"),1,lightsLab[i].position);
-        }
-        glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) * scale(1.0f,1.0f,1.0f));
+        glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
+        sceneLights->setLightUniform(programStaticPBR);
         static_model[0]->draw(programStaticPBR,1);    
 
         // Dynamic Objects Pass
@@ -177,28 +110,17 @@ void renderTestLab(camera *cam,vec3 camPos){
         dynamic_model[0]->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
         glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1,camPos);
         // Lights data
-        glUniform1i(programDynamicPBR->getUniformLocation("numOfLights"),lightsLab.size());
-        for(int i = 0; i < lightsLab.size(); i++){
-            glUniform3fv(programDynamicPBR->getUniformLocation("light["+to_string(i)+"].diffuse"),1,lightsLab[i].diffuse);
-            glUniform3fv(programDynamicPBR->getUniformLocation("light["+to_string(i)+"].position"),1,lightsLab[i].position);
-        }
+        glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),true);
+        sceneLights->setLightUniform(programDynamicPBR);
         dynamic_model[0]->update(0.005f, 0);
         dynamic_model[0]->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
         dynamic_model[0]->draw(programDynamicPBR,1); 
 
-        // render lights for refereance
-        for(auto l : lightsLab){
-            lightProgram->use();
-            glUniformMatrix4fv(lightProgram->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
-            glUniformMatrix4fv(lightProgram->getUniformLocation("vMat"),1,GL_FALSE,cam->matrix()); 
-            glUniformMatrix4fv(lightProgram->getUniformLocation("mMat"),1,GL_FALSE,translate(l.position) * scale(1.0f,1.0f,1.0f));
-            glUniform3fv(lightProgram->getUniformLocation("color"),1,l.diffuse);
-            glActiveTexture(GL_TEXTURE16);
-			glUniform1i(lightProgram->getUniformLocation("envmap"),16);
-            glBindTexture(GL_TEXTURE_CUBE_MAP,envMap->cubemap_texture);
-            glBindVertexArray(cubeVao);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        // render light src
+        lightProgram->use();
+        glUniformMatrix4fv(lightProgram->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
+        glUniformMatrix4fv(lightProgram->getUniformLocation("vMat"),1,GL_FALSE,cam->matrix()); 
+        sceneLights->renderSceneLights(lightProgram);
     } catch (string errorString) {
         throwErr(errorString);
     }
