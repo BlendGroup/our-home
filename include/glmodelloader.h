@@ -25,8 +25,11 @@ enum materialTypes {
 	MAT_DIFFUSE = 1,
 	MAT_SPECULAR = 2,
 	MAT_EMISSIVE = 3,
-	MAT_SHININESS = 4,
-	MAT_OPACITY = 5
+	MAT_METALLIC = 4,
+	MAT_ROUGHNESS = 5,
+	MAT_OPACITY = 6,
+	MAT_SPECULAR_INTENSITY = 7,
+	MAT_SPECULAR_POWER = 8
 };
 
 // structure to keep track of textures in model
@@ -46,7 +49,8 @@ struct glmaterial{
 	vmath::vec3 diffuse;
 	vmath::vec3 specular;
 	vmath::vec3 emissive; // may or may not use
-	float shininess;
+	float metallic;// use as shininess in non pbr
+	float roughness; // use as specular strength in non pbr
 	float opacity;
 	std::vector<texture> textures;
 };
@@ -111,6 +115,7 @@ public:
 	std::vector<glmaterial> materials;
 	int boneCounter = 0;
 	glmodel(std::string path, unsigned flags, bool isPbr);
+	bool PBR;
 	void setBoneMatrixUniform(GLuint uniformLocation, unsigned i);
 	void setBoneMatrixUniform(GLuint uniformLocation, GLuint bMat,unsigned i);
 	void update(float dt, int baseAnimation , int layeredAnimation = 0, float blendFactor = 0.0f );

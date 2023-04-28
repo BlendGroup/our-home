@@ -16,12 +16,10 @@
 
 #include<testeffect.h>
 #include<testcamera.h>
-#include<testmodel.h>
 #include<testterrain.h>
 #include<testcubemap.h>
 #include<testPBR.h>
 #include<testLab.h>
-#include<testmodel.h>
 
 using namespace std;
 using namespace vmath;
@@ -35,10 +33,9 @@ static bool isDebugCameraOn = false;
 static bool isAnimating = false;
 
 #define SHOW_TEST_SCENE 		0
-#define SHOW_MODEL_SCENE 		0
 #define SHOW_CAMERA_SCENE 		0
-#define SHOW_PBR_SCENE			0
-#define SHOW_LAB_SCENE			1
+#define SHOW_PBR_SCENE			1
+#define SHOW_LAB_SCENE			0
 #define SHOW_CAMERA_RIG			0
 #define SHOW_TERRAIN_SCENE 		0
 #define SHOW_CUBEMAP_SCENE		0
@@ -56,9 +53,6 @@ void setupProgram(void) {
 #endif
 #if SHOW_CAMERA_SCENE
 		setupProgramTestCamera();
-#endif
-#if SHOW_MODEL_SCENE
-		setupProgramTestModel();
 #endif
 #if SHOW_PBR_SCENE
 	setupProgramTestPbr();
@@ -102,9 +96,6 @@ void init(void) {
 #endif
 #if SHOW_CAMERA_SCENE
 		initTestCamera();
-#endif
-#if SHOW_MODEL_SCENE
-		initTestModel();
 #endif
 #if SHOW_PBR_SCENE
 		initTestPbr();
@@ -152,9 +143,6 @@ void render(glwindow* window) {
 #endif // SHOW_CAMERA_RIG
 		renderTestCamera();
 #endif // SHOW_CAMERA_SCENE
-#if SHOW_MODEL_SCENE
-		renderTestModel(dynamic_cast<camera*>(debugcamera));
-#endif
 #if SHOW_PBR_SCENE
 		renderTestPbr(dynamic_cast<camera*>(debugcamera),debugcamera->position());
 #endif
@@ -239,9 +227,6 @@ void uninit(void) {
 	}
 	uninitTestCamera();
 #endif // SHOW_CAMERA_SCENE
-#if SHOW_MODEL_SCENE
-	uninitTestModel();
-#endif
 #if SHOW_PBR_SCENE
 	uninitTestPbr();
 #endif
