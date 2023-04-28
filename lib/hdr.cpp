@@ -29,7 +29,6 @@ void HDR::setupProgram(void) {
 
 void HDR::init(void) {
 	glGenVertexArrays(1, &tempVao);
-	glBindVertexArray(tempVao);
 	glGenFramebuffers(1, &this->FBO);
 	glGenTextures(1, &this->Tex);
 	glBindTexture(GL_TEXTURE_2D, this->Tex);
@@ -62,8 +61,8 @@ void HDR::render(void) {
 	glBindTexture(GL_TEXTURE_2D, this->Tex);
 	glBindVertexArray(tempVao);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 GLuint HDR::getFBO(void) {

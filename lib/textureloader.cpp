@@ -9,6 +9,10 @@ using namespace std;
 
 static unordered_map<string, GLuint> textureMap;
 
+void initTextureLoader() {
+	stbi_set_flip_vertically_on_load(1);
+}
+
 GLuint createTexture2D(string filename, GLint minFilter, GLint magFilter, GLint wrapS, GLint wrapT) {
 	if(textureMap.count(filename) == 0) {
 		int w, h, channels;

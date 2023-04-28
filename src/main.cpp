@@ -14,6 +14,7 @@
 #include<errorlog.h>
 #include<global.h>
 #include<clhelper.h>
+#include<gltextureloader.h>
 
 #include<scenes/base.h>
 #include<scenes/lab.h>
@@ -26,7 +27,7 @@ static HDR* hdr;
 static sceneCamera* scenecamera;
 static sceneCameraRig* scenecamerarig;
 static debugCamera* debugcamera;
-static bool isDebugCameraOn = false;
+static bool isDebugCameraOn = true;
 static bool isAnimating = false;
 static basescene* currentScene;
 static labscene* labScene;
@@ -39,6 +40,7 @@ void setupProgram(void) {
 	try {
 		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl"});
 		hdr->setupProgram();
+		labScene->setupProgram();
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -46,7 +48,7 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 5.0f, 5.0f), -90.0f, 0.0f);
+		debugcamera = new debugCamera(vec3(0.0f, 1.0f, 5.0f), -90.0f, 0.0f);
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -60,8 +62,11 @@ void init(void) {
 		labScene = new labscene();
 
 		//Inititalize
+		initTextureLoader();
 		hdr->init();
 		labScene->init();
+
+		currentScene = dynamic_cast<basescene*>(labScene);
 
 		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);
@@ -85,9 +90,12 @@ void render(glwindow* window) {
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().height, 0.1f, 1000.0f);
 
+		currentScene->render();
+
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
-			glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
+			glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.7f, 0.1f, 1.0f));
+			glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 			hdr->render();
 		}
