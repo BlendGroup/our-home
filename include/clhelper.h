@@ -36,7 +36,6 @@ public:
 	void compilePrograms(std::vector<std::string> programNames);
 	cl_kernel getKernel(std::string name);
 	void setKernelParameters(cl_kernel kernel, std::vector<clkernelparamater> kernelList);
-	void setKernelParameters(std::string kernelName, std::vector<clkernelparamater> kernelList);
 	clglmem createCLfromGLBuffer(cl_mem_flags memFlags, GLuint buffer);
 	clglmem createCLfromGLTexture(cl_mem_flags memFlags, GLenum texTarget, GLuint mipMapLevel, GLuint texture);
 	clglmem createCLGLBuffer(GLsizei size, GLbitfield glflags, cl_mem_flags clflags);
@@ -44,6 +43,7 @@ public:
 	void runCLKernel(cl_kernel kernel, cl_uint workDims, size_t *globalSize, size_t *localSize, std::vector<clglmem> globjects);
 	void printKernelList(std::ostream& out);
 	cl_command_queue getCommandQueue(void);
+	cl_context getContext(void);
 	void releaseCLGLBuffer(clglmem& clglmem);
 	void releaseCLGLTexture(clglmem& clglmem);
 	~clglcontext();

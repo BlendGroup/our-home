@@ -19,7 +19,7 @@ using namespace std;
 using namespace vmath;
 
 static glshaderprogram* programStaticPBR,*programDynamicPBR;
-static glshaderprogram* lightProgram;
+static glshaderprogram* lightProgram, *tester;
 static glshaderprogram* diffusePass;
 static vector<glmodel*> static_model;
 static vector<glmodel*> dynamic_model;
@@ -27,6 +27,7 @@ static CubeMapRenderTarget* envMap;
 static SceneLight* sceneLights;
 static bool crt = true;
 static int v = 0;
+static GLuint skybox_vao,vbo;
 
 void setupProgramTestLab(){
     try 
@@ -35,6 +36,7 @@ void setupProgramTestLab(){
         programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
         lightProgram = new glshaderprogram({"shaders/debug/lightSrc.vert", "shaders/debug/lightSrc.frag"});
         diffusePass = new glshaderprogram({"shaders/pbr.vert", "shaders/common.frag"});
+        tester = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
         //program->printUniforms(cout);
     } catch (string errorString) {
         throwErr(errorString);
@@ -56,7 +58,64 @@ void initTestLab(){
         sceneLights->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,-5.0f),25.0f));
         sceneLights->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,5.0f),25.0f));
         sceneLights->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(-5.0f,5.0f,5.0f),25.0f));
+
         //sceneLights->addSpotLight(SpotLight(vec3(0.0f,1.0f,0.0f),100.0f,vec3(-6.0f,8.0f,3.5f),35.0f,vec3(0.0f,0.0f,-1.0f),30.0f,45.0f));
+
+        glEnable(GL_MULTISAMPLE);
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+        // Skybox 
+        float skybox_positions[] = {
+        // positions          
+        -1.0f, -1.0f, -1.0f,
+         1.0f,  1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+         1.0f,  1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+        // front face
+        -1.0f, -1.0f,  1.0f,
+         1.0f, -1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+        // left face
+        -1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+        // right face
+         1.0f,  1.0f,  1.0f,
+         1.0f, -1.0f, -1.0f,
+         1.0f,  1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f, -1.0f,  1.0f,
+        // bottom face
+        -1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f,  1.0f,
+         1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f, -1.0f,
+        // top face
+        -1.0f,  1.0f, -1.0f,
+         1.0f,  1.0f , 1.0f,
+         1.0f,  1.0f, -1.0f,
+         1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f,  1.0f,
+    };
+        glCreateVertexArrays(1, &skybox_vao);
+        glBindVertexArray(skybox_vao);
+        glCreateBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(skybox_positions), skybox_positions, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+        glEnableVertexAttribArray(0);
 
     } catch (string errorString) {
         throwErr(errorString);
@@ -72,7 +131,7 @@ void renderTestLab(camera *cam,vec3 camPos){
 			glViewport(0, 0, envMap->width, envMap->height);
 
             for(int side = 0; side < 6; side++){
-                std::cout<<"i "<<side<<std::endl;
+                //std::cout<<"i "<<side<<std::endl;
                 glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_CUBE_MAP_POSITIVE_X + side,envMap->cubemap_texture,0); 
                 glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
                 glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
@@ -121,6 +180,20 @@ void renderTestLab(camera *cam,vec3 camPos){
         glUniformMatrix4fv(lightProgram->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
         glUniformMatrix4fv(lightProgram->getUniformLocation("vMat"),1,GL_FALSE,cam->matrix()); 
         sceneLights->renderSceneLights(lightProgram);
+
+        // render to cubemap test
+        glDisable(GL_DEPTH_TEST);
+        tester->use();
+        glUniformMatrix4fv(tester->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
+        glUniformMatrix4fv(tester->getUniformLocation("vMat"),1,GL_FALSE,cam->matrix());
+        glBindVertexArray(skybox_vao);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, envMap->cubemap_texture);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 36);
+        glBindVertexArray(0);
+        glEnable(GL_DEPTH_TEST);
+        //glDepthMask(GL_TRUE);
+
     } catch (string errorString) {
         throwErr(errorString);
     }
@@ -141,6 +214,8 @@ void uninitTestLab(){
     delete programDynamicPBR;
     delete diffusePass;
     delete lightProgram;
+    delete envMap;
+    delete sceneLights;
     static_model.clear();
     dynamic_model.clear();
 }
