@@ -124,6 +124,9 @@ void keyboard(glwindow* window, int key) {
 	case XK_space:
 		isAnimating = !isAnimating;
 		break;
+	case XK_Tab:
+		cout<<programglobal::currentCamera->position()<<endl;
+		break;
 	}
 	hdr->keyboardfunc(key);
 	debugcamera->keyboardFunc(key);
