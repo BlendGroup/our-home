@@ -24,9 +24,10 @@ using namespace vmath;
 
 static bool hdrEnabled = true;
 static HDR* hdr;
-static sceneCamera* scenecamera;
+static vector<sceneCamera*> scenecamera;
 static sceneCameraRig* scenecamerarig;
 static debugCamera* debugcamera;
+static sceneCamera* currentSceneCamera;
 static bool isDebugCameraOn = true;
 static bool isAnimating = false;
 static basescene* currentScene;
@@ -49,6 +50,18 @@ void setupProgram(void) {
 void setupSceneCamera(void) {
 	try {
 		debugcamera = new debugCamera(vec3(0.0f, 1.0f, 5.0f), -90.0f, 0.0f);
+		scenecamera.push_back(labScene->setupCamera());
+		
+#ifdef DEBUG
+		scenecamerarig = new sceneCameraRig(scenecamera[0]);
+		scenecamerarig->setRenderPath(true);
+		scenecamerarig->setRenderPathPoints(true);
+		scenecamerarig->setRenderFront(true);
+		scenecamerarig->setRenderFrontPoints(true);
+		scenecamerarig->setRenderPathToFront(true);
+#endif
+
+		currentSceneCamera = scenecamera[0];
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -77,7 +90,7 @@ void init(void) {
 
 void render(glwindow* window) {
 	try {
-		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamera);
+		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(currentSceneCamera);
 
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
@@ -105,6 +118,9 @@ void render(glwindow* window) {
 }
 
 void update(void) {
+	if(isAnimating) {
+		currentSceneCamera->updateT(0.001f);
+	}
 }
 
 void keyboard(glwindow* window, int key) {

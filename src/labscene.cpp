@@ -21,20 +21,17 @@ void labscene::setupProgram() {
 sceneCamera* labscene::setupCamera() {
 	PathDescriptor path;
 
-	path.positionKeyFrames.push_back(vec3(0.0f, 20.0f, 35.0f));
-    path.positionKeyFrames.push_back(vec3(5.0f, 15.0f, 15.0f));
-    path.positionKeyFrames.push_back(vec3(-5.0f, 13.0f, 5.0f));
-    path.positionKeyFrames.push_back(vec3(-10.0f, 14.0f, 8.0f));
-    path.positionKeyFrames.push_back(vec3(-15.0f, 15.0f, 10.0f));
-
-	path.frontKeyFrames.push_back(vec3(0.0f, -1.0f, 0.0f));
-    path.frontKeyFrames.push_back(vec3(10.0f, -1.0f, 10.0f));
-    path.frontKeyFrames.push_back(vec3(0.0f, -1.0f, 5.0f));
-    path.frontKeyFrames.push_back(vec3(-8.0f, -1.0f, 5.0f));
-    path.frontKeyFrames.push_back(vec3(10.0f, 1.0f, 10.0f));
+	path.positionKeyFrames.push_back(vec3(-1.72f, 0.0f, -0.9f));
+	path.positionKeyFrames.push_back(vec3(-1.72f, 0.0f, -0.7f));
+	path.positionKeyFrames.push_back(vec3(-1.72f, 0.0f, -0.8f));
+	path.positionKeyFrames.push_back(vec3(-1.72f, 0.0f, -0.5f));
+    
+	path.frontKeyFrames.push_back(vec3(-1.72f, -0.5f, -1.9f));
+    path.frontKeyFrames.push_back(vec3(-1.72f, -0.5f, -1.9f));
+    path.frontKeyFrames.push_back(vec3(-1.72f, -0.5f, -1.9f));
+    path.frontKeyFrames.push_back(vec3(-1.72f, -0.5f, -1.9f));
 
 	return new sceneCamera(&path);
-
 }
 
 void labscene::init() {
