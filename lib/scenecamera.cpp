@@ -28,6 +28,10 @@ void sceneCamera::updateT(float speed) {
 	this->t = std::min(this->t + speed, 1.0f);
 }
 
+void sceneCamera::resetT() {
+	this->t = 0.0f;
+}
+
 float sceneCamera::getDistanceOnSpline() const
 {
     return m_bspPositions->getDistanceOnSpline(t);

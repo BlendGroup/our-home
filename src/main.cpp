@@ -105,6 +105,8 @@ void render(glwindow* window) {
 
 		currentScene->render();
 
+		scenecamerarig->render();
+
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
 			glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.7f, 0.1f, 1.0f));
@@ -119,8 +121,20 @@ void render(glwindow* window) {
 
 void update(void) {
 	if(isAnimating) {
+#ifdef DEBUG
+		scenecamerarig->updateT(0.001f);
+#else
 		currentSceneCamera->updateT(0.001f);
+#endif
 	}
+}
+
+void resetCamera(void) {
+#ifdef DEBUG
+		scenecamerarig->resetT();
+#else
+		currentSceneCamera->resetT();
+#endif
 }
 
 void keyboard(glwindow* window, int key) {
@@ -136,6 +150,9 @@ void keyboard(glwindow* window, int key) {
 		break;
 	case XK_F3:
 		hdrEnabled = !hdrEnabled;
+		break;
+	case XK_F4:
+		resetCamera();
 		break;
 	case XK_space:
 		isAnimating = !isAnimating;

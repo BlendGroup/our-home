@@ -163,9 +163,9 @@ void sceneCameraRig::render() const
         // draw the 2 points
         glUniform1i(3, 1); // isPoint = true
         glBindVertexArray(vaoPoint);
-        glUniformMatrix4fv(0, 1, GL_FALSE, translate(point_front[0]) * scale(0.05f));
+        glUniformMatrix4fv(0, 1, GL_FALSE, translate(point_front[0]) * scale(0.01f));
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        glUniformMatrix4fv(0, 1, GL_FALSE, translate(point_front[1]) * scale(0.05f));
+        glUniformMatrix4fv(0, 1, GL_FALSE, translate(point_front[1]) * scale(0.01f));
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 }
@@ -174,6 +174,11 @@ void sceneCameraRig::updateT(float speed)
 {
     t = std::min(t + speed, 1.0f);
     mountCamera->t = t;
+}
+
+void sceneCameraRig::resetT(void) {
+	t = 0.0f;
+	mountCamera->t = t;
 }
 
 void sceneCameraRig::setRenderPath(bool setting)

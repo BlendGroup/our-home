@@ -30,6 +30,7 @@ public:
     ~sceneCameraRig();
     void render() const;
     void updateT(float speed);
+	void resetT();
     void setRenderPath(bool setting);
     void setRenderPathPoints(bool setting);
     void setRenderFront(bool setting);
