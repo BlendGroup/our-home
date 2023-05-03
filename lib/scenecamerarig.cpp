@@ -13,7 +13,8 @@ sceneCameraRig::sceneCameraRig(sceneCamera *camera)
     : isRenderPath(true),
       isRenderFront(false),
       isRenderPathToFront(false),
-      t(0.0f)
+      t(0.0f),
+	  scalingFactor(1.0f)
 {
     program = new glshaderprogram({"shaders/cameraRig.vert", "shaders/cameraRig.frag"});
 
@@ -137,16 +138,17 @@ void sceneCameraRig::loadGeometry(void)
 void sceneCameraRig::render() const
 {
     if (isRenderPath)
-        pathRenderer->render(PATH_COLOR);
+        pathRenderer->render(PATH_COLOR, this->scalingFactor);
     if (isRenderFront)
-        frontRenderer->render(FRONT_COLOR);
+        frontRenderer->render(FRONT_COLOR, this->scalingFactor);
 
     if (isRenderPathToFront)
     {
         // get current points on path and front spline
         vec3 point_front[2] = {
             mountCamera->m_bspPositions->interpolate(t),
-            mountCamera->m_bspFront->interpolate(t)};
+            mountCamera->m_bspFront->interpolate(t)
+		};
 
         program->use();
         glUniformMatrix4fv(1, 1, GL_FALSE, programglobal::currentCamera->matrix());
@@ -163,9 +165,9 @@ void sceneCameraRig::render() const
         // draw the 2 points
         glUniform1i(3, 1); // isPoint = true
         glBindVertexArray(vaoPoint);
-        glUniformMatrix4fv(0, 1, GL_FALSE, translate(point_front[0]) * scale(0.01f));
+        glUniformMatrix4fv(0, 1, GL_FALSE, translate(point_front[0]) * scale(this->scalingFactor));
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        glUniformMatrix4fv(0, 1, GL_FALSE, translate(point_front[1]) * scale(0.01f));
+        glUniformMatrix4fv(0, 1, GL_FALSE, translate(point_front[1]) * scale(this->scalingFactor));
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 }
@@ -204,6 +206,10 @@ void sceneCameraRig::setRenderFrontPoints(bool setting)
 void sceneCameraRig::setRenderPathToFront(bool setting)
 {
     isRenderPathToFront = setting;
+}
+
+void sceneCameraRig::setScalingFactor(float scalingFactor) {
+	this->scalingFactor = scalingFactor;
 }
 
 /********************************** EOF ******************************/

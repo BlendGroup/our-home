@@ -123,7 +123,7 @@ void SplineRenderer::loadGeometry(void)
 	glEnableVertexAttribArray(0);
 }
 
-void SplineRenderer::render(const vec4 color) const
+void SplineRenderer::render(const vec4 color, float scalingFactor) const
 {
 	m_program->use();
 	glUniformMatrix4fv(0, 1, GL_FALSE, programglobal::perspective * programglobal::currentCamera->matrix());
@@ -143,7 +143,7 @@ void SplineRenderer::render(const vec4 color) const
 			glUniformMatrix4fv(0, 1, GL_FALSE,
 							programglobal::perspective * programglobal::currentCamera->matrix() *
 								translate(point[0], point[1], point[2]) *
-								scale(0.01f, 0.01f, 0.01f));
+								scale(scalingFactor));
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 	}
@@ -159,7 +159,7 @@ void SplineRenderer::render(const vec4 color) const
 			glUniformMatrix4fv(0, 1, GL_FALSE,
 							programglobal::perspective * programglobal::currentCamera->matrix() *
 								translate(ctrlp[0], ctrlp[1], ctrlp[2]) *
-								scale(0.01f, 0.01f, 0.01f));
+								scale(scalingFactor));
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 	}

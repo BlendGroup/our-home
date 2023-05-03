@@ -22,6 +22,7 @@ private:
     GLuint vboPoint, vboPathToFront;
     bool isRenderPath, isRenderFront, isRenderPathToFront;
     float t;
+	float scalingFactor;
 
     void loadGeometry(void);
 
@@ -36,6 +37,7 @@ public:
     void setRenderFront(bool setting);
     void setRenderFrontPoints(bool setting);
     void setRenderPathToFront(bool setting);
+	void setScalingFactor(float scalingFactor);
 };
 
 #endif // __SCENE_CAMERA_RIG__
