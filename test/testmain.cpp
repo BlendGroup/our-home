@@ -51,6 +51,9 @@ clglcontext* programglobal::oclContext;
 camera* programglobal::currentCamera;
 opensimplexnoise* programglobal::noiseGenerator;
 
+extern vector<vec3> positionKeyFrames;
+extern vector<vec3> frontKeyFrames;
+
 void setupProgram(void) {
 	try {
 		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl"});
@@ -89,9 +92,10 @@ void setupProgram(void) {
 void setupSceneCamera(void) {
 	try {
 		debugcamera = new debugCamera(vec3(0.0f, 5.0f, 5.0f), -90.0f, 0.0f);
-		setupSceneCameraTestCamera(scenecamera);
 #if SHOW_CAMERA_RIG
-		setupSceneCameraRigTestCamera(scenecamera, scenecamerarig);
+		setupSceneCameraRigTestCamera(scenecamerarig);
+#else
+		setupSceneCameraTestCamera(scenecamera);
 #endif // SHOW_CAMERA_RIG
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -141,8 +145,11 @@ void init(void) {
 
 void render(glwindow* window) {
 	try {
+#if SHOW_CAMERA_RIG
+		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamerarig->getCamera());
+#else
 		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamera);
-
+#endif
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
 			glViewport(0, 0, hdr->getSize(), hdr->getSize());
@@ -203,7 +210,6 @@ void update(void) {
 }
 
 void keyboard(glwindow* window, int key) {
-	vector<vec3> &positionVector = scenecamera->getPointerToPositionKeyFrame();
 	switch(key) {
 	case XK_Escape:
 		window->close();
@@ -220,14 +226,12 @@ void keyboard(glwindow* window, int key) {
 	case XK_space:
 		isAnimating = !isAnimating;
 		break;
-	case XK_i:
-		positionVector[0][0] += 1.01f;
-		scenecamera->reinitializePositionSpline();
-		cout<<scenecamera<<endl;
-		break;
 	}
 	hdr->keyboardfunc(key);
 	debugcamera->keyboardFunc(key);
+#if SHOW_CAMERA_RIG
+	scenecamerarig->keyboardfunc(key);
+#endif
 #if SHOW_TERRAIN_SCENE
 	keyboardFuncTestTerrain(key);
 #endif

@@ -1,4 +1,5 @@
 #include"../include/scenecamerarig.h"
+#include<X11/keysym.h>
 
 using namespace std;
 using namespace vmath;
@@ -9,7 +10,7 @@ using namespace vmath;
 /*********************************************************************/
 /*                              SceneCameraRig                       */
 /*********************************************************************/
-sceneCameraRig::sceneCameraRig(sceneCamera *camera)
+sceneCameraRig::sceneCameraRig(std::vector<vmath::vec3> positionKeyFrames, std::vector<vmath::vec3> frontKeyFrames)
     : isRenderPath(true),
       isRenderFront(false),
       isRenderPathToFront(false),
@@ -23,9 +24,12 @@ sceneCameraRig::sceneCameraRig(sceneCamera *camera)
     glCreateVertexArrays(1, &vaoPathToFront);
     glCreateBuffers(1, &vboPathToFront);
 
-    mountCamera = camera;
-    pathRenderer = new SplineRenderer(camera->m_bspPositions);
-    frontRenderer = new SplineRenderer(camera->m_bspFront);
+	this->positionKeyFrames = positionKeyFrames;
+	this->frontKeyFrames = frontKeyFrames;
+
+    mountCamera = new sceneCamera(positionKeyFrames, frontKeyFrames);
+    pathRenderer = new SplineRenderer(mountCamera->m_bspPositions);
+    frontRenderer = new SplineRenderer(mountCamera->m_bspFront);
 
     loadGeometry();
 }
@@ -210,6 +214,22 @@ void sceneCameraRig::setRenderPathToFront(bool setting)
 
 void sceneCameraRig::setScalingFactor(float scalingFactor) {
 	this->scalingFactor = scalingFactor;
+}
+
+sceneCamera* sceneCameraRig::getCamera() {
+	return this->mountCamera;
+}
+
+void sceneCameraRig::keyboardfunc(int key) {
+	switch(key) {
+	case XK_i:
+		this->positionKeyFrames[0][0] += 1.0f;
+		delete this->mountCamera;
+		this->mountCamera = new sceneCamera(this->positionKeyFrames, this->frontKeyFrames);
+		delete this->pathRenderer;
+		this->pathRenderer = new SplineRenderer(this->mountCamera->m_bspPositions);
+		break;
+	}
 }
 
 /********************************** EOF ******************************/

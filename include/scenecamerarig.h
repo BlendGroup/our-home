@@ -23,11 +23,13 @@ private:
     bool isRenderPath, isRenderFront, isRenderPathToFront;
     float t;
 	float scalingFactor;
-
-    void loadGeometry(void);
+	std::vector<vmath::vec3> positionKeyFrames;
+	std::vector<vmath::vec3> frontKeyFrames;
+    
+	void loadGeometry(void);
 
 public:
-    sceneCameraRig(sceneCamera *camera);
+    sceneCameraRig(std::vector<vmath::vec3> positionKeyFrames, std::vector<vmath::vec3> frontKeyFrames);
     ~sceneCameraRig();
     void render() const;
     void updateT(float speed);
@@ -38,6 +40,8 @@ public:
     void setRenderFrontPoints(bool setting);
     void setRenderPathToFront(bool setting);
 	void setScalingFactor(float scalingFactor);
+	sceneCamera* getCamera();
+	void keyboardfunc(int key);
 };
 
 #endif // __SCENE_CAMERA_RIG__

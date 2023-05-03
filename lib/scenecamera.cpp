@@ -22,25 +22,6 @@ sceneCamera::sceneCamera(const vector<vec3> &positionKeyFrames, const vector<vec
     m_bspPositions = new BsplineInterpolator(positionKeyFrames);
     m_bspFront = new BsplineInterpolator(frontKeyFrames);
 	this->t = 0.0f;
-	this->frontKeyFrames = frontKeyFrames;
-	this->positionKeyFrames = positionKeyFrames;
-}
-
-std::vector<vmath::vec3>& sceneCamera::getPointerToPositionKeyFrame() {
-	return this->positionKeyFrames;
-}
-
-std::vector<vmath::vec3>& sceneCamera::getPointerToFrontKeyFrame() {
-	return this->frontKeyFrames;
-}
-        
-
-void sceneCamera::reinitializePositionSpline() {
-	m_bspPositions = new BsplineInterpolator(this->positionKeyFrames);
-}
-
-void sceneCamera::reinitializeFrontSpline() {
-	m_bspFront = new BsplineInterpolator(this->frontKeyFrames);
 }
 
 void sceneCamera::updateT(float speed) {
@@ -83,16 +64,16 @@ sceneCamera::~sceneCamera()
 }
 
 ostream& operator<<(ostream &out, const sceneCamera &t) {
-	out<<"Position: {\n";
-	for(vec3 pos : t.positionKeyFrames) {
-		out<<"\t"<<pos<<"\n";
-	}
-	out<<"}\n";
-	out<<"Front: {\n";
-	for(vec3 front : t.frontKeyFrames) {
-		out<<"\t"<<front<<"\n";
-	}
-	out<<"}";
+	// out<<"Position: {\n";
+	// for(vec3 pos : t.positionKeyFrames) {
+	// 	out<<"\t"<<pos<<"\n";
+	// }
+	// out<<"}\n";
+	// out<<"Front: {\n";
+	// for(vec3 front : t.frontKeyFrames) {
+	// 	out<<"\t"<<front<<"\n";
+	// }
+	// out<<"}";
 	return out;
 }
 
