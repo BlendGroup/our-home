@@ -203,6 +203,7 @@ void update(void) {
 }
 
 void keyboard(glwindow* window, int key) {
+	vector<vec3> &positionVector = scenecamera->getPointerToPositionKeyFrame();
 	switch(key) {
 	case XK_Escape:
 		window->close();
@@ -218,6 +219,11 @@ void keyboard(glwindow* window, int key) {
 		break;
 	case XK_space:
 		isAnimating = !isAnimating;
+		break;
+	case XK_i:
+		positionVector[0][0] += 1.01f;
+		scenecamera->reinitializePositionSpline();
+		cout<<scenecamera<<endl;
 		break;
 	}
 	hdr->keyboardfunc(key);

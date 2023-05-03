@@ -82,4 +82,23 @@ sceneCamera::~sceneCamera()
     }
 }
 
+ostream& operator<<(ostream &out, const sceneCamera &t) {
+	out<<"Position: {\n";
+	for(vec3 pos : t.positionKeyFrames) {
+		out<<"\t"<<pos<<"\n";
+	}
+	out<<"}\n";
+	out<<"Front: {\n";
+	for(vec3 front : t.frontKeyFrames) {
+		out<<"\t"<<front<<"\n";
+	}
+	out<<"}";
+	return out;
+}
+
+ostream& operator<<(ostream &out, const sceneCamera *t) {
+	out<<*t;
+	return out;
+}
+
 /********************************** EOF ******************************/

@@ -6,6 +6,7 @@
 #include<interpolators.h>
 #include<errorlog.h>
 #include<camera.h>
+#include<ostream>
 
 class sceneCamera : public camera
 {
@@ -30,6 +31,8 @@ public:
 	void resetT();
 	vmath::mat4 matrix() const override;
 	vmath::vec3 position() const override;
+	friend std::ostream& operator<< (std::ostream &out, const sceneCamera &t);
+	friend std::ostream& operator<< (std::ostream &out, const sceneCamera *t);
 };
 
 #endif // __SCENE_CAMERA_H__
