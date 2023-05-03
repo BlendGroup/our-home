@@ -754,9 +754,10 @@ void glmodel::draw(glshaderprogram *program,int instance) {
 		*/
 		for(int t = 0; t < this->materials[this->meshes[i].materialIndex].textures.size(); t++)
 		{
-			glActiveTexture(GL_TEXTURE0 + t);
-			glUniform1i(program->getUniformLocation(textureTypeMap[this->materials[this->meshes[i].materialIndex].textures[t].type]),t);
-			glBindTexture(GL_TEXTURE_2D, this->materials[this->meshes[i].materialIndex].textures[t].id);
+			glBindTextureUnit(this->materials[this->meshes[i].materialIndex].textures[t].type,this->materials[this->meshes[i].materialIndex].textures[t].id);
+			//glActiveTexture(GL_TEXTURE0 + t);
+			//glUniform1i(program->getUniformLocation(textureTypeMap[this->materials[this->meshes[i].materialIndex].textures[t].type]),t);
+			//glBindTexture(GL_TEXTURE_2D, this->materials[this->meshes[i].materialIndex].textures[t].id);
 		}
 
 		// glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_AMBIENT]),1,this->materials[this->meshes[i].materialIndex].ambient);

@@ -19,6 +19,8 @@ class CubeMapRenderTarget{
     CubeMapRenderTarget(GLuint width,GLuint height,bool mipLevels);
     void setPosition(const vmath::vec3 pos);
     const vmath::vec3 getPosition(void);
+    void bindRenderTarget();
+    void bindTexture(GLuint unit = 0);
     ~CubeMapRenderTarget();
 };
 

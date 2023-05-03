@@ -63,9 +63,9 @@ uniform int numOfDL;
 uniform int numOfPoints;
 uniform int numOfSpots;
 
-uniform sampler2D texture_diffuse;
-uniform sampler2D texture_normal;
-uniform sampler2D texture_emissive;
+layout (binding = 0) uniform sampler2D texture_diffuse;
+layout (binding = 1) uniform sampler2D texture_normal;
+layout (binding = 2) uniform sampler2D texture_emissive;
 
 vec3 getNormalFromMap()
 {

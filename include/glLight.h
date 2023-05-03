@@ -2,6 +2,7 @@
 #include <glshaderloader.h>
 #include <math.h>
 #include <vector>
+#include <CubeMapRenderTarget.h>
 #include <vmath.h>
 
 struct BaseLight{
@@ -91,14 +92,28 @@ struct SpotLight : PointLight{
 class SceneLight{
 
     private:
-    GLuint vao;
+
+    struct brdf_lut{
+        GLuint brdfTex;
+        GLuint fbo,rbo;
+        GLuint width,height;
+    };
+    GLuint vao,skybox,envirounmentMap;
+    bool indirectLight;
     std::vector<DirectionalLight> directional;
     std::vector<PointLight> points;
     std::vector<SpotLight> spots;
+    //CubeMapRenderTarget* envirounmentMap;
+    CubeMapRenderTarget* irradianceMap;
+    CubeMapRenderTarget* prefilterMap;
+    brdf_lut brdf;
+    glshaderprogram* envProgram,*irradianceProgram,*prefilterProgram,*precomputeBRDF;
 
     public:
-    SceneLight();
+    SceneLight(bool envLight = false);
     ~SceneLight();
+    void setEnvmap(GLuint &envMap);
+    void PrecomputeIndirectLighting();
     void addDirectionalLight(DirectionalLight dl);
     void addPointLight(PointLight pl);
     void addSpotLight(SpotLight sl);

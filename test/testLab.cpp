@@ -1,4 +1,6 @@
 #include <assimp/postprocess.h>
+#include <cmath>
+#include <cstddef>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -19,13 +21,13 @@ using namespace std;
 using namespace vmath;
 
 static glshaderprogram* programStaticPBR,*programDynamicPBR;
-static glshaderprogram* lightProgram, *tester;
+static glshaderprogram* lightProgram, *skybox;
 static glshaderprogram* diffusePass;
 static vector<glmodel*> static_model;
 static vector<glmodel*> dynamic_model;
 static CubeMapRenderTarget* envMap;
 static SceneLight* sceneLights;
-static bool crt = true;
+static bool crt = false;
 static int v = 0;
 static GLuint skybox_vao,vbo;
 
@@ -36,7 +38,7 @@ void setupProgramTestLab(){
         programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
         lightProgram = new glshaderprogram({"shaders/debug/lightSrc.vert", "shaders/debug/lightSrc.frag"});
         diffusePass = new glshaderprogram({"shaders/pbr.vert", "shaders/common.frag"});
-        tester = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
+        skybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
         //program->printUniforms(cout);
     } catch (string errorString) {
         throwErr(errorString);
@@ -52,13 +54,12 @@ void initTestLab(){
         envMap->setPosition(vec3(0.0f,0.0f,0.0f));
 
         // Lighting setup
-        sceneLights = new SceneLight();
+        sceneLights = new SceneLight(crt);
         sceneLights->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,0.0,-1.0f)));
         sceneLights->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(-5.0f,5.0f,-5.0f),25.0f));
         sceneLights->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,-5.0f),25.0f));
         sceneLights->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,5.0f),25.0f));
         sceneLights->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(-5.0f,5.0f,5.0f),25.0f));
-
         //sceneLights->addSpotLight(SpotLight(vec3(0.0f,1.0f,0.0f),100.0f,vec3(-6.0f,8.0f,3.5f),35.0f,vec3(0.0f,0.0f,-1.0f),30.0f,45.0f));
 
         glEnable(GL_MULTISAMPLE);
@@ -67,55 +68,56 @@ void initTestLab(){
         // Skybox 
         float skybox_positions[] = {
         // positions          
+        -1.0f,  1.0f, -1.0f,
         -1.0f, -1.0f, -1.0f,
-         1.0f,  1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
          1.0f, -1.0f, -1.0f,
          1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+
+        -1.0f, -1.0f,  1.0f,
         -1.0f, -1.0f, -1.0f,
         -1.0f,  1.0f, -1.0f,
-        // front face
+        -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f,  1.0f,
         -1.0f, -1.0f,  1.0f,
+
+         1.0f, -1.0f, -1.0f,
          1.0f, -1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+
+        -1.0f, -1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+
+        -1.0f,  1.0f, -1.0f,
+         1.0f,  1.0f, -1.0f,
          1.0f,  1.0f,  1.0f,
          1.0f,  1.0f,  1.0f,
         -1.0f,  1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
-        // left face
-        -1.0f,  1.0f,  1.0f,
         -1.0f,  1.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,
+
         -1.0f, -1.0f, -1.0f,
         -1.0f, -1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-        // right face
-         1.0f,  1.0f,  1.0f,
          1.0f, -1.0f, -1.0f,
-         1.0f,  1.0f, -1.0f,
          1.0f, -1.0f, -1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f, -1.0f,  1.0f,
-        // bottom face
-        -1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f,  1.0f,
-         1.0f, -1.0f,  1.0f,
         -1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f, -1.0f,
-        // top face
-        -1.0f,  1.0f, -1.0f,
-         1.0f,  1.0f , 1.0f,
-         1.0f,  1.0f, -1.0f,
-         1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f,  1.0f,
+         1.0f, -1.0f,  1.0f
     };
         glCreateVertexArrays(1, &skybox_vao);
         glBindVertexArray(skybox_vao);
         glCreateBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(skybox_positions), skybox_positions, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), NULL);
         glEnableVertexAttribArray(0);
+        //glDeleteBuffers(1,&vbo);
 
     } catch (string errorString) {
         throwErr(errorString);
@@ -124,8 +126,6 @@ void initTestLab(){
 
 void renderTestLab(camera *cam,vec3 camPos){
     try {
-        // Static Objects Pass
-
         if(crt){
             glBindFramebuffer(GL_FRAMEBUFFER,envMap->FBO);
 			glViewport(0, 0, envMap->width, envMap->height);
@@ -147,9 +147,12 @@ void renderTestLab(camera *cam,vec3 camPos){
                 static_model[0]->draw(programStaticPBR,1);
             }
             glBindFramebuffer(GL_FRAMEBUFFER,0);
+            sceneLights->setEnvmap(envMap->cubemap_texture);
+            sceneLights->PrecomputeIndirectLighting();
             crt = false;
         }
 
+        // Static Objects Pass
         programStaticPBR->use();
         glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
         glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"),1,GL_FALSE,cam->matrix());
@@ -158,6 +161,9 @@ void renderTestLab(camera *cam,vec3 camPos){
         // Lights data
         glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
         sceneLights->setLightUniform(programStaticPBR);
+        // Envirounment Maps
+        //glActiveTexture(GL_TEXTURE8);
+        //glBindTexture(GL_TEXTURE_CUBE_MAP,irrMap->cubemap_texture);
         static_model[0]->draw(programStaticPBR,1);    
 
         // Dynamic Objects Pass
@@ -165,8 +171,6 @@ void renderTestLab(camera *cam,vec3 camPos){
         glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
         glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE,cam->matrix());
         glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(-3.0f,-0.15f,-1.0f) * scale(0.05f,0.05f,0.05f));
-        dynamic_model[0]->update(0.005f, 0);
-        dynamic_model[0]->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
         glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1,camPos);
         // Lights data
         glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),true);
@@ -182,18 +186,12 @@ void renderTestLab(camera *cam,vec3 camPos){
         sceneLights->renderSceneLights(lightProgram);
 
         // render to cubemap test
-        glDisable(GL_DEPTH_TEST);
-        tester->use();
-        glUniformMatrix4fv(tester->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
-        glUniformMatrix4fv(tester->getUniformLocation("vMat"),1,GL_FALSE,cam->matrix());
+        skybox->use();
+        glUniformMatrix4fv(skybox->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
+        glUniformMatrix4fv(skybox->getUniformLocation("vMat"),1,GL_FALSE,cam->matrix());
         glBindVertexArray(skybox_vao);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, envMap->cubemap_texture);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 36);
-        glBindVertexArray(0);
-        glEnable(GL_DEPTH_TEST);
-        //glDepthMask(GL_TRUE);
-
+        glBindTextureUnit(0,envMap->cubemap_texture);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
     } catch (string errorString) {
         throwErr(errorString);
     }
@@ -213,9 +211,11 @@ void uninitTestLab(){
     delete programStaticPBR;
     delete programDynamicPBR;
     delete diffusePass;
+    delete skybox;
     delete lightProgram;
     delete envMap;
     delete sceneLights;
+    glDeleteVertexArrays(1,&skybox_vao);
     static_model.clear();
     dynamic_model.clear();
 }

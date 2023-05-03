@@ -1,7 +1,7 @@
 #version 460 core
 
 #define PI 3.141592653589793238462643
-
+const float MAX_REFLECTION_LOD = 4.0; // mips in range [0, 4]
 //output
 layout(location = 0)out vec4 fragColor;
 layout(location = 1)out vec4 emmitColor;
@@ -68,15 +68,20 @@ uniform int numOfDL;
 uniform int numOfPoints;
 uniform int numOfSpots;
 uniform bool specularGloss;
+uniform bool IBL;
 
-uniform sampler2D texture_diffuse;
-uniform sampler2D texture_normal;
-uniform sampler2D texture_metalic;
-uniform sampler2D texture_roughness;
-uniform sampler2D texture_specular;
-uniform sampler2D texture_glossiness;
-uniform sampler2D texture_ao;
-uniform sampler2D texture_emissive;
+layout (binding = 0)uniform sampler2D texture_diffuse;
+layout (binding = 1)uniform sampler2D texture_normal;
+layout (binding = 2)uniform sampler2D texture_metalic;
+layout (binding = 3)uniform sampler2D texture_roughness;
+layout (binding = 4)uniform sampler2D texture_specular;
+layout (binding = 5)uniform sampler2D texture_glossiness;
+layout (binding = 6)uniform sampler2D texture_ao;
+layout (binding = 7)uniform sampler2D texture_emissive;
+
+layout (binding = 8)uniform samplerCube texture_irradiance;
+layout (binding = 9)uniform samplerCube texture_prefilter;
+layout (binding = 10)uniform sampler2D texture_brdf_lut;
 
 vec3 getNormalFromMap()
 {
@@ -147,6 +152,37 @@ float getSpotAngleAttenuation(vec3 l, vec3 light_dir,float inner_angle,float out
     return attenuation;
 }
 
+vec3 indirectLightingDiffuse(vec3 N, vec3 P)
+{
+    vec3 albedo = texture(texture_diffuse,fs_in.Tex).rgb + material.diffuse;
+    float metallic = specularGloss ? max(max(texture(texture_specular,fs_in.Tex).r,texture(texture_specular,fs_in.Tex).g),texture(texture_specular,fs_in.Tex).b) : texture(texture_metalic,fs_in.Tex).r * material.metallic;
+    float roughness = specularGloss ? 1.0 - texture(texture_glossiness,fs_in.Tex).r : texture(texture_roughness,fs_in.Tex).r * material.roughness;
+    N = getNormalFromMap();
+
+    vec3 w0 = normalize(viewPos - P);
+    vec3 r = reflect(-w0, N);
+
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0,albedo,metallic);
+
+    vec3 F = fresnelSchlickRoughness(max(dot(N,w0),0.0),F0,roughness);
+    vec3 ks = F;
+    vec3 kd = 1.0 - ks;
+    kd *= (1.0 - metallic);
+
+    // diffuse IBL term
+    vec3 irradiance = texture(texture_irradiance,N).rgb;
+    vec3 diffuse = albedo * irradiance;
+
+    // specular IBL term
+    vec3 prefilter_color = textureLod(texture_prefilter,r,roughness * MAX_REFLECTION_LOD).rgb;
+    vec2 brdf = texture(texture_brdf_lut,vec2(max(dot(N,w0),0.0),roughness)).rg;
+    vec3 specular = prefilter_color * (F * brdf.x + brdf.y);
+
+    //total indirect lighting
+    return (kd * diffuse + specular); // add ao later    
+}
+
 vec3 pbr(BaseLight base, vec3 direction, vec3 N, vec3 P){
 
     vec3 albedo = texture(texture_diffuse,fs_in.Tex).rgb + material.diffuse;
@@ -177,7 +213,7 @@ vec3 pbr(BaseLight base, vec3 direction, vec3 N, vec3 P){
     vec3 ks = F;
     vec3 kd = 1.0 - ks;
     kd = kd * (1.0 - metallic);
-    
+
     return (kd * albedo / PI + specular) * radiance * NdotL;
 }
 
@@ -219,6 +255,11 @@ void main(void) {
         spot += calcSpotLight(sl[i],normalize(fs_in.N),fs_in.P);
     }
 
-    fragColor = vec4(directional + point + spot,material.opacity);
+    vec3 ambient = vec3(0.0);
+    if(IBL){
+        ambient = indirectLightingDiffuse(normalize(fs_in.N),fs_in.P) + texture(texture_emissive,fs_in.Tex).rgb;
+    }
+
+    fragColor = vec4(ambient + directional + point + spot,material.opacity);
     emmitColor = vec4(texture(texture_emissive,fs_in.Tex).rgb + material.emissive,material.opacity);
 }
