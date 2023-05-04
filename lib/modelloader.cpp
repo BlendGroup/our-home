@@ -394,6 +394,7 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 	if(scene->HasAnimations()) {
 		createAnimator(scene, this);
 	}
+	cout<<this->meshes.size()<<endl;
 /*
 	cout<<this->animator.size()<<endl;
 	for(auto a : this->animator){
@@ -733,7 +734,7 @@ void glmodel::draw(glshaderprogram *program,int instance) {
 
 		glActiveTexture(GL_TEXTURE0);
 		glUniform1i(program->getUniformLocation("texture_diffuse"), 0);
-		for(int j = 0; j < this->materials[this->meshes[j].materialIndex].textures.size(); j++) {
+		for(int j = 0; j < this->materials[this->meshes[i].materialIndex].textures.size(); j++) {
 			if(this->materials[this->meshes[i].materialIndex].textures[j].type == TEX_DIFFUSE) {
 				glBindTexture(GL_TEXTURE_2D, this->materials[this->meshes[i].materialIndex].textures[j].id);
 			}
