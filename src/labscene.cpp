@@ -41,7 +41,7 @@ sceneCamera* labscene::setupCamera() {
 
 void labscene::init() {
 	labModel = new glmodel("resources/models/spaceship/SpaceLab.fbx", 0, false);
-	mugModel = new glmodel("resources/models/mug/mug.fbx", 0, false);
+	// mugModel = new glmodel("resources/models/mug/mug.fbx", 0, false);
 }
 
 void labscene::render() {
@@ -50,8 +50,8 @@ void labscene::render() {
 	glUniformMatrix4fv(renderModelDebug->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
 	glUniformMatrix4fv(renderModelDebug->getUniformLocation("mMat"), 1, GL_FALSE, mat4::identity());
 	labModel->draw(renderModelDebug);
-	glUniformMatrix4fv(renderModelDebug->getUniformLocation("mMat"), 1, GL_FALSE, mat4::identity());
-	mugModel->draw(renderModelDebug);
+	// glUniformMatrix4fv(renderModelDebug->getUniformLocation("mMat"), 1, GL_FALSE, mat4::identity());
+	// mugModel->draw(renderModelDebug);
 }
 
 void labscene::uninit() {
