@@ -123,7 +123,7 @@ SceneLight::SceneLight(bool envLight){
             precomputeBRDF = new glshaderprogram({"shaders/hdr.vert","shaders/debug/precompute_brdf.frag"});
 
             //envirounmentMap = new CubeMapRenderTarget(2048,2048,false);
-            irradianceMap = new CubeMapRenderTarget(32,32,true);
+            irradianceMap = new CubeMapRenderTarget(32,32,false);
             prefilterMap = new CubeMapRenderTarget(512,512,true);
 
             irradianceMap->setPosition(vmath::vec3(0.0));
@@ -205,7 +205,7 @@ void SceneLight::PrecomputeIndirectLighting(){
         float roughness = float(i) / float(max_mip_level - 1);
         for(int side = 0; side < 6; side++){
             
-            glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, prefilterMap->cubemap_texture,0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, prefilterMap->cubemap_texture,i);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             prefilterProgram->use();
             glUniformMatrix4fv(prefilterProgram->getUniformLocation("pMat"),1,GL_FALSE,prefilterMap->projection);

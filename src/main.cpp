@@ -11,7 +11,6 @@
 #include<debugcamera.h>
 #include<testPBR.h>
 #include<testLab.h>
-#include<testmodel.h>
 #include<hdr.h>
 #include<windowing.h>
 #include<errorlog.h>

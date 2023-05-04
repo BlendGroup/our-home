@@ -366,10 +366,10 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 				if(aiReturn_SUCCESS == mat->Get(AI_MATKEY_METALLIC_FACTOR,value))
 				{
 					temp.metallic = value;
-					cout<<"M :"<<value<<endl;
+					//cout<<"M :"<<value<<endl;
 					if(aiReturn_SUCCESS == mat->Get(AI_MATKEY_ROUGHNESS_FACTOR,value))
 						temp.roughness = value;
-					cout<<"R :"<<value<<endl;
+					//cout<<"R :"<<value<<endl;
 				}
 				// Means Specular and glossiness factor
 				else {
@@ -431,7 +431,7 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 		cout<<a.bones.size()<<endl;
 		cout<<a.rootNode.name<<endl<<endl;
 	}
-*/
+
 	cout<<"material count"<<this->materials.size()<<endl;
 	for(auto m : materials)
 	{
@@ -446,7 +446,7 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 			cout<<t.id<<textureTypeMap[t.type]<<endl;
 		}
 	}
-
+*/
 	importer.FreeScene();
 }
 void calculateBoneTransformBlended(glmodel* model, 
