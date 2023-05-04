@@ -20,7 +20,7 @@ private:
     glshaderprogram *program;
     GLuint vaoPoint, vaoPathToFront;
     GLuint vboPoint, vboPathToFront;
-    bool isRenderPath, isRenderFront, isRenderPathToFront;
+    bool isRenderPath, isRenderFront, isRenderPathToFront, isRenderPathPoints, isRenderFrontPoints;
     float t;
 	float scalingFactor;
 	std::vector<vmath::vec3> positionKeyFrames;

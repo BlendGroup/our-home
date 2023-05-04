@@ -193,7 +193,7 @@ void sceneCameraRig::setRenderPath(bool setting)
 }
 
 void sceneCameraRig::setRenderPathPoints(bool setting)
-{
+{	this->isRenderPathPoints;
     pathRenderer->setRenderPoints(setting);
 }
 
@@ -204,6 +204,7 @@ void sceneCameraRig::setRenderFront(bool setting)
 
 void sceneCameraRig::setRenderFrontPoints(bool setting)
 {
+	this->isRenderFrontPoints;
     frontRenderer->setRenderPoints(setting);
 }
 
@@ -228,6 +229,7 @@ void sceneCameraRig::keyboardfunc(int key) {
 		this->mountCamera = new sceneCamera(this->positionKeyFrames, this->frontKeyFrames);
 		delete this->pathRenderer;
 		this->pathRenderer = new SplineRenderer(this->mountCamera->m_bspPositions);
+		this->pathRenderer->setRenderPoints(this->isRenderPathPoints);
 		break;
 	}
 }

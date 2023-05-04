@@ -12,7 +12,9 @@ SplineRenderer::SplineRenderer(SplineInterpolator *interpolator, const float lin
 	  m_linspace(linspace),
 	  m_isRenderPoints(false),
 	  m_isRenderCtrlps(false),
-	  m_isRenderCtrlPoly(false)
+	  m_isRenderCtrlPoly(false),
+	  m_points(interpolator->getPoints()),
+	  m_ctrlps(interpolator->getControlPoints())
 {
 	/* create vaos for spline data */
 	glCreateVertexArrays(1, &m_vaoSpline);
@@ -27,10 +29,6 @@ SplineRenderer::SplineRenderer(SplineInterpolator *interpolator, const float lin
 	/* create program for rendering a spline */
 	m_program = new glshaderprogram({"shaders/spline.vert",
 									 "shaders/spline.frag"});
-
-	/* get user-specified spline points from the interpolator */
-	m_points = m_interpolator->getPoints();
-	m_ctrlps = m_interpolator->getControlPoints();
 
 	/* load spline data into opengl pipeline */
 	loadGeometry();
@@ -60,7 +58,7 @@ void SplineRenderer::loadGeometry(void)
 	glBindBuffer(GL_ARRAY_BUFFER, m_vboCtrlPoly);
 
 	/** !!! BE CAREFUL WHILE REFACTORING FOR vec3 !!! **/
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * m_ctrlps->size(), m_ctrlps->data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * m_ctrlps.size(), m_ctrlps.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 	glEnableVertexAttribArray(0);
 
@@ -138,7 +136,8 @@ void SplineRenderer::render(const vec4 color, float scalingFactor) const
 		glBindVertexArray(m_vaoPoint);
 
 		/** !!! BE CAREFUL WHILE REFACTORING FOR vec3 !!! **/
-		for (vec3 point : *m_points)
+		//cout<<m_points<<endl;
+		for (vec3 point : m_points)
 		{
 			glUniformMatrix4fv(0, 1, GL_FALSE,
 							programglobal::perspective * programglobal::currentCamera->matrix() *
@@ -154,7 +153,7 @@ void SplineRenderer::render(const vec4 color, float scalingFactor) const
 		glBindVertexArray(m_vaoPoint);
 
 		/** !!! BE CAREFUL WHILE REFACTORING FOR vec3 !!! **/
-		for (vec3 ctrlp : *m_ctrlps)
+		for (vec3 ctrlp : m_ctrlps)
 		{
 			glUniformMatrix4fv(0, 1, GL_FALSE,
 							programglobal::perspective * programglobal::currentCamera->matrix() *

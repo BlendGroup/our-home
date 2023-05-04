@@ -18,7 +18,8 @@ private:
     GLuint m_vaoSpline, m_vboSpline;
     GLuint m_vaoPoint, m_vboPoint;
     GLuint m_vaoCtrlPoly, m_vboCtrlPoly;
-    const std::vector<vmath::vec3> *m_points, *m_ctrlps;
+    const std::vector<vmath::vec3> &m_points;
+	const std::vector<vmath::vec3> &m_ctrlps;
     int m_nAllPositions;
     float m_linspace;
     bool m_isRenderPoints, m_isRenderCtrlps, m_isRenderCtrlPoly;
