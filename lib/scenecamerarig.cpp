@@ -225,8 +225,8 @@ void sceneCameraRig::keyboardfunc(int key) {
 	switch(key) {
 	case XK_i:
 		this->positionKeyFrames[0][0] += 1.0f;
-		delete this->mountCamera;
-		this->mountCamera = new sceneCamera(this->positionKeyFrames, this->frontKeyFrames);
+		delete this->mountCamera->m_bspPositions;
+		this->mountCamera->m_bspPositions = new BsplineInterpolator(this->positionKeyFrames);
 		delete this->pathRenderer;
 		this->pathRenderer = new SplineRenderer(this->mountCamera->m_bspPositions);
 		this->pathRenderer->setRenderPoints(this->isRenderPathPoints);

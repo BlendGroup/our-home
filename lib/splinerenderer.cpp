@@ -136,7 +136,6 @@ void SplineRenderer::render(const vec4 color, float scalingFactor) const
 		glBindVertexArray(m_vaoPoint);
 
 		/** !!! BE CAREFUL WHILE REFACTORING FOR vec3 !!! **/
-		//cout<<m_points<<endl;
 		for (vec3 point : m_points)
 		{
 			glUniformMatrix4fv(0, 1, GL_FALSE,
