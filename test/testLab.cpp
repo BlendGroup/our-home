@@ -27,10 +27,8 @@ static vector<glmodel*> static_model;
 static vector<glmodel*> dynamic_model;
 static CubeMapRenderTarget* envMap;
 static SceneLight* sceneLights;
-static bool crt = false;
-static int v = 0;
+static bool crt = true;
 static GLuint skybox_vao,vbo;
-
 void setupProgramTestLab(){
     try 
     {
@@ -49,6 +47,7 @@ void initTestLab(){
     try {
 
         static_model.push_back(new glmodel("resources/models/spaceship/SpaceLab.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs, true));
+        static_model.push_back(new glmodel("resources/models/cup.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true));
         dynamic_model.push_back(new glmodel("resources/models/robot/robot.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true));
         envMap = new CubeMapRenderTarget(2048,2048,false);
         envMap->setPosition(vec3(0.0f,0.0f,0.0f));
@@ -161,10 +160,9 @@ void renderTestLab(camera *cam,vec3 camPos){
         // Lights data
         glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
         sceneLights->setLightUniform(programStaticPBR);
-        // Envirounment Maps
-        //glActiveTexture(GL_TEXTURE8);
-        //glBindTexture(GL_TEXTURE_CUBE_MAP,irrMap->cubemap_texture);
-        static_model[0]->draw(programStaticPBR,1);    
+        static_model[0]->draw(programStaticPBR,1);
+        glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(-1.3f,-0.41f,-1.5f) * scale(0.08f,0.08f,0.08f));
+        static_model[1]->draw(programStaticPBR,1);
 
         // Dynamic Objects Pass
         programDynamicPBR->use();
@@ -199,11 +197,6 @@ void renderTestLab(camera *cam,vec3 camPos){
 
 void keyboardFuncTestLab(int key) {
 	switch(key) {
-	case XK_V: case XK_v:
-            ++v;
-            if(v > 5)
-                v = 0;
-		break;
 	}
 }
 

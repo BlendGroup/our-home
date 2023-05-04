@@ -366,8 +366,10 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 				if(aiReturn_SUCCESS == mat->Get(AI_MATKEY_METALLIC_FACTOR,value))
 				{
 					temp.metallic = value;
-					mat->Get(AI_MATKEY_ROUGHNESS_FACTOR,value);
-					temp.roughness = value;
+					cout<<"M :"<<value<<endl;
+					if(aiReturn_SUCCESS == mat->Get(AI_MATKEY_ROUGHNESS_FACTOR,value))
+						temp.roughness = value;
+					cout<<"R :"<<value<<endl;
 				}
 				// Means Specular and glossiness factor
 				else {
@@ -429,8 +431,8 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 		cout<<a.bones.size()<<endl;
 		cout<<a.rootNode.name<<endl<<endl;
 	}
-
-	cout<<this->materials.size()<<endl;
+*/
+	cout<<"material count"<<this->materials.size()<<endl;
 	for(auto m : materials)
 	{
 		cout<<"ambient : "<<m.ambient[0]<<m.ambient[1]<<m.ambient[2]<<endl;
@@ -439,11 +441,12 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 		cout<<"emissive : "<<m.emissive[0]<<m.emissive[1]<<m.emissive[2]<<endl;
 		cout<<"metallic : "<<m.metallic<<" roughness : "<<m.roughness<<endl;
 		cout<<"opacity : "<<m.opacity<<endl;
+		cout<<"tex count : "<<m.textures.size()<<endl;
 		for(auto t : m.textures){
 			cout<<t.id<<textureTypeMap[t.type]<<endl;
 		}
 	}
-*/
+
 	importer.FreeScene();
 }
 void calculateBoneTransformBlended(glmodel* model, 
@@ -744,27 +747,18 @@ void glmodel::draw(glshaderprogram *program,int instance) {
 		// Set Material Uniforms  Can't Do This Outside of Draw !!!!
 
 		//setup textures	
-		/*
-		if(PBR)
+		if(this->materials[this->meshes[i].materialIndex].textures.size() > 0)
 		{
-			glActiveTexture(GL_TEXTURE0);
-			glUniform1i(program->getUniformLocation(textureTypeMap[TEX_DIFFUSE]),0);
-			glBindTexture(GL_TEXTURE_2D,this->materials[this->meshes[i].materialIndex].textures[0].id);
-		}
-		*/
-		for(int t = 0; t < this->materials[this->meshes[i].materialIndex].textures.size(); t++)
-		{
-			glBindTextureUnit(this->materials[this->meshes[i].materialIndex].textures[t].type,this->materials[this->meshes[i].materialIndex].textures[t].id);
-			//glActiveTexture(GL_TEXTURE0 + t);
-			//glUniform1i(program->getUniformLocation(textureTypeMap[this->materials[this->meshes[i].materialIndex].textures[t].type]),t);
-			//glBindTexture(GL_TEXTURE_2D, this->materials[this->meshes[i].materialIndex].textures[t].id);
-		}
-
-		// glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_AMBIENT]),1,this->materials[this->meshes[i].materialIndex].ambient);
-		glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_DIFFUSE]),1,this->materials[this->meshes[i].materialIndex].ambient);
-		//glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_SPECULAR]),1,this->materials[this->meshes[i].materialIndex].ambient);
-		glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_EMISSIVE]),1,this->materials[this->meshes[i].materialIndex].ambient);
-		
+			glUniform1i(program->getUniformLocation("isTexture"),true);
+			for(int t = 0; t < this->materials[this->meshes[i].materialIndex].textures.size(); t++)
+			{
+				glBindTextureUnit(this->materials[this->meshes[i].materialIndex].textures[t].type,this->materials[this->meshes[i].materialIndex].textures[t].id);
+			}
+		}else {
+			glUniform1i(program->getUniformLocation("isTexture"),false);
+			glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_DIFFUSE]),1,this->materials[this->meshes[i].materialIndex].diffuse);
+			glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_EMISSIVE]),1,this->materials[this->meshes[i].materialIndex].emissive);
+		}		
 		if(PBR){
 			glUniform1f(program->getUniformLocation(materialTypeMap[MAT_METALLIC]),this->materials[this->meshes[i].materialIndex].metallic);
 			glUniform1f(program->getUniformLocation(materialTypeMap[MAT_ROUGHNESS]),this->materials[this->meshes[i].materialIndex].roughness);
@@ -776,5 +770,14 @@ void glmodel::draw(glshaderprogram *program,int instance) {
 
 		glBindVertexArray(this->meshes[i].vao);
 		glDrawElementsInstanced(GL_TRIANGLES, this->meshes[i].trianglePointCount, GL_UNSIGNED_INT, 0, instance);
+		// unbind textures
+		glBindTextureUnit(0,0);
+		glBindTextureUnit(1,0);
+		glBindTextureUnit(2,0);
+		glBindTextureUnit(3,0);
+		glBindTextureUnit(4,0);
+		glBindTextureUnit(5,0);
+		glBindTextureUnit(6,0);
+		glBindTextureUnit(7,0);
 	}
 }

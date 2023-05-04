@@ -69,6 +69,7 @@ uniform int numOfPoints;
 uniform int numOfSpots;
 uniform bool specularGloss;
 uniform bool IBL;
+uniform bool isTexture;
 
 layout (binding = 0)uniform sampler2D texture_diffuse;
 layout (binding = 1)uniform sampler2D texture_normal;
@@ -154,10 +155,19 @@ float getSpotAngleAttenuation(vec3 l, vec3 light_dir,float inner_angle,float out
 
 vec3 indirectLightingDiffuse(vec3 N, vec3 P)
 {
-    vec3 albedo = texture(texture_diffuse,fs_in.Tex).rgb + material.diffuse;
-    float metallic = specularGloss ? max(max(texture(texture_specular,fs_in.Tex).r,texture(texture_specular,fs_in.Tex).g),texture(texture_specular,fs_in.Tex).b) : texture(texture_metalic,fs_in.Tex).r * material.metallic;
-    float roughness = specularGloss ? 1.0 - texture(texture_glossiness,fs_in.Tex).r : texture(texture_roughness,fs_in.Tex).r * material.roughness;
-    N = getNormalFromMap();
+    vec3 albedo = isTexture ? texture(texture_diffuse,fs_in.Tex).rgb : material.diffuse;
+    float metallic = material.metallic;
+    if(isTexture)
+    {
+       metallic = specularGloss ? max(max(texture(texture_specular,fs_in.Tex).r,texture(texture_specular,fs_in.Tex).g),texture(texture_specular,fs_in.Tex).b) : texture(texture_metalic,fs_in.Tex).r;
+    }
+    float roughness = material.roughness;
+    if(isTexture) 
+    {
+       roughness = specularGloss ? 1.0 - texture(texture_glossiness,fs_in.Tex).r : texture(texture_roughness,fs_in.Tex).r;
+    }
+
+    N = isTexture ? getNormalFromMap() : N;
 
     vec3 w0 = normalize(viewPos - P);
     vec3 r = reflect(-w0, N);
@@ -185,10 +195,19 @@ vec3 indirectLightingDiffuse(vec3 N, vec3 P)
 
 vec3 pbr(BaseLight base, vec3 direction, vec3 N, vec3 P){
 
-    vec3 albedo = texture(texture_diffuse,fs_in.Tex).rgb + material.diffuse;
-    float metallic = specularGloss ? max(max(texture(texture_specular,fs_in.Tex).r,texture(texture_specular,fs_in.Tex).g),texture(texture_specular,fs_in.Tex).b) : texture(texture_metalic,fs_in.Tex).r * material.metallic;
-    float roughness = specularGloss ? 1.0 - texture(texture_glossiness,fs_in.Tex).r : texture(texture_roughness,fs_in.Tex).r * material.roughness;
-    N = getNormalFromMap();
+    vec3 albedo = isTexture ? texture(texture_diffuse,fs_in.Tex).rgb : material.diffuse;
+    float metallic = material.metallic;
+    if(isTexture)
+    {
+       metallic = specularGloss ? max(max(texture(texture_specular,fs_in.Tex).r,texture(texture_specular,fs_in.Tex).g),texture(texture_specular,fs_in.Tex).b) : texture(texture_metalic,fs_in.Tex).r;
+    }
+    float roughness = material.roughness;
+    if(isTexture) 
+    {
+       roughness = specularGloss ? 1.0 - texture(texture_glossiness,fs_in.Tex).r : texture(texture_roughness,fs_in.Tex).r;
+    }
+
+    N = isTexture ? getNormalFromMap() : N;
 
     vec3 w0 = normalize(viewPos - fs_in.P);
     vec3 wi = normalize(direction);
