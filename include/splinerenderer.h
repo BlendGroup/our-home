@@ -29,7 +29,7 @@ private:
 public:
     SplineRenderer(SplineInterpolator *interpolator, const float linspace = 0.01f);
     ~SplineRenderer();
-    void render(const vmath::vec4 color, float scale) const;
+    void render(const vmath::vec4 linecolor, const vmath::vec4 pointcolor, float scale) const;
     void setRenderPoints(bool setting);
     void setRenderControlPoints(bool setting);
     void setRenderControlPolygon(bool setting);

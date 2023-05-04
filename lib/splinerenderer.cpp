@@ -64,53 +64,38 @@ void SplineRenderer::loadGeometry(void)
 
 	/* load a cube to mark points into pipeline */
 	const float verts[] = {
-		1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-
-		1.0f, -1.0f, 1.0f,
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
-
-		1.0f, 1.0f, -1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, -1.0f, -1.0f,
-
-		1.0f, -1.0f, -1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-
-		-1.0f, 1.0f, -1.0f,
-		1.0f, 1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-
-		-1.0f, -1.0f, -1.0f,
-		1.0f, 1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f,
-
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, 1.0f, 1.0f,
-
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, 1.0f,
-
-		1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f,
-		1.0f, 1.0f, 1.0f,
-
-		1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, 1.0f,
-
-		-1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f, 1.0f,
-
-		1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f};
+		0.0f, 1.0f, 0.0f,
+		-1.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 1.0f,
+	
+		0.0f, 1.0f, 0.0f,
+		1.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, -1.0f,
+	
+		0.0f, 1.0f, 0.0f,
+		1.0f, 0.0f, -1.0f,
+		-1.0f, 0.0f, -1.0f,
+	
+		0.0f, 1.0f, 0.0f,
+		-1.0f, 0.0f, -1.0f,
+		-1.0f, 0.0f, 1.0f,
+	
+		0.0f, -1.0f, 0.0f,
+		1.0f, 0.0f, 1.0f,
+		-1.0f, 0.0f, 1.0f,
+	
+		0.0f, -1.0f, 0.0f,
+		1.0f, 0.0f, -1.0f,
+		1.0f, 0.0f, 1.0f,
+	
+		0.0f, -1.0f, 0.0f,
+		-1.0f, 0.0f, -1.0f,
+		1.0f, 0.0f, -1.0f,
+	
+		0.0f, -1.0f, 0.0f,
+		-1.0f, 0.0f, 1.0f,
+		-1.0f, 0.0f, -1.0f,
+	};
 
 	glBindVertexArray(m_vaoPoint);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vboPoint);
@@ -121,11 +106,11 @@ void SplineRenderer::loadGeometry(void)
 	glEnableVertexAttribArray(0);
 }
 
-void SplineRenderer::render(const vec4 color, float scalingFactor) const
+void SplineRenderer::render(const vec4 linecolor, const vec4 pointcolor, float scalingFactor) const
 {
 	m_program->use();
 	glUniformMatrix4fv(0, 1, GL_FALSE, programglobal::perspective * programglobal::currentCamera->matrix());
-	glUniform4fv(1, 1, color);
+	glUniform4fv(1, 1, linecolor);
 	glUniform1i(2, 0); // isPoint = false
 	glBindVertexArray(m_vaoSpline);
 	glDrawArrays(GL_LINE_STRIP, 0, m_nAllPositions);
@@ -133,6 +118,7 @@ void SplineRenderer::render(const vec4 color, float scalingFactor) const
 	if(m_isRenderPoints)
 	{
 		glUniform1i(2, 1); // isPoint = true
+		glUniform4fv(1, 1, pointcolor);
 		glBindVertexArray(m_vaoPoint);
 
 		/** !!! BE CAREFUL WHILE REFACTORING FOR vec3 !!! **/
@@ -142,7 +128,7 @@ void SplineRenderer::render(const vec4 color, float scalingFactor) const
 							programglobal::perspective * programglobal::currentCamera->matrix() *
 								translate(point[0], point[1], point[2]) *
 								scale(scalingFactor));
-			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glDrawArrays(GL_TRIANGLES, 0, 24);
 		}
 	}
 
@@ -158,7 +144,7 @@ void SplineRenderer::render(const vec4 color, float scalingFactor) const
 							programglobal::perspective * programglobal::currentCamera->matrix() *
 								translate(ctrlp[0], ctrlp[1], ctrlp[2]) *
 								scale(scalingFactor));
-			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glDrawArrays(GL_TRIANGLES, 0, 24);
 		}
 	}
 
