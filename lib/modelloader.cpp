@@ -68,8 +68,7 @@ vector<texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, textur
     for(size_t i = 0; i < mat->GetTextureCount(type); i++){
         aiString str;
         mat->GetTexture(type, i, &str);
-		//cout<<directory + "/"<<str.data<<endl;
-        texture tex;
+		texture tex;
         tex.id = createTexture2D(directory + "/" + str.C_Str(),GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
         tex.type = typeString;
         textures.push_back(tex);
@@ -78,12 +77,9 @@ vector<texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, textur
 }
 
 texture loadPBRTextures(textureTypes typeString,string directory,string matName) {
-	//cout<<directory + "/" + textureTypeMap[typeString]+".png"<<endl;
-    texture tex;
-	//cout<<directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".png"<<endl;
-    tex.id = createTexture2D(directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".jpg",GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
+	texture tex;
+	tex.id = createTexture2D(directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".jpg",GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
     tex.type = typeString;
-	//cout<<"id"<<tex.id<<endl;
 	return tex;
 }
 
@@ -343,7 +339,6 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 
 			aiString name;
 			mat->Get(AI_MATKEY_NAME,name);
-			//cout<<name.data<<endl;
 			aiColor3D color;			
 			mat->Get(AI_MATKEY_COLOR_AMBIENT,color);
 			temp.ambient[0] = color[0];
@@ -394,27 +389,6 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 	if(scene->HasAnimations()) {
 		createAnimator(scene, this);
 	}
-	cout<<this->meshes.size()<<endl;
-/*
-	cout<<this->animator.size()<<endl;
-	for(auto a : this->animator){
-		cout<<a.duration<<endl;
-		cout<<a.ticksPerSecond<<endl;
-		cout<<a.bones.size()<<endl;
-		cout<<a.rootNode.name<<endl<<endl;
-	}
-
-	cout<<this->materials.size()<<endl;
-	for(auto m : materials)
-	{
-		cout<<"ambient : "<<m.ambient[0]<<m.ambient[1]<<m.ambient[2]<<endl;
-		cout<<"diffuse : "<<m.diffuse[0]<<m.diffuse[1]<<m.diffuse[2]<<endl;
-		cout<<"specular : "<<m.specular[0]<<m.specular[1]<<m.specular[2]<<endl;
-		cout<<"emissive : "<<m.emissive[0]<<m.emissive[1]<<m.emissive[2]<<endl;
-		cout<<"shininess : "<<m.shininess<<endl;
-		cout<<"opacity : "<<m.opacity<<endl;
-	}
-	*/
 	importer.FreeScene();
 }
 void calculateBoneTransformBlended(glmodel* model, 
@@ -719,7 +693,6 @@ void glmodel::draw(glshaderprogram *program,int instance) {
 		// 	if(this->materials[this->meshes[i].materialIndex].textures[t].id > 0)
 		// 	{
 		// 		glActiveTexture(GL_TEXTURE0 + t);
-		// 		//cout<<t<<" "<<this->materials[this->meshes[i].materialIndex].textures[t].id<<" "<<textureTypeMap[this->materials[this->meshes[i].materialIndex].textures[t].type]<<endl;				
 		// 		glUniform1i(program->getUniformLocation(textureTypeMap[this->materials[this->meshes[i].materialIndex].textures[t].type]),t);
 		// 		glBindTexture(GL_TEXTURE_2D, this->materials[this->meshes[i].materialIndex].textures[t].id);
 		// 	}

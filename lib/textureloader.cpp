@@ -22,9 +22,6 @@ GLuint createTexture2D(string filename, GLint minFilter, GLint magFilter, GLint 
 		glBindTexture(GL_TEXTURE_2D, texId);
 		unsigned char* data = stbi_load(filename.c_str(), &w, &h, &channels, 0);
 		GLenum format;
-
-		// cout<<filename<<channels<<endl;
-
 		if(channels == 1)
 			format = GL_RED;
 		else if(channels == 3)

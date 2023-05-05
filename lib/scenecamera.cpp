@@ -19,6 +19,8 @@ sceneCamera::sceneCamera(const vector<vec3> &positionKeyFrames, const vector<vec
         return;
     }
 
+	this->frontKeyFrames = frontKeyFrames;
+	this->positionKeyFrames = positionKeyFrames;
     m_bspPositions = new BsplineInterpolator(positionKeyFrames);
     m_bspFront = new BsplineInterpolator(frontKeyFrames);
 	this->t = 0.0f;

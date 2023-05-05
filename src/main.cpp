@@ -7,6 +7,7 @@
 #include<vmath.h>
 #include<glshaderloader.h>
 #include<scenecamera.h>
+#define CAMERA_RIG_SCALER 0.01
 #include<scenecamerarig.h>
 #include<debugcamera.h>
 #include<hdr.h>
@@ -59,6 +60,7 @@ void setupSceneCamera(void) {
 		scenecamerarig->setRenderFront(true);
 		scenecamerarig->setRenderFrontPoints(true);
 		scenecamerarig->setRenderPathToFront(true);
+		scenecamerarig->setScalingFactor(0.01f);
 #endif
 
 		currentSceneCamera = scenecamera[0];
@@ -121,20 +123,12 @@ void render(glwindow* window) {
 
 void update(void) {
 	if(isAnimating) {
-#ifdef DEBUG
-		scenecamerarig->updateT(0.001f);
-#else
 		currentSceneCamera->updateT(0.001f);
-#endif
 	}
 }
 
 void resetCamera(void) {
-#ifdef DEBUG
-		scenecamerarig->resetT();
-#else
 		currentSceneCamera->resetT();
-#endif
 }
 
 void keyboard(glwindow* window, int key) {
@@ -163,6 +157,9 @@ void keyboard(glwindow* window, int key) {
 	}
 	hdr->keyboardfunc(key);
 	debugcamera->keyboardFunc(key);
+#ifdef DEBUG
+	scenecamerarig->keyboardfunc(key);
+#endif
 }
 
 void mouse(glwindow* window, int button, int action, int x, int y) {
