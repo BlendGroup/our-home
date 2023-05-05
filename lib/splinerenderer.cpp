@@ -106,7 +106,7 @@ void SplineRenderer::loadGeometry(void)
 	glEnableVertexAttribArray(0);
 }
 
-void SplineRenderer::render(const vec4 linecolor, const vec4 pointcolor, float scalingFactor) const
+void SplineRenderer::render(const vec4 linecolor, const vec4 pointcolor, const vec4 selectedpointcolor, int selected, float scalingFactor) const
 {
 	m_program->use();
 	glUniformMatrix4fv(0, 1, GL_FALSE, programglobal::perspective * programglobal::currentCamera->matrix());
@@ -118,15 +118,15 @@ void SplineRenderer::render(const vec4 linecolor, const vec4 pointcolor, float s
 	if(m_isRenderPoints)
 	{
 		glUniform1i(2, 1); // isPoint = true
-		glUniform4fv(1, 1, pointcolor);
 		glBindVertexArray(m_vaoPoint);
 
 		/** !!! BE CAREFUL WHILE REFACTORING FOR vec3 !!! **/
-		for (vec3 point : m_points)
+		for (int i = 0; i < m_points.size(); i++)
 		{
+			glUniform4fv(1, 1, (i == selected) ? selectedpointcolor : pointcolor);
 			glUniformMatrix4fv(0, 1, GL_FALSE,
 							programglobal::perspective * programglobal::currentCamera->matrix() *
-								translate(point[0], point[1], point[2]) *
+								translate(m_points[i][0], m_points[i][1], m_points[i][2]) *
 								scale(scalingFactor));
 			glDrawArrays(GL_TRIANGLES, 0, 24);
 		}

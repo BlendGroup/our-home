@@ -7,7 +7,9 @@ using namespace vmath;
 #define PATH_LINE_COLOR vec4(0.0f, 0.0f, 0.0f, 1.0f)
 #define FRONT_LINE_COLOR vec4(1.0f, 1.0f, 1.0f, 1.0f)
 #define PATH_POINT_COLOR vec4(0.0f, 1.0f, 0.0f, 1.0f)
-#define FRONT_POINT_COLOR vec4(0.0f, 0.0f, 1.0f, 1.0f)
+#define SELECTED_PATH_POINT_COLOR vec4(1.0f, 1.0f, 0.0f, 1.0f)
+#define FRONT_POINT_COLOR vec4(0.0f, 0.0f, 1.0f, 0.0f)
+#define SELECTED_FRONT_POINT_COLOR vec4(0.0f, 1.0f, 1.0f, 1.0f)
 
 /*********************************************************************/
 /*                              SceneCameraRig                       */
@@ -144,9 +146,9 @@ void sceneCameraRig::loadGeometry(void)
 void sceneCameraRig::render() const
 {
     if (isRenderPath)
-        pathRenderer->render(PATH_LINE_COLOR, PATH_POINT_COLOR, this->scalingFactor);
+        pathRenderer->render(PATH_LINE_COLOR, PATH_POINT_COLOR, SELECTED_PATH_POINT_COLOR, 1, this->scalingFactor);
     if (isRenderFront)
-        frontRenderer->render(FRONT_LINE_COLOR, FRONT_POINT_COLOR, this->scalingFactor);
+        frontRenderer->render(FRONT_LINE_COLOR, FRONT_POINT_COLOR, SELECTED_FRONT_POINT_COLOR, 1, this->scalingFactor);
 
     if (isRenderPathToFront)
     {
