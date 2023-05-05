@@ -38,11 +38,11 @@ static bool isAnimating = false;
 
 #define SHOW_TEST_SCENE 		0
 #define SHOW_MODEL_SCENE 		0
-#define SHOW_CAMERA_SCENE 		0
+#define SHOW_CAMERA_SCENE 		1
 #define SHOW_PBR_SCENE			0
 #define SHOW_LAB_SCENE			0
-#define SHOW_CAMERA_RIG			0
-#define SHOW_TERRAIN_SCENE 		1
+#define SHOW_CAMERA_RIG			1
+#define SHOW_TERRAIN_SCENE 		0
 #define SHOW_CUBEMAP_SCENE		0
 #define SHOW_NOISE_SCENE 		0
 
@@ -50,6 +50,9 @@ mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
 camera* programglobal::currentCamera;
 opensimplexnoise* programglobal::noiseGenerator;
+
+extern vector<vec3> positionKeyFrames;
+extern vector<vec3> frontKeyFrames;
 
 void setupProgram(void) {
 	try {
@@ -89,9 +92,10 @@ void setupProgram(void) {
 void setupSceneCamera(void) {
 	try {
 		debugcamera = new debugCamera(vec3(0.0f, 5.0f, 5.0f), -90.0f, 0.0f);
-		setupSceneCameraTestCamera(scenecamera);
 #if SHOW_CAMERA_RIG
-		setupSceneCameraRigTestCamera(scenecamera, scenecamerarig);
+		setupSceneCameraRigTestCamera(scenecamerarig);
+#else
+		setupSceneCameraTestCamera(scenecamera);
 #endif // SHOW_CAMERA_RIG
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -141,8 +145,12 @@ void init(void) {
 
 void render(glwindow* window) {
 	try {
+#if SHOW_CAMERA_RIG
+		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamerarig->getCamera());
+		scenecamerarig->setRenderPathToFront(isDebugCameraOn);
+#else
 		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamera);
-
+#endif
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
 			glViewport(0, 0, hdr->getSize(), hdr->getSize());
@@ -222,6 +230,9 @@ void keyboard(glwindow* window, int key) {
 	}
 	hdr->keyboardfunc(key);
 	debugcamera->keyboardFunc(key);
+#if SHOW_CAMERA_RIG
+	scenecamerarig->keyboardfunc(key);
+#endif
 #if SHOW_TERRAIN_SCENE
 	keyboardFuncTestTerrain(key);
 #endif

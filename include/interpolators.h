@@ -15,8 +15,8 @@ class SplineInterpolator
 {
 public:
     virtual vmath::vec3 interpolate(const float t) = 0;
-    virtual const std::vector<vmath::vec3> *getPoints(void) = 0;
-    virtual const std::vector<vmath::vec3> *getControlPoints(void) = 0;
+    virtual const std::vector<vmath::vec3> &getPoints(void) = 0;
+    virtual const std::vector<vmath::vec3> &getControlPoints(void) = 0;
 };
 
 class CubicBezierInterpolator: public SplineInterpolator
@@ -34,28 +34,24 @@ public:
     ~CubicBezierInterpolator();
     float getDistanceOnSpline(const float t);
     vmath::vec3 interpolate(const float t) override;
-    const std::vector<vmath::vec3> *getPoints(void) override;
-    const std::vector<vmath::vec3> *getControlPoints(void) override;
+    const std::vector<vmath::vec3> &getPoints(void) override;
+    const std::vector<vmath::vec3> &getControlPoints(void) override;
 };
 
 class BsplineInterpolator: public SplineInterpolator
 {
 private:
-    Eigen::MatrixX3f *m_points;
-    Eigen::MatrixX3f *m_bspCtrlps;
     std::vector<vmath::vec3> m_pointsVec;
     std::vector<vmath::vec3> m_bspCtrlpsVec;
     CubicBezierInterpolator *m_cubicBezierInterpolator;
     int m_nPoints;
-
-    Eigen::MatrixX3f getCubicBezierControlPoints(void);
 public:
     BsplineInterpolator(const std::vector<vmath::vec3> &points);
     ~BsplineInterpolator();
     float getDistanceOnSpline(const float t);
     vmath::vec3 interpolate(const float t) override;
-    const std::vector<vmath::vec3> *getPoints(void) override;
-    const std::vector<vmath::vec3> *getControlPoints(void) override;
+    const std::vector<vmath::vec3> &getPoints(void) override;
+    const std::vector<vmath::vec3> &getControlPoints(void) override;
 };
 
 #endif // __INTERPOLATORS_H__
