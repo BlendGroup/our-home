@@ -147,6 +147,7 @@ void render(glwindow* window) {
 	try {
 #if SHOW_CAMERA_RIG
 		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamerarig->getCamera());
+		scenecamerarig->setRenderPathToFront(isDebugCameraOn);
 #else
 		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamera);
 #endif

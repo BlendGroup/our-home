@@ -21,11 +21,12 @@ private:
     GLuint vaoPoint, vaoPathToFront;
     GLuint vboPoint, vboPathToFront;
     bool isRenderPath, isRenderFront, isRenderPathToFront, isRenderPathPoints, isRenderFrontPoints;
-    float t;
-	float scalingFactor;
+    float scalingFactor;
 	std::vector<vmath::vec3> positionKeyFrames;
 	std::vector<vmath::vec3> frontKeyFrames;
-    
+    int selectedPathPoint;
+    int selectedFrontPoint;
+
 	void loadGeometry(void);
 
 public:
