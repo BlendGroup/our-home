@@ -6,21 +6,21 @@ using namespace vmath;
 /*********************************************************************/
 /*                              SceneCamera                          */
 /*********************************************************************/
-sceneCamera::sceneCamera(const PathDescriptor *pdesc)
+sceneCamera::sceneCamera(const vector<vec3> &positionKeyFrames, const vector<vec3> &frontKeyFrames)
 {
-    if (pdesc->positionKeyFrames.size() <= 0)
+    if (positionKeyFrames.size() <= 0)
     {
         throwErr("SceneCamera cannot take empty positionKeyFrames vector");
         return;
     }
-    if (pdesc->frontKeyFrames.size() <= 0)
+    if (frontKeyFrames.size() <= 0)
     {
         throwErr("SceneCamera cannot take empty frontKeyFrames vector");
         return;
     }
 
-    m_bspPositions = new BsplineInterpolator(pdesc->positionKeyFrames);
-    m_bspFront = new BsplineInterpolator(pdesc->frontKeyFrames);
+    m_bspPositions = new BsplineInterpolator(positionKeyFrames);
+    m_bspFront = new BsplineInterpolator(frontKeyFrames);
 	this->t = 0.0f;
 }
 
@@ -61,6 +61,25 @@ sceneCamera::~sceneCamera()
         delete m_bspPositions;
         m_bspPositions = NULL;
     }
+}
+
+ostream& operator<<(ostream &out, const sceneCamera &t) {
+	// out<<"Position: {\n";
+	// for(vec3 pos : t.positionKeyFrames) {
+	// 	out<<"\t"<<pos<<"\n";
+	// }
+	// out<<"}\n";
+	// out<<"Front: {\n";
+	// for(vec3 front : t.frontKeyFrames) {
+	// 	out<<"\t"<<front<<"\n";
+	// }
+	// out<<"}";
+	return out;
+}
+
+ostream& operator<<(ostream &out, const sceneCamera *t) {
+	out<<*t;
+	return out;
 }
 
 /********************************** EOF ******************************/
