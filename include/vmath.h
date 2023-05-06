@@ -240,11 +240,11 @@ public:
     }
 
 	inline friend std::ostream& operator<<(std::ostream& out, const vecN &that) {
-		out<<"[ ";
+		out<<"vec3(";
 		for(int n = 0; n < len; n++) {
-			out<<that[n]<<" ";
+			out<<that[n]<<"f, ";
 		}
-		out<<"]";
+		out<<"\b\b)";
 		return out;
 	}
 

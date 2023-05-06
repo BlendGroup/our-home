@@ -83,10 +83,10 @@ GLfloat HDR::getExposure() {
 
 void HDR::keyboardfunc(int key) {
 	switch(key) {
-	case XK_e:
+	case XK_z:
 		this->updateExposure(-0.1f);
 		break;
-	case XK_r:
+	case XK_x:
 		this->updateExposure(0.1f);
 		break;
 	}

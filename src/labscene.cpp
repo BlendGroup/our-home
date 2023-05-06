@@ -20,21 +20,29 @@ void labscene::setupProgram() {
 }
 
 sceneCamera* labscene::setupCamera() {
-	vector<vec3> positionKeyFrames;
-	positionKeyFrames.push_back(vec3(-1.72f, 0.0f, -0.9f));
-	positionKeyFrames.push_back(vec3(-1.72f, 0.0f, -0.6f));
-	positionKeyFrames.push_back(vec3(-1.52f, -0.1f, -0.6f));
-	positionKeyFrames.push_back(vec3(-1.32f, -0.3f, -1.6f));
-	positionKeyFrames.push_back(vec3(-0.82f, -0.3f, -2.4f));
-	positionKeyFrames.push_back(vec3(-0.12f, -0.3f, -1.6f));
+	vector<vec3> positionKeyFrames = {
+		vec3(-1.96f, -0.22f, -1.11f),
+		vec3(-1.82f, -0.08f, -0.91f),
+		vec3(-1.71f, -0.12f, -1.07f),
+		vec3(-1.63f, -0.3f, -1.7f),
+		vec3(-1.15f, -0.05f, -1.81f),
+		vec3(-0.82f, 0.28f, -1.85f),
+		vec3(-1.17f, 0.23f, -1.43f),
+		vec3(-2.9f, 0.0f, -0.79f),
+		vec3(-3.35f, 0.0f, -0.7f),
+	};
     
-	vector<vec3> frontKeyFrames;
-	frontKeyFrames.push_back(vec3(-1.72f, -0.35f, -1.9f));
-    frontKeyFrames.push_back(vec3(-1.72f, -0.3f, -1.6f));
-    frontKeyFrames.push_back(vec3(-1.52f, -0.4f, -1.6f));
-    frontKeyFrames.push_back(vec3(-0.82f, -0.4f, -1.6f));
-    frontKeyFrames.push_back(vec3(-0.82f, -0.4f, -1.6f));
-    frontKeyFrames.push_back(vec3(1.93f, -0.42f, -0.29f));
+	vector<vec3> frontKeyFrames = {
+		vec3(-1.96f, -0.35f, -1.65f),
+		vec3(-1.74f, -0.3f, -1.29f),
+		vec3(-1.38f, -0.47f, -1.48f),
+		vec3(-1.26f, -0.4f, -1.5f),
+		vec3(-0.8f, -0.28f, -1.23f),
+		vec3(-0.47f, -0.28f, -0.73f),
+		vec3(-1.67f, -0.32f, 0.0f),
+		vec3(-3.07f, -0.14f, -0.06f),
+		vec3(-3.36f, -0.03f, -0.09f),
+	};
 
 	return new sceneCamera(positionKeyFrames, frontKeyFrames);
 }

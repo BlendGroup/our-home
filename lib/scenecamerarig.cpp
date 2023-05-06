@@ -15,9 +15,11 @@ using namespace vmath;
 /*                              SceneCameraRig                       */
 /*********************************************************************/
 sceneCameraRig::sceneCameraRig(sceneCamera* scenecam)
-    : isRenderPath(true),
+    : isRenderPath(false),
       isRenderFront(false),
       isRenderPathToFront(false),
+	  isRenderPathPoints(false),
+	  isRenderFrontPoints(false),
       scalingFactor(1.0f),
 	  selectedPathPoint(0),
 	  selectedFrontPoint(0)
@@ -295,7 +297,7 @@ void sceneCameraRig::keyboardfunc(int key) {
 		break;
 	//Add/Remove Path Points
 	case XK_bracketleft:
-		this->mountCamera->positionKeyFrames.insert(this->mountCamera->positionKeyFrames.begin() + selectedPathPoint, vec3(0.0f, 0.0f, 0.0f));
+		this->mountCamera->positionKeyFrames.insert(this->mountCamera->positionKeyFrames.begin() + selectedPathPoint + 1, vec3(0.0f, 0.0f, 0.0f));
 		refreshPos = true;
 		break;
 	case XK_bracketright:
@@ -305,7 +307,7 @@ void sceneCameraRig::keyboardfunc(int key) {
 		break;
 	//Add/Remove Front Points
 	case XK_comma:
-		this->mountCamera->frontKeyFrames.insert(this->mountCamera->frontKeyFrames.begin() + selectedFrontPoint, vec3(0.0f, 0.0f, 0.0f));
+		this->mountCamera->frontKeyFrames.insert(this->mountCamera->frontKeyFrames.begin() + selectedFrontPoint + 1, vec3(0.0f, 0.0f, 0.0f));
 		refreshFront = true;
 		break;
 	case XK_period:

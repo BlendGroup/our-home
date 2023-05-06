@@ -123,7 +123,7 @@ void render(glwindow* window) {
 
 void update(void) {
 	if(isAnimating) {
-		currentSceneCamera->updateT(0.001f);
+		currentSceneCamera->updateT(0.0001f);
 	}
 }
 
@@ -134,6 +134,7 @@ void resetCamera(void) {
 void keyboard(glwindow* window, int key) {
 	switch(key) {
 	case XK_Escape:
+		cout<<currentSceneCamera<<endl;
 		window->close();
 		break;
 	case XK_F1:
@@ -152,7 +153,13 @@ void keyboard(glwindow* window, int key) {
 		isAnimating = !isAnimating;
 		break;
 	case XK_Tab:
-		cout<<programglobal::currentCamera->position()<<endl;
+		cout<<currentSceneCamera<<endl;
+		break;
+	case XK_Left:
+		currentSceneCamera->updateT(-0.001f);
+		break;
+	case XK_Right:
+		currentSceneCamera->updateT(0.001f);
 		break;
 	}
 	hdr->keyboardfunc(key);
