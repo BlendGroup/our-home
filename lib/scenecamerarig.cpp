@@ -193,7 +193,7 @@ void sceneCameraRig::setRenderPath(bool setting)
 }
 
 void sceneCameraRig::setRenderPathPoints(bool setting)
-{	this->isRenderPathPoints;
+{	this->isRenderPathPoints = setting;
     pathRenderer->setRenderPoints(setting);
 }
 
@@ -204,7 +204,7 @@ void sceneCameraRig::setRenderFront(bool setting)
 
 void sceneCameraRig::setRenderFrontPoints(bool setting)
 {
-	this->isRenderFrontPoints;
+	this->isRenderFrontPoints = setting;
     frontRenderer->setRenderPoints(setting);
 }
 
@@ -292,6 +292,26 @@ void sceneCameraRig::keyboardfunc(int key) {
 	case XK_u:
 		this->mountCamera->positionKeyFrames[selectedPathPoint][1] -= CAMERA_RIG_SCALER;
 		refreshPos = true;
+		break;
+	//Add/Remove Path Points
+	case XK_bracketleft:
+		this->mountCamera->positionKeyFrames.insert(this->mountCamera->positionKeyFrames.begin() + selectedPathPoint, vec3(0.0f, 0.0f, 0.0f));
+		refreshPos = true;
+		break;
+	case XK_bracketright:
+		this->mountCamera->positionKeyFrames.erase(this->mountCamera->positionKeyFrames.begin() + selectedPathPoint);
+		selectedPathPoint = selectedPathPoint % this->mountCamera->positionKeyFrames.size();
+		refreshPos = true;
+		break;
+	//Add/Remove Front Points
+	case XK_comma:
+		this->mountCamera->frontKeyFrames.insert(this->mountCamera->frontKeyFrames.begin() + selectedFrontPoint, vec3(0.0f, 0.0f, 0.0f));
+		refreshFront = true;
+		break;
+	case XK_period:
+		this->mountCamera->frontKeyFrames.erase(this->mountCamera->frontKeyFrames.begin() + selectedFrontPoint);
+		selectedFrontPoint = selectedFrontPoint % this->mountCamera->frontKeyFrames.size();
+		refreshFront = true;
 		break;
 	}
 
