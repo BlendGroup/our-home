@@ -73,13 +73,9 @@ uniform bool isTexture;
 
 layout (binding = 0)uniform sampler2D texture_diffuse;
 layout (binding = 1)uniform sampler2D texture_normal;
-layout (binding = 2)uniform sampler2D texture_metalic;
-layout (binding = 3)uniform sampler2D texture_roughness;
-layout (binding = 4)uniform sampler2D texture_specular;
-layout (binding = 5)uniform sampler2D texture_glossiness;
-layout (binding = 6)uniform sampler2D texture_ao;
-layout (binding = 7)uniform sampler2D texture_emissive;
-
+layout (binding = 2)uniform sampler2D texture_PBR;
+layout (binding = 3)uniform sampler2D texture_specular;
+layout (binding = 4)uniform sampler2D texture_emissive;
 layout (binding = 8)uniform samplerCube texture_irradiance;
 layout (binding = 9)uniform samplerCube texture_prefilter;
 layout (binding = 10)uniform sampler2D texture_brdf_lut;
@@ -159,12 +155,18 @@ vec3 indirectLightingDiffuse(vec3 N, vec3 P)
     float metallic = material.metallic;
     if(isTexture)
     {
-       metallic = specularGloss ? max(max(texture(texture_specular,fs_in.Tex).r,texture(texture_specular,fs_in.Tex).g),texture(texture_specular,fs_in.Tex).b) : texture(texture_metalic,fs_in.Tex).r;
+       metallic = specularGloss ? max(max(texture(texture_specular,fs_in.Tex).r,texture(texture_specular,fs_in.Tex).g),texture(texture_specular,fs_in.Tex).b) : texture(texture_PBR,fs_in.Tex).r;
     }
     float roughness = material.roughness;
     if(isTexture) 
     {
-       roughness = specularGloss ? 1.0 - texture(texture_glossiness,fs_in.Tex).r : texture(texture_roughness,fs_in.Tex).r;
+       roughness = specularGloss ? 1.0 - texture(texture_PBR,fs_in.Tex).r : texture(texture_PBR,fs_in.Tex).g;
+    }
+
+    float ao = 1.0;
+    if(isTexture) 
+    {
+       ao = specularGloss ? 1.0 - texture(texture_PBR,fs_in.Tex).g : texture(texture_PBR,fs_in.Tex).b;
     }
 
     N = isTexture ? getNormalFromMap() : N;
@@ -190,7 +192,7 @@ vec3 indirectLightingDiffuse(vec3 N, vec3 P)
     vec3 specular = prefilter_color * (F * brdf.x + brdf.y);
 
     //total indirect lighting
-    return (kd * diffuse + specular); // add ao later    
+    return (kd * diffuse + specular) * ao;
 }
 
 vec3 pbr(BaseLight base, vec3 direction, vec3 N, vec3 P){
@@ -199,12 +201,12 @@ vec3 pbr(BaseLight base, vec3 direction, vec3 N, vec3 P){
     float metallic = material.metallic;
     if(isTexture)
     {
-       metallic = specularGloss ? max(max(texture(texture_specular,fs_in.Tex).r,texture(texture_specular,fs_in.Tex).g),texture(texture_specular,fs_in.Tex).b) : texture(texture_metalic,fs_in.Tex).r;
+       metallic = specularGloss ? max(max(texture(texture_specular,fs_in.Tex).r,texture(texture_specular,fs_in.Tex).g),texture(texture_specular,fs_in.Tex).b) : texture(texture_PBR,fs_in.Tex).r;
     }
     float roughness = material.roughness;
     if(isTexture) 
     {
-       roughness = specularGloss ? 1.0 - texture(texture_glossiness,fs_in.Tex).r : texture(texture_roughness,fs_in.Tex).r;
+       roughness = specularGloss ? 1.0 - texture(texture_PBR,fs_in.Tex).r : texture(texture_PBR,fs_in.Tex).g;
     }
 
     N = isTexture ? getNormalFromMap() : N;

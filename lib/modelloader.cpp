@@ -38,11 +38,8 @@ unordered_map<textureTypes, string> textureTypeMap = {
 	{TEX_DIFFUSE, "texture_diffuse"},
 	{TEX_NORMAL, "texture_normal"},
 	{TEX_SPECULAR, "texture_specular"},
-	{TEX_AO, "texture_ao"},
-	{TEX_ROUGHNESS, "texture_roughness"},
-	{TEX_METALIC, "texture_metalic"},
-	{TEX_GLOSSINESS,"texture_glossiness"},
-	{TEX_EMISSIVE,"texture_emissive"}
+	{TEX_EMISSIVE,"texture_emissive"},
+	{TEX_PBR,"texture_PBR"}
 };
 
 unordered_map<materialTypes, string> materialTypeMap = {
@@ -387,19 +384,10 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 				tempTex = loadPBRTextures(TEX_NORMAL, path.substr(0, path.find_last_of('/')),name.data);
 				if(tempTex.id != 0) temp.textures.push_back(tempTex);
 
-				tempTex = loadPBRTextures(TEX_METALIC, path.substr(0, path.find_last_of('/')),name.data);
-				if(tempTex.id != 0) temp.textures.push_back(tempTex);
-
-				tempTex = loadPBRTextures(TEX_ROUGHNESS, path.substr(0, path.find_last_of('/')),name.data);
-				if(tempTex.id != 0) temp.textures.push_back(tempTex);
-
-				tempTex = loadPBRTextures(TEX_AO, path.substr(0, path.find_last_of('/')),name.data);
+				tempTex = loadPBRTextures(TEX_PBR, path.substr(0, path.find_last_of('/')),name.data);
 				if(tempTex.id != 0) temp.textures.push_back(tempTex);
 
 				tempTex = loadPBRTextures(TEX_SPECULAR, path.substr(0, path.find_last_of('/')),name.data);
-				if(tempTex.id != 0) temp.textures.push_back(tempTex);
-
-				tempTex = loadPBRTextures(TEX_GLOSSINESS, path.substr(0, path.find_last_of('/')),name.data);
 				if(tempTex.id != 0) temp.textures.push_back(tempTex);
 
 				tempTex = loadPBRTextures(TEX_EMISSIVE, path.substr(0, path.find_last_of('/')),name.data);

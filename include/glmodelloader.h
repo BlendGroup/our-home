@@ -12,12 +12,9 @@
 enum textureTypes {
 	TEX_DIFFUSE = 0,
 	TEX_NORMAL = 1,
-	TEX_METALIC = 2,
-	TEX_ROUGHNESS = 3,
-	TEX_SPECULAR = 4,
-	TEX_GLOSSINESS = 5,
-	TEX_AO = 6,
-	TEX_EMISSIVE = 7
+	TEX_PBR = 2,
+	TEX_SPECULAR = 3,
+	TEX_EMISSIVE = 4,
 };
 
 enum materialTypes {
@@ -121,6 +118,4 @@ public:
 	void update(float dt, int baseAnimation , int layeredAnimation = 0, float blendFactor = 0.0f );
 	void draw(glshaderprogram* program,int instance = 1);
 };
-
-
 #endif
