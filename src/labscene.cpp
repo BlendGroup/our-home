@@ -1,3 +1,4 @@
+#define DEBUG
 #include<scenes/lab.h>
 #include<glmodelloader.h>
 #include<glshaderloader.h>
@@ -5,6 +6,8 @@
 #include<global.h>
 #include<vmath.h>
 #include<scenecamera.h>
+#include<modelplacer.h>
+#include<X11/keysym.h>
 
 using namespace std;
 using namespace vmath;
@@ -13,6 +16,10 @@ static glmodel* modelLab;
 static glmodel* modelMug;
 static glmodel* modelRobot;
 static glshaderprogram* renderModelDebug;
+
+#ifdef DEBUG
+static modelplacer* robotPlacer;
+#endif
 
 void labscene::setupProgram() {
 	//Debug Program/////////////////
@@ -52,6 +59,9 @@ void labscene::init() {
 	modelLab = new glmodel("resources/models/spaceship/SpaceLab.fbx", 0, false);
 	modelMug = new glmodel("resources/models/mug/mug.glb", 0, false);
 	modelRobot = new glmodel("resources/models/robot/robot.fbx", 0, false);
+#ifdef DEBUG
+	robotPlacer = new modelplacer(vec3(0.115f, -1.067f, 0.611f), vec3(0.0f, 0.0f, 0.0f), 0.042f);
+#endif
 }
 
 void labscene::render() {
@@ -62,11 +72,19 @@ void labscene::render() {
 	modelLab->draw(renderModelDebug);
 	glUniformMatrix4fv(renderModelDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(-1.3f,-0.41f,-1.5f) * scale(0.08f,0.08f,0.08f));
 	modelMug->draw(renderModelDebug);
-	glUniformMatrix4fv(renderModelDebug->getUniformLocation("mMat"), 1, GL_FALSE, mat4::identity());
+	glUniformMatrix4fv(renderModelDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(1.705f, -1.067f, -0.179999f) * rotate(-58f, 0.0f, 1.0f, 0.0f) * scale(0.042f));
 	modelRobot->draw(renderModelDebug);
 }
 
 void labscene::uninit() {
 	delete modelLab;
 	delete modelMug;
+	delete modelRobot;
+}
+
+void labscene::keyboardfunc(int key) {
+	robotPlacer->keyboardfunc(key);
+	if(key == XK_Tab) {
+		cout<<robotPlacer<<endl;
+	}
 }

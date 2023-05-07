@@ -31,6 +31,7 @@ static debugCamera* debugcamera;
 static sceneCamera* currentSceneCamera;
 static bool isDebugCameraOn = true;
 static bool isAnimating = false;
+static bool isSceneCameraEditing = false;
 static basescene* currentScene;
 static labscene* labScene;
 
@@ -165,7 +166,11 @@ void keyboard(glwindow* window, int key) {
 	hdr->keyboardfunc(key);
 	debugcamera->keyboardFunc(key);
 #ifdef DEBUG
-	scenecamerarig->keyboardfunc(key);
+	if(isSceneCameraEditing) {
+		scenecamerarig->keyboardfunc(key);
+	} else {
+		currentScene->keyboardfunc(key);
+	}
 #endif
 }
 

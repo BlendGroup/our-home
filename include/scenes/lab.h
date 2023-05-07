@@ -11,6 +11,7 @@ public:
 	void init() override;
 	void render() override;
 	void uninit() override;
+	void keyboardfunc(int key) override;
 };
 
 #endif

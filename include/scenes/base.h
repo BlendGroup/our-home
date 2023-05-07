@@ -10,6 +10,7 @@ public:
 	virtual void init() = 0;
 	virtual void render() = 0;
 	virtual void uninit() = 0;
+	virtual void keyboardfunc(int key) = 0;
 };
 
 #endif
