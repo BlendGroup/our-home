@@ -16,6 +16,7 @@ static glmodel* modelLab;
 static glmodel* modelMug;
 static glmodel* modelRobot;
 static glshaderprogram* renderModelDebug;
+static glshaderprogram* renderModelAnimDebug;
 
 #ifdef DEBUG
 static modelplacer* robotPlacer;
@@ -24,6 +25,7 @@ static modelplacer* robotPlacer;
 void labscene::setupProgram() {
 	//Debug Program/////////////////
 	renderModelDebug = new glshaderprogram({"shaders/debug/basictex.vert", "shaders/debug/basictex.frag"});
+	renderModelAnimDebug = new glshaderprogram({"shaders/debug/basicanimtex.vert", "shaders/debug/basictex.frag"});
 	////////////////////////////////
 }
 
@@ -72,8 +74,14 @@ void labscene::render() {
 	modelLab->draw(renderModelDebug);
 	glUniformMatrix4fv(renderModelDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(-1.3f,-0.41f,-1.5f) * scale(0.08f,0.08f,0.08f));
 	modelMug->draw(renderModelDebug);
-	glUniformMatrix4fv(renderModelDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(1.705f, -1.067f, -0.179999f) * rotate(-58.0f, 0.0f, 1.0f, 0.0f) * scale(0.042f));
-	modelRobot->draw(renderModelDebug);
+
+	renderModelAnimDebug->use();
+	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(1.705f, -1.067f, -0.179999f) * rotate(-58.0f, 0.0f, 1.0f, 0.0f) * scale(0.042f));
+	modelRobot->setBoneMatrixUniform(renderModelAnimDebug->getUniformLocation("bMat[0]"), 0);
+	modelRobot->draw(renderModelAnimDebug);
+	modelRobot->update(0.01f, 0);
 }
 
 void labscene::uninit() {
