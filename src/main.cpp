@@ -123,7 +123,7 @@ void render(glwindow* window) {
 
 void update(void) {
 	if(isAnimating) {
-		currentSceneCamera->updateT(0.0001f);
+		currentSceneCamera->updateT(0.001f);
 	}
 }
 

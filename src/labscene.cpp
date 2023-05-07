@@ -9,8 +9,9 @@
 using namespace std;
 using namespace vmath;
 
-static glmodel* labModel;
-static glmodel* mugModel;
+static glmodel* modelLab;
+static glmodel* modelMug;
+static glmodel* modelRobot;
 static glshaderprogram* renderModelDebug;
 
 void labscene::setupProgram() {
@@ -48,8 +49,9 @@ sceneCamera* labscene::setupCamera() {
 }
 
 void labscene::init() {
-	labModel = new glmodel("resources/models/spaceship/SpaceLab.fbx", 0, false);
-	mugModel = new glmodel("resources/models/mug/mug.glb", 0, false);
+	modelLab = new glmodel("resources/models/spaceship/SpaceLab.fbx", 0, false);
+	modelMug = new glmodel("resources/models/mug/mug.glb", 0, false);
+	modelRobot = new glmodel("resources/models/robot/robot.fbx", 0, false);
 }
 
 void labscene::render() {
@@ -57,12 +59,14 @@ void labscene::render() {
 	glUniformMatrix4fv(renderModelDebug->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(renderModelDebug->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
 	glUniformMatrix4fv(renderModelDebug->getUniformLocation("mMat"), 1, GL_FALSE, mat4::identity());
-	labModel->draw(renderModelDebug);
+	modelLab->draw(renderModelDebug);
 	glUniformMatrix4fv(renderModelDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(-1.3f,-0.41f,-1.5f) * scale(0.08f,0.08f,0.08f));
-	mugModel->draw(renderModelDebug);
+	modelMug->draw(renderModelDebug);
+	glUniformMatrix4fv(renderModelDebug->getUniformLocation("mMat"), 1, GL_FALSE, mat4::identity());
+	modelRobot->draw(renderModelDebug);
 }
 
 void labscene::uninit() {
-	delete labModel;
-	delete mugModel;
+	delete modelLab;
+	delete modelMug;
 }
