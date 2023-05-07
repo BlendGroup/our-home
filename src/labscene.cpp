@@ -72,7 +72,7 @@ void labscene::render() {
 	modelLab->draw(renderModelDebug);
 	glUniformMatrix4fv(renderModelDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(-1.3f,-0.41f,-1.5f) * scale(0.08f,0.08f,0.08f));
 	modelMug->draw(renderModelDebug);
-	glUniformMatrix4fv(renderModelDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(1.705f, -1.067f, -0.179999f) * rotate(-58f, 0.0f, 1.0f, 0.0f) * scale(0.042f));
+	glUniformMatrix4fv(renderModelDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(1.705f, -1.067f, -0.179999f) * rotate(-58.0f, 0.0f, 1.0f, 0.0f) * scale(0.042f));
 	modelRobot->draw(renderModelDebug);
 }
 
