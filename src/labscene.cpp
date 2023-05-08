@@ -17,6 +17,7 @@ using namespace vmath;
 static glmodel* modelLab;
 static glmodel* modelMug;
 static glmodel* modelRobot;
+static glmodel* modelAstro;
 static glshaderprogram* renderModelDebug;
 static glshaderprogram* renderModelAnimDebug;
 static BsplineInterpolator* bspRobot;
@@ -73,6 +74,7 @@ void labscene::init() {
 	modelLab = new glmodel("resources/models/spaceship/SpaceLab.fbx", 0, false);
 	modelMug = new glmodel("resources/models/mug/mug.glb", 0, false);
 	modelRobot = new glmodel("resources/models/robot/robot.fbx", 0, false);
+	modelAstro = new glmodel("resources/models/astronaut/MCAnim.fbx", 0, false);
 	bspRobot = new BsplineInterpolator(robotSpline);
 #ifdef DEBUG
 	splineRender = new SplineRenderer(bspRobot);
@@ -104,6 +106,14 @@ void labscene::render() {
 	modelRobot->draw(renderModelAnimDebug);
 	// modelRobot->update(0.01f, 0);
 
+
+	renderModelAnimDebug->use();
+	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(1.705f, -1.067f, -0.179999f) * rotate(-58.0f, 0.0f, 1.0f, 0.0f) * scale(0.042f));
+	modelAstro->setBoneMatrixUniform(renderModelAnimDebug->getUniformLocation("bMat[0]"), 0);
+	modelAstro->draw(renderModelAnimDebug);
+	modelAstro->update(0.01f, 0);
 
 #ifdef DEBUG
 	splineRender->render(vec4(0.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f, 1.0f, 0.0f, 1.0f), vec4(0.0f, 1.0f, 1.0f, 1.0f), selectedPoint, 0.01f);
