@@ -49,9 +49,9 @@ sceneCamera* labscene::setupCamera() {
 		vec3(-1.63f, -0.3f, -1.7f),
 		vec3(-1.15f, -0.05f, -1.81f),
 		vec3(-0.82f, 0.28f, -1.85f),
-		vec3(-1.17f, -2.98f, -1.1f),
+		vec3(-1.17f, 0.06f, -1.1f),
 		vec3(-2.9f, -0.2f, -0.51f),
-		vec3(-3.49f, -0.56f, 0.05f),
+		vec3(-3.49f, -0.56f, 0.05f)
 	};
     
 	vector<vec3> frontKeyFrames = {
@@ -62,8 +62,8 @@ sceneCamera* labscene::setupCamera() {
 		vec3(-0.8f, -0.28f, -1.23f),
 		vec3(-0.47f, -0.26f, -0.37f),
 		vec3(-1.67f, -0.42f, 0.45f),
-		vec3(-3.19f, -0.36f, 0.959999f),
-		vec3(-3.49f, -0.27f, 2.02f),
+		vec3(-3.19f, -0.36f, 0.96f),
+		vec3(-3.49f, -0.27f, 2.02f)
 	};
 
 	return new sceneCamera(positionKeyFrames, frontKeyFrames);

@@ -46,13 +46,14 @@ vec3 CubicBezierInterpolator::cubicBezier(const vec3 &A, const vec3 &B, const ve
     return quadraticBezier(E, F, G, t);
 }
 
-float CubicBezierInterpolator::getDistanceOnSpline(const float t)
+float CubicBezierInterpolator::getDistanceOnSpline(float t)
 {
     return t * float(m_nSplines);
 }
 
-vec3 CubicBezierInterpolator::interpolate(const float t)
+vec3 CubicBezierInterpolator::interpolate(float t)
 {
+	t = std::clamp(t, 0.0f, 1.0f);
     float splineLocal = getDistanceOnSpline(t);
     int indexIntoCtrlps = int(splineLocal) * 3;
 

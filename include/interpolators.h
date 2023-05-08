@@ -14,7 +14,7 @@
 class SplineInterpolator
 {
 public:
-    virtual vmath::vec3 interpolate(const float t) = 0;
+    virtual vmath::vec3 interpolate(float t) = 0;
     virtual const std::vector<vmath::vec3> &getPoints(void) = 0;
     virtual const std::vector<vmath::vec3> &getControlPoints(void) = 0;
 };

@@ -56,12 +56,12 @@ void setupSceneCamera(void) {
 		
 #ifdef DEBUG
 		scenecamerarig = new sceneCameraRig(scenecamera[0]);
-		// scenecamerarig->setRenderPath(true);
-		// scenecamerarig->setRenderPathPoints(true);
-		// scenecamerarig->setRenderFront(true);
-		// scenecamerarig->setRenderFrontPoints(true);
-		// scenecamerarig->setRenderPathToFront(true);
-		// scenecamerarig->setScalingFactor(0.01f);
+		scenecamerarig->setRenderPath(true);
+		scenecamerarig->setRenderPathPoints(true);
+		scenecamerarig->setRenderFront(true);
+		scenecamerarig->setRenderFrontPoints(true);
+		scenecamerarig->setRenderPathToFront(true);
+		scenecamerarig->setScalingFactor(0.01f);
 #endif
 
 		currentSceneCamera = scenecamera[0];
