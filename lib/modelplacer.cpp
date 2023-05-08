@@ -32,6 +32,7 @@ ostream& operator<<(ostream& out, modelplacer* modelplacer) {
 		out<<"rotate("<<modelplacer->rotateBy[2]<<"f, 0.0f, 0.0f, 1.0f) * ";
 	}
 	out<<"scale("<<modelplacer->scaleBy<<"f);";
+	return out;
 }
 
 mat4 modelplacer::getModelMatrix(void) {
