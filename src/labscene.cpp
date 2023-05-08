@@ -24,14 +24,15 @@ static BsplineInterpolator* bspRobot;
 #ifdef DEBUG
 static modelplacer* robotPlacer;
 static SplineRenderer* splineRender;
-static vector<vec3> robotSpline = {
-	vec3(0.0f, 0.0f, 0.0f),
-	vec3(1.0f, 0.0f, 0.0f),
-	vec3(2.0f, 0.0f, 0.0f),
-	vec3(3.0f, 0.0f, 0.0f)
-};
 int selectedPoint = 0;
 #endif
+static vector<vec3> robotSpline = {
+	vec3(2.8f, -1.067f, -0.18f),
+	vec3(0.9f, -1.067f, -0.21f),
+	vec3(0.2f, -1.067f, 0.6f),
+	vec3(-2.0f, -1.067f, 0.6f),
+	vec3(-2.5f, -1.067f, 1.8f)
+};
 
 void labscene::setupProgram() {
 	//Debug Program/////////////////
@@ -80,7 +81,10 @@ void labscene::init() {
 #endif
 }
 
+static float t = 0.0f;
+
 void labscene::render() {
+
 	renderModelDebug->use();
 	glUniformMatrix4fv(renderModelDebug->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(renderModelDebug->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
@@ -93,10 +97,13 @@ void labscene::render() {
 	renderModelAnimDebug->use();
 	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(1.705f, -1.067f, -0.179999f) * rotate(-58.0f, 0.0f, 1.0f, 0.0f) * scale(0.042f));
+	vec3 position = bspRobot->interpolate(t);
+	vec3 front = bspRobot->interpolate(t + 0.01f);
+	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(position) * targetat(position, front, vec3(0.0f, 1.0f, 0.0f)) * scale(0.042f));
 	modelRobot->setBoneMatrixUniform(renderModelAnimDebug->getUniformLocation("bMat[0]"), 0);
 	modelRobot->draw(renderModelAnimDebug);
-	modelRobot->update(0.01f, 0);
+	// modelRobot->update(0.01f, 0);
+
 
 #ifdef DEBUG
 	splineRender->render(vec4(0.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f, 1.0f, 0.0f, 1.0f), vec4(0.0f, 1.0f, 1.0f, 1.0f), selectedPoint, 0.01f);
@@ -111,38 +118,73 @@ void labscene::uninit() {
 
 void labscene::keyboardfunc(int key) {
 #ifdef DEBUG
+	bool updatePos = false;
 	// robotPlacer->keyboardfunc(key);
 	switch(key) {
 	case XK_Tab:
 		cout<<robotPlacer<<endl;
+		for(int i = 0; i < robotSpline.size(); i++) {
+			cout<<"\t"<<robotSpline[i]<<",\n";
+		}
+		cout<<"\b"<<endl;
 		break;
 	//Path Point Select
 	case XK_n:
 		selectedPoint = (selectedPoint == 0) ? robotSpline.size() - 1 : (selectedPoint - 1) % robotSpline.size();
+		updatePos = true;
+		break;
 	case XK_m:
 		selectedPoint = (selectedPoint + 1) % robotSpline.size();
+		updatePos = true;
+		break;
 	//Path Point Move Z
 	case XK_i:
 		robotSpline[selectedPoint][2] += 0.1f;
+		updatePos = true;
+		break;
 	case XK_k:
 		robotSpline[selectedPoint][2] -= 0.1f;
+		updatePos = true;
+		break;
 	//Path Point Move X
 	case XK_l:
 		robotSpline[selectedPoint][0] += 0.1f;
+		updatePos = true;
+		break;
 	case XK_j:
 		robotSpline[selectedPoint][0] -= 0.1f;
+		updatePos = true;
+		break;
 	//Path Point Move Y
 	case XK_o:
 		robotSpline[selectedPoint][1] += 0.1f;
+		updatePos = true;
+		break;
 	case XK_u:
 		robotSpline[selectedPoint][1] -= 0.1f;
+		updatePos = true;
+		break;
 	//Add/Remove Path Points
-	case XK_bracketleft:
-		robotSpline.insert(robotSpline.begin() + selectedPoint + 1, vec3(0.0f, 0.0f, 0.0f));
 	case XK_bracketright:
+		robotSpline.insert(robotSpline.begin() + selectedPoint + 1, vec3(0.0f, 0.0f, 0.0f));
+		updatePos = true;
+		break;
+	case XK_bracketleft:
 		robotSpline.erase(robotSpline.begin() + selectedPoint);
 		selectedPoint = selectedPoint % robotSpline.size();
-
+		updatePos = true;
+		break;
+	case XK_Left:
+		t -= 0.01f;
+		t = std::max(t, 0.0f);
+		break;
+	case XK_Right:
+		t += 0.01f;
+		t = std::min(t, 1.0f);
+		break;
+	}
+	if(updatePos) {
+		cout<<"Updated"<<endl;
 		delete bspRobot;
 		bspRobot = new BsplineInterpolator(robotSpline);
 		delete splineRender;
