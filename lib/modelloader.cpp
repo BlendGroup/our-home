@@ -412,7 +412,7 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 		createAnimator(scene, this);
 	}
 /*
-	cout<<this->animator.size()<<endl;
+	cout<<"Animation :: "<<this->animator.size()<<endl;
 	for(auto a : this->animator){
 		cout<<a.duration<<endl;
 		cout<<a.ticksPerSecond<<endl;

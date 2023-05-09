@@ -49,6 +49,7 @@ void initTestLab(){
         static_model.push_back(new glmodel("resources/models/spaceship/SpaceLab.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs, true));
         static_model.push_back(new glmodel("resources/models/cup.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true));
         dynamic_model.push_back(new glmodel("resources/models/robot/robot.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true));
+        dynamic_model.push_back(new glmodel("resources/models/astronaut/MCAnim.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true));        
         envMap = new CubeMapRenderTarget(2048,2048,false);
         envMap->setPosition(vec3(0.0f,0.0f,0.0f));
 
@@ -176,6 +177,18 @@ void renderTestLab(camera *cam,vec3 camPos){
         dynamic_model[0]->update(0.005f, 0);
         dynamic_model[0]->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
         dynamic_model[0]->draw(programDynamicPBR,1); 
+
+        programDynamicPBR->use();
+        glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
+        glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE,cam->matrix());
+        glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(-3.3f,-1.4f,1.5f) * scale(1.0f,1.0f,1.0f));
+        glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1,camPos);
+        // Lights data
+        glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),true);
+        sceneLights->setLightUniform(programDynamicPBR);
+        dynamic_model[1]->update(0.005f, 1);
+        dynamic_model[1]->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+        dynamic_model[1]->draw(programDynamicPBR,1);
 
         // render light src
         lightProgram->use();

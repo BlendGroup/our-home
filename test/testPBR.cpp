@@ -44,7 +44,7 @@ void setupProgramTestPbr(){
 void initTestPbr(){
     try {       
         #if DYNAMIC  
-        model = new glmodel("resources/models/robot/robot.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
+        model = new glmodel("resources/models/astronaut/MCAnim.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
         #else
         model = new glmodel("resources/models/spaceship/SpaceLab.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
         
