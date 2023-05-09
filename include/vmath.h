@@ -18,13 +18,15 @@ template <typename T> class Tquaternion;
 template <typename T>
 static inline T mix(const T& A, const T& B, typename T::element_type t)
 {
-    return B + t * (B - A);
+	float ct = min<T>(max<T>(t, 0.0f), 1.0f);
+    return ((1.0f - ct) * A) + (ct * B);
 }
 
 template <typename T>
 static inline T mix(const T& A, const T& B, const T& t)
 {
-    return B + t * (B - A);
+	float ct = min<T>(max<T>(t, 0.0f), 1.0f);
+	return ((1.0f - ct) * A) + (ct * B);
 }
 
 template <typename T> 
@@ -1301,26 +1303,6 @@ static inline Tmat4<T> rotate(T angle_x, T angle_y, T angle_z)
     return rotate(angle_z, 0.0f, 0.0f, 1.0f) *
            rotate(angle_y, 0.0f, 1.0f, 0.0f) *
            rotate(angle_x, 1.0f, 0.0f, 0.0f);
-}
-
-#ifdef min
-#undef min
-#endif
-
-template <typename T>
-static inline T min(T a, T b)
-{
-    return a < b ? a : b;
-}
-
-#ifdef max
-#undef max
-#endif
-
-template <typename T>
-static inline T max(T a, T b)
-{
-    return a >= b ? a : b;
 }
 
 template <typename T, const int N>

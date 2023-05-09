@@ -22,27 +22,18 @@ CubicBezierInterpolator::CubicBezierInterpolator(const MatrixX3f &inCtrlps)
     m_nSplines = inCtrlps.rows() / 3;
 }
 
-vec3 CubicBezierInterpolator::lerp(const vec3 &A, const vec3 &B, const float t)
-{
-    vec3 out;
-    out[0] = (1.0f - t) * A[0] + t * B[0];
-    out[1] = (1.0f - t) * A[1] + t * B[1];
-    out[2] = (1.0f - t) * A[2] + t * B[2];
-    return out;
-}
-
 vec3 CubicBezierInterpolator::quadraticBezier(const vec3 &A, const vec3 &B, const vec3 &C, const float t)
 {
-    vec3 D = lerp(A, B, t);
-    vec3 E = lerp(B, C, t);
-    return lerp(D, E, t);
+    vec3 D = mix(A, B, t);
+    vec3 E = mix(B, C, t);
+    return mix(D, E, t);
 }
 
 vec3 CubicBezierInterpolator::cubicBezier(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D, const float t)
 {
-    vec3 E = lerp(A, B, t);
-    vec3 F = lerp(B, C, t);
-    vec3 G = lerp(C, D, t);
+    vec3 E = mix(A, B, t);
+    vec3 F = mix(B, C, t);
+    vec3 G = mix(C, D, t);
     return quadraticBezier(E, F, G, t);
 }
 
@@ -53,7 +44,6 @@ float CubicBezierInterpolator::getDistanceOnSpline(float t)
 
 vec3 CubicBezierInterpolator::interpolate(float t)
 {
-	t = std::clamp(t, 0.0f, 1.0f);
     float splineLocal = getDistanceOnSpline(t);
     int indexIntoCtrlps = int(splineLocal) * 3;
 

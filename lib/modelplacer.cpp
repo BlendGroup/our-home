@@ -62,7 +62,6 @@ void modelplacer::keyboardfunc(int key) {
 
 	case XK_t:
 		this->rotateBy[2] -= 1.0f;
-		cout<<this->rotateBy[2]<<endl;
 		break;
 	case XK_g:
 		this->rotateBy[2] += 1.0f;

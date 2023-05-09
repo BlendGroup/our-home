@@ -23,7 +23,7 @@ static glshaderprogram* renderModelAnimDebug;
 static BsplineInterpolator* bspRobot;
 
 #ifdef DEBUG
-static modelplacer* robotPlacer;
+static modelplacer* astroPlacer;
 static SplineRenderer* splineRender;
 int selectedPoint = 0;
 #endif
@@ -79,7 +79,8 @@ void labscene::init() {
 #ifdef DEBUG
 	splineRender = new SplineRenderer(bspRobot);
 	splineRender->setRenderPoints(true);
-	robotPlacer = new modelplacer(vec3(0.115f, -1.067f, 0.611f), vec3(0.0f, 0.0f, 0.0f), 0.042f);
+	//Astronaut: vec3(-3.41f, -1.39f, 2.03f), vec3(0f, 0f, 0f), 0.00889994f
+	astroPlacer = new modelplacer();
 #endif
 }
 
@@ -104,13 +105,13 @@ void labscene::render() {
 	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(position) * targetat(position, front, vec3(0.0f, 1.0f, 0.0f)) * scale(0.042f));
 	modelRobot->setBoneMatrixUniform(renderModelAnimDebug->getUniformLocation("bMat[0]"), 0);
 	modelRobot->draw(renderModelAnimDebug);
-	// modelRobot->update(0.01f, 0);
+	modelRobot->update(0.01f, 0);
 
 
 	renderModelAnimDebug->use();
 	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(1.705f, -1.067f, -0.179999f) * rotate(-58.0f, 0.0f, 1.0f, 0.0f) * scale(0.042f));
+	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(-3.41f, -1.39f, 2.03f) * scale(0.00889994f));
 	modelAstro->setBoneMatrixUniform(renderModelAnimDebug->getUniformLocation("bMat[0]"), 0);
 	modelAstro->draw(renderModelAnimDebug);
 	modelAstro->update(0.01f, 0);
@@ -118,6 +119,8 @@ void labscene::render() {
 #ifdef DEBUG
 	splineRender->render(vec4(0.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f, 1.0f, 0.0f, 1.0f), vec4(0.0f, 1.0f, 1.0f, 1.0f), selectedPoint, 0.01f);
 #endif
+
+	t += 0.0006f;
 }
 
 void labscene::uninit() {
@@ -126,19 +129,10 @@ void labscene::uninit() {
 	delete modelRobot;
 }
 
-void labscene::keyboardfunc(int key) {
-#ifdef DEBUG
-	bool updatePos = false;
-	// robotPlacer->keyboardfunc(key);
+void splineKeyboardFunc(int key) {
+	bool updatePos;
 	switch(key) {
-	case XK_Tab:
-		cout<<robotPlacer<<endl;
-		for(int i = 0; i < robotSpline.size(); i++) {
-			cout<<"\t"<<robotSpline[i]<<",\n";
-		}
-		cout<<"\b"<<endl;
-		break;
-	//Path Point Select
+		//Path Point Select
 	case XK_n:
 		selectedPoint = (selectedPoint == 0) ? robotSpline.size() - 1 : (selectedPoint - 1) % robotSpline.size();
 		updatePos = true;
@@ -194,12 +188,27 @@ void labscene::keyboardfunc(int key) {
 		break;
 	}
 	if(updatePos) {
-		cout<<"Updated"<<endl;
 		delete bspRobot;
 		bspRobot = new BsplineInterpolator(robotSpline);
 		delete splineRender;
 		splineRender = new SplineRenderer(bspRobot);
 		splineRender->setRenderPoints(true);
+	}
+}
+
+void labscene::keyboardfunc(int key) {
+#ifdef DEBUG
+	bool updatePos = false;
+	// astroPlacer->keyboardfunc(key);
+	// splineKeyboardFunc(key);
+	switch(key) {
+	case XK_Tab:
+		cout<<astroPlacer<<endl;
+		for(int i = 0; i < robotSpline.size(); i++) {
+			cout<<"\t"<<robotSpline[i]<<",\n";
+		}
+		cout<<"\b"<<endl;
+		break;
 	}
 #endif
 }

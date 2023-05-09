@@ -135,7 +135,7 @@ void resetCamera(void) {
 void keyboard(glwindow* window, int key) {
 	switch(key) {
 	case XK_Escape:
-		cout<<currentSceneCamera<<endl;
+		// cout<<currentSceneCamera<<endl;
 		window->close();
 		break;
 	case XK_F1:
