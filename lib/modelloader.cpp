@@ -456,7 +456,8 @@ mat4 parentTransform,float blendFactor) {
 				scalingMat = scale(startBone->scales[p0Index].scale);
 			} else {
 				p1Index = p0Index + 1;
-				scalingMat = scale(mix(startBone->scales[p0Index].scale, startBone->scales[p1Index].scale, getScaleFactor(startBone->scales[p0Index].timeStamp, startBone->scales[p1Index].timeStamp, currentTimeBase)));
+				vec3 s = mix(startBone->scales[p0Index].scale, startBone->scales[p1Index].scale, getScaleFactor(startBone->scales[p0Index].timeStamp, startBone->scales[p1Index].timeStamp, currentTimeBase));
+				scalingMat = scale(s);
 			}
 		}
 		startBone->localTransform = translationMat * rotationMat * scalingMat;
@@ -521,7 +522,8 @@ mat4 parentTransform,float blendFactor) {
 				scalingMat = scale(endBone->scales[p0Index].scale);
 			} else {
 				p1Index = p0Index + 1;
-				scalingMat = scale(mix(endBone->scales[p0Index].scale, endBone->scales[p1Index].scale, getScaleFactor(endBone->scales[p0Index].timeStamp, endBone->scales[p1Index].timeStamp, currentTimeLayered)));
+				vec3 s = mix(endBone->scales[p0Index].scale, endBone->scales[p1Index].scale, getScaleFactor(endBone->scales[p0Index].timeStamp, endBone->scales[p1Index].timeStamp, currentTimeLayered));
+				scalingMat = scale(s);
 			}
 		}
 		endBone->localTransform = translationMat * rotationMat * scalingMat;
@@ -612,7 +614,8 @@ void calculateBoneTransform(glmodel* model, glanimator* a, const AssimpNodeData*
 				scalingMat = scale(bone->scales[p0Index].scale);
 			} else {
 				p1Index = p0Index + 1;
-				scalingMat = scale(mix(bone->scales[p0Index].scale, bone->scales[p1Index].scale, getScaleFactor(bone->scales[p0Index].timeStamp, bone->scales[p1Index].timeStamp, a->currentTime)));
+				vec3 s = mix(bone->scales[p0Index].scale, bone->scales[p1Index].scale, getScaleFactor(bone->scales[p0Index].timeStamp, bone->scales[p1Index].timeStamp, a->currentTime));
+				scalingMat = scale(s);
 			}
 		}
 
