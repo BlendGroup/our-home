@@ -36,7 +36,7 @@ static bool isAnimating = false;
 
 #define SHOW_TEST_SCENE 		0
 #define SHOW_MODEL_SCENE 		0
-#define SHOW_CAMERA_SCENE 		1
+#define SHOW_CAMERA_SCENE 		0
 #define SHOW_PBR_SCENE			0
 #define SHOW_LAB_SCENE			1
 #define SHOW_CAMERA_RIG			0

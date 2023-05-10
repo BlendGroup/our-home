@@ -1,9 +1,15 @@
 #include <cmath>
+#include <cstddef>
 #include <glshaderloader.h>
 #include <glLight.h>
+#include <iostream>
 #include <string>
 #include <errorlog.h>
+#include  <X11/keysym.h>
 #include <CubeMapRenderTarget.h>
+
+static int mode = 0;
+static int selectedLight = 0;
 
 SceneLight::SceneLight(bool envLight){
     const float cubeVerts[] = {
@@ -111,8 +117,8 @@ SceneLight::SceneLight(bool envLight){
     glBufferData(GL_ARRAY_BUFFER, sizeof(skybox_positions), skybox_positions, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), NULL);
     glEnableVertexAttribArray(0);
-    //glDeleteBuffers(1,&vbo);
 
+    //setup light program
     this->indirectLight = envLight;
     if(envLight){
         try
@@ -163,6 +169,24 @@ SceneLight::SceneLight(bool envLight){
 
 SceneLight::~SceneLight(){
     glDeleteVertexArrays(1,&vao);
+    
+    if(envProgram)
+        delete envProgram;
+
+    if(irradianceProgram)
+        delete irradianceProgram;
+    
+    if(prefilterProgram)
+        delete prefilterProgram;
+
+    if(precomputeBRDF)
+        delete precomputeBRDF;
+
+    if(irradianceMap)
+        delete irradianceMap;
+
+    if(prefilterMap)
+        delete prefilterMap;
 }
 
 void SceneLight::setEnvmap(GLuint &tex){
@@ -284,21 +308,212 @@ void SceneLight::setLightUniform(glshaderprogram *program){
 
 void SceneLight::renderSceneLights(glshaderprogram *program){
 
+    // directional lights
+    for(size_t i = 0; i < directional.size(); i++){
+        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,vmath::translate(directional[i].direction) * vmath::scale(0.1f,0.1f,0.1f));
+        glUniform3fv(program->getUniformLocation("color"),1,directional[i].color);
+        if(mode == 0 && i == selectedLight)
+            glUniform1i(program->getUniformLocation("selected"),GL_TRUE);
+        else
+            glUniform1i(program->getUniformLocation("selected"),GL_FALSE);
+        glBindVertexArray(vao);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
+
     // render point lights
-    for(auto p : points){
-        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,vmath::translate(p.position) * vmath::scale(1.0f,1.0f,1.0f));
-        glUniform3fv(program->getUniformLocation("color"),1,p.color);
+    for(size_t p = 0; p < points.size(); p++){
+        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,vmath::translate(points[p].position) * vmath::scale(points[p].radius/100.0f));
+        glUniform3fv(program->getUniformLocation("color"),1,points[p].color);
+        if(mode == 1 && p == selectedLight)
+            glUniform1i(program->getUniformLocation("selected"),GL_TRUE);
+        else
+            glUniform1i(program->getUniformLocation("selected"),GL_FALSE);
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
     // render spot lights
-    for(auto s : spots){
-        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,vmath::translate(s.position) * vmath::scale(1.0f,1.0f,1.0f));
-        glUniform3fv(program->getUniformLocation("color"),1,s.color);
+    for(size_t s = 0; s < spots.size(); s++){
+        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,vmath::translate(spots[s].position) * vmath::scale(spots[s].radius/100.0f));
+        glUniform3fv(program->getUniformLocation("color"),1,spots[s].color);
+        if(mode == 2 && s == selectedLight)
+            glUniform1i(program->getUniformLocation("selected"),GL_TRUE);
+        else
+            glUniform1i(program->getUniformLocation("selected"),GL_FALSE);
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 }
 
+void SceneLight::SceneLightKeyBoardFunc(int key){
+	switch(key) {
+        case XK_F9: // add Directional Light
+            mode = 0;
+        break;
+        case XK_F10: // Add Point Light
+            mode = 1;
+        break;
+        case XK_F11: // Add Spot Light
+            mode = 2;        
+        break;
+        case XK_Up:
+            if(mode == 0)
+                this->addDirectionalLight(DirectionalLight(vmath::vec3(0.1f),10.0f,vmath::vec3(0.0,0.0,0.0f)));
+            else if(mode == 1)
+                this->addPointLight(PointLight(vmath::vec3(1.0f,1.0f,1.0f),100.0f,vmath::vec3(0.0f,0.0f,0.0f),10.0f));
+            else
+                this->addSpotLight(SpotLight(vmath::vec3(1.0f,1.0f,1.0f),100.0f,vmath::vec3(0.0f,0.0f,0.0f),10.0f,vmath::vec3(0.0f,0.0f,0.0f),30.0f,45.0f));
+        break;
+        case XK_Down:
+            if(mode == 0)
+                this->directional.erase(directional.begin() + selectedLight);
+            else if(mode == 1)
+                this->points.erase(points.begin() + selectedLight);
+            else
+                this->spots.erase(spots.begin() + selectedLight);
+        break;
+        case XK_Left:
+            if(mode == 0){
+                selectedLight = (selectedLight + 1) % directional.size();
+            }
+            else if(mode == 1){
+                selectedLight = (selectedLight + 1) % points.size();
+            }
+            else{
+                selectedLight = (selectedLight + 1) % spots.size();
+            }
+        break;
+        case XK_Right:
+            if(mode == 0)
+                selectedLight = (selectedLight == 0) ? directional.size() - 1 : (selectedLight - 1) % directional.size();
+            else if(mode == 1)
+                selectedLight = (selectedLight == 0) ? points.size() - 1 : (selectedLight - 1) % points.size();
+            else
+                selectedLight = (selectedLight == 0) ? spots.size() - 1 : (selectedLight - 1) % spots.size();
+        break;
+        case XK_I:
+        case XK_i:
+            if(mode == 0)
+                directional[selectedLight].direction[2] -= 0.1f;
+            else if(mode == 1)
+                points[selectedLight].position[2] -= 0.1f; 
+            else
+                spots[selectedLight].position[2] -= 0.1f;
+        break;
+        case XK_J:
+        case XK_j:
+            if(mode == 0)
+                directional[selectedLight].direction[0] -= 0.1f;
+            else if(mode == 1)
+                points[selectedLight].position[0] -= 0.1f; 
+            else
+                spots[selectedLight].position[0] -= 0.1f;
+        break;
+        case XK_K:
+        case XK_k:
+            if(mode == 0)
+                directional[selectedLight].direction[2] += 0.1f;
+            else if(mode == 1)
+                points[selectedLight].position[2] += 0.1f; 
+            else
+                spots[selectedLight].position[2] += 0.1f;
+        break;
+        case XK_L:
+        case XK_l:
+            if(mode == 0)
+                directional[selectedLight].direction[0] += 0.1f;
+            else if(mode == 1)
+                points[selectedLight].position[0] += 0.1f; 
+            else
+                spots[selectedLight].position[0] += 0.1f;
+        break;
+        case XK_U:
+        case XK_u:
+            if(mode == 0)
+                directional[selectedLight].direction[1] += 0.1f;
+            else if(mode == 1)
+                points[selectedLight].position[1] += 0.1f; 
+            else
+                spots[selectedLight].position[1] += 0.1f;
+        break;
+        case XK_O:
+        case XK_o:
+            if(mode == 0)
+                directional[selectedLight].direction[1] -= 0.1f;
+            else if(mode == 1)
+                points[selectedLight].position[1] -= 0.1f; 
+            else
+                spots[selectedLight].position[1] -= 0.1f;
+        break;
+        case XK_bracketleft:
+            if(mode == 1)
+                points[selectedLight].radius -= 0.5f;
+        break;
+        case XK_bracketright:
+            if(mode == 1)
+                points[selectedLight].radius += 0.5f;
+        break;
+        case XK_comma:
+        std::cout<<"here";
+            if(mode == 0)
+                directional[selectedLight].intensity -= 1.0f;
+            else if(mode == 1)
+                points[selectedLight].intensity -= 1.0f; 
+            else
+                spots[selectedLight].intensity -= 1.0f;
+        break;
+        case XK_period:
+                std::cout<<"here";
+            if(mode == 0)
+                directional[selectedLight].intensity += 1.0f;
+            else if(mode == 1)
+                points[selectedLight].intensity += 1.0f; 
+            else
+                spots[selectedLight].intensity += 1.0f;
+        break;
+        case XK_P:
+        case XK_p:
+            std::cout<<this;
+        break;
+	}
+}
 
+std::ostream& operator<<(std::ostream& out, SceneLight* s) {
+    
+    out<<"Scene Light"<<"\n";
+    out<<"Directional "<<s->directional.size()<<"\n";
+
+    for(auto d : s->directional)
+    {
+        out<<"DirectionalLight(vec3("<<d.color<<"),"<<d.intensity<<".0f,vec3("<<d.direction<<"))\n";
+    }
+
+    out<<"\n";
+    out<<"Point "<<s->points.size()<<"\n";
+    for(auto p : s->points)
+    {
+        out<<"PointLight(vec3("<<p.color<<"),"<<p.intensity<<"f,vec3("<<p.position<<"),"<<p.radius<<"f)\n";
+    }
+    out<<"\n";
+    out<<"Spot "<<s->spots.size()<<"\n";
+    for(auto s : s->spots)
+    {
+        out<<"SpotLight(vec3("<<s.color<<"),"<<s.intensity<<"f,vec3("<<s.position<<"),"<<s.radius<<"f,vec3("
+        <<s.direction<<",)"<<s.inner_angle<<".0f,"<<s.outer_angle<<".0f)\n";
+    }
+/*    out<<"To load: "<<s->translateBy<<", "<<modelplacer->rotateBy<<", "<<modelplacer->scaleBy<<"f\n";
+	
+    out<<"To use : translate("<<modelplacer->translateBy[0]<<"f, "<<modelplacer->translateBy[1]<<"f, "<<modelplacer->translateBy[2]<<"f) * ";
+	if(modelplacer->rotateBy[0] != 0.0f) {
+		out<<"rotate("<<modelplacer->rotateBy[0]<<"f, 1.0f, 0.0f, 0.0f) * ";
+	}
+	if(modelplacer->rotateBy[1] != 0.0f) {
+		out<<"rotate("<<modelplacer->rotateBy[1]<<"f, 0.0f, 1.0f, 0.0f) * ";
+	}
+	if(modelplacer->rotateBy[2] != 0.0f) {
+		out<<"rotate("<<modelplacer->rotateBy[2]<<"f, 0.0f, 0.0f, 1.0f) * ";
+	}
+	out<<"scale("<<modelplacer->scaleBy<<"f);";
+*/
+	return out;
+}

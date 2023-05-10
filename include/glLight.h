@@ -8,7 +8,6 @@
 struct BaseLight{
     vmath::vec3 color;
     float intensity;
-
     BaseLight(){
         color = vmath::vec3(1.0f);
         intensity = 1.0f;
@@ -18,6 +17,16 @@ struct BaseLight{
         color = c;
         intensity = i;
     }
+
+    void update_color(vmath::vec3 c)
+    {
+        this->color = c;
+    }
+
+    void update_intensity(float i){
+        this->intensity = i;
+    }
+
 };
 
 struct DirectionalLight : BaseLight{
@@ -33,7 +42,13 @@ struct DirectionalLight : BaseLight{
         this->direction = dir;
     }
 
-    void setDirection(float azimuth, float elevation){
+    DirectionalLight(vmath::vec3 color,float intensity,float azimuth, float elevation) : BaseLight(color, intensity)
+    {
+        setDirection(azimuth, elevation);
+    }
+
+    void setDirection(float azimuth, float elevation)
+    {
         
         float az = vmath::radians(azimuth);
         float el = vmath::radians(elevation);
@@ -56,6 +71,14 @@ struct PointLight : BaseLight{
     PointLight(vmath::vec3 color,float intensity, vmath::vec3 position, float radius) : BaseLight(color, intensity){
         this->position = position;
         this->radius = radius;
+    }
+
+    void update_position(vmath::vec3 pos){
+        this->position = pos;
+    }
+
+    void update_radius(float r){
+        this->radius = r;
     }
 };
 
@@ -107,8 +130,7 @@ class SceneLight{
     CubeMapRenderTarget* irradianceMap;
     CubeMapRenderTarget* prefilterMap;
     brdf_lut brdf;
-    glshaderprogram* envProgram,*irradianceProgram,*prefilterProgram,*precomputeBRDF;
-
+    glshaderprogram *envProgram,*irradianceProgram,*prefilterProgram,*precomputeBRDF;
     public:
     SceneLight(bool envLight = false);
     ~SceneLight();
@@ -119,4 +141,6 @@ class SceneLight{
     void addSpotLight(SpotLight sl);
     void setLightUniform(glshaderprogram* program);
     void renderSceneLights(glshaderprogram* program);
+    void SceneLightKeyBoardFunc(int key);
+    friend std::ostream& operator<<(std::ostream &out, SceneLight* s);
 };

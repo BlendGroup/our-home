@@ -60,7 +60,7 @@ void initTestLab(){
         sceneLights->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,-5.0f),25.0f));
         sceneLights->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,5.0f),25.0f));
         sceneLights->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(-5.0f,5.0f,5.0f),25.0f));
-        //sceneLights->addSpotLight(SpotLight(vec3(0.0f,1.0f,0.0f),100.0f,vec3(-6.0f,8.0f,3.5f),35.0f,vec3(0.0f,0.0f,-1.0f),30.0f,45.0f));
+        sceneLights->addSpotLight(SpotLight(vec3(0.0f,1.0f,0.0f),100.0f,vec3(-6.0f,8.0f,3.5f),35.0f,vec3(0.0f,0.0f,-1.0f),30.0f,45.0f));
 
         glEnable(GL_MULTISAMPLE);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -209,8 +209,7 @@ void renderTestLab(camera *cam,vec3 camPos){
 }
 
 void keyboardFuncTestLab(int key) {
-	switch(key) {
-	}
+    sceneLights->SceneLightKeyBoardFunc(key);
 }
 
 void uninitTestLab(){
