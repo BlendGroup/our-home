@@ -20,21 +20,29 @@ private:
     glshaderprogram *program;
     GLuint vaoPoint, vaoPathToFront;
     GLuint vboPoint, vboPathToFront;
-    bool isRenderPath, isRenderFront, isRenderPathToFront;
-    float t;
+    bool isRenderPath, isRenderFront, isRenderPathToFront, isRenderPathPoints, isRenderFrontPoints;
+    float scalingFactor;
+	std::vector<vmath::vec3> positionKeyFrames;
+	std::vector<vmath::vec3> frontKeyFrames;
+    int selectedPathPoint;
+    int selectedFrontPoint;
 
-    void loadGeometry(void);
+	void loadGeometry(void);
 
 public:
-    sceneCameraRig(sceneCamera *camera);
+    sceneCameraRig(std::vector<vmath::vec3> positionKeyFrames, std::vector<vmath::vec3> frontKeyFrames);
     ~sceneCameraRig();
     void render() const;
     void updateT(float speed);
+	void resetT();
     void setRenderPath(bool setting);
     void setRenderPathPoints(bool setting);
     void setRenderFront(bool setting);
     void setRenderFrontPoints(bool setting);
     void setRenderPathToFront(bool setting);
+	void setScalingFactor(float scalingFactor);
+	sceneCamera* getCamera();
+	void keyboardfunc(int key);
 };
 
 #endif // __SCENE_CAMERA_RIG__

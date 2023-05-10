@@ -16,17 +16,24 @@
 #include<errorlog.h>
 #include<global.h>
 #include<clhelper.h>
+#include<gltextureloader.h>
+
+#include<scenes/base.h>
+#include<scenes/lab.h>
 
 using namespace std;
 using namespace vmath;
 
 static bool hdrEnabled = true;
 static HDR* hdr;
-static sceneCamera* scenecamera;
+static vector<sceneCamera*> scenecamera;
 static sceneCameraRig* scenecamerarig;
 static debugCamera* debugcamera;
-static bool isDebugCameraOn = false;
+static sceneCamera* currentSceneCamera;
+static bool isDebugCameraOn = true;
 static bool isAnimating = false;
+static basescene* currentScene;
+static labscene* labScene;
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
@@ -36,6 +43,7 @@ void setupProgram(void) {
 	try {
 		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl"});
 		hdr->setupProgram();
+		labScene->setupProgram();
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -43,7 +51,19 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 5.0f, 5.0f), -90.0f, 0.0f);
+		debugcamera = new debugCamera(vec3(0.0f, 1.0f, 5.0f), -90.0f, 0.0f);
+		scenecamera.push_back(labScene->setupCamera());
+		
+#ifdef DEBUG
+		scenecamerarig = new sceneCameraRig(scenecamera[0]);
+		scenecamerarig->setRenderPath(true);
+		scenecamerarig->setRenderPathPoints(true);
+		scenecamerarig->setRenderFront(true);
+		scenecamerarig->setRenderFrontPoints(true);
+		scenecamerarig->setRenderPathToFront(true);
+#endif
+
+		currentSceneCamera = scenecamera[0];
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -54,9 +74,14 @@ void init(void) {
 		//Object Creation
 		hdr = new HDR(1.5f, 1.0f, 2048);
 		programglobal::oclContext = new clglcontext(1);
+		labScene = new labscene();
 
 		//Inititalize
+		initTextureLoader();
 		hdr->init();
+		labScene->init();
+
+		currentScene = dynamic_cast<basescene*>(labScene);
 
 		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);
@@ -67,7 +92,7 @@ void init(void) {
 
 void render(glwindow* window) {
 	try {
-		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamera);
+		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(currentSceneCamera);
 
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
@@ -80,9 +105,14 @@ void render(glwindow* window) {
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().height, 0.1f, 1000.0f);
 
+		currentScene->render();
+
+		scenecamerarig->render();
+
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
-			glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
+			glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.7f, 0.1f, 1.0f));
+			glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 			hdr->render();
 		}
@@ -92,6 +122,21 @@ void render(glwindow* window) {
 }
 
 void update(void) {
+	if(isAnimating) {
+#ifdef DEBUG
+		scenecamerarig->updateT(0.001f);
+#else
+		currentSceneCamera->updateT(0.001f);
+#endif
+	}
+}
+
+void resetCamera(void) {
+#ifdef DEBUG
+		scenecamerarig->resetT();
+#else
+		currentSceneCamera->resetT();
+#endif
 }
 
 void keyboard(glwindow* window, int key) {
@@ -108,8 +153,14 @@ void keyboard(glwindow* window, int key) {
 	case XK_F3:
 		hdrEnabled = !hdrEnabled;
 		break;
+	case XK_F4:
+		resetCamera();
+		break;
 	case XK_space:
 		isAnimating = !isAnimating;
+		break;
+	case XK_Tab:
+		cout<<programglobal::currentCamera->position()<<endl;
 		break;
 	}
 	hdr->keyboardfunc(key);
@@ -124,6 +175,7 @@ void mouse(glwindow* window, int button, int action, int x, int y) {
 
 void uninit(void) {
 	hdr->uninit();
+	labScene->uninit();
 
 	delete programglobal::oclContext;
 	delete hdr;

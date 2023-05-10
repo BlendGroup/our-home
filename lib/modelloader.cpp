@@ -756,6 +756,13 @@ void glmodel::draw(glshaderprogram *program,int instance) {
 		}
 		glUniform1f(program->getUniformLocation(materialTypeMap[MAT_OPACITY]),this->materials[this->meshes[i].materialIndex].opacity);
 
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(program->getUniformLocation("texture_diffuse"), 0);
+		for(int j = 0; j < this->materials[this->meshes[j].materialIndex].textures.size(); j++) {
+			if(this->materials[this->meshes[i].materialIndex].textures[j].type == TEX_DIFFUSE) {
+				glBindTexture(GL_TEXTURE_2D, this->materials[this->meshes[i].materialIndex].textures[j].id);
+			}
+		}
 		glBindVertexArray(this->meshes[i].vao);
 		glDrawElementsInstanced(GL_TRIANGLES, this->meshes[i].trianglePointCount, GL_UNSIGNED_INT, 0, instance);
 		// unbind textures
@@ -767,5 +774,6 @@ void glmodel::draw(glshaderprogram *program,int instance) {
 		glBindTextureUnit(5,0);
 		glBindTextureUnit(6,0);
 		glBindTextureUnit(7,0);
+		glBindVertexArray(0);
 	}
 }

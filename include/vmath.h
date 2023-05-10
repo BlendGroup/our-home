@@ -5,6 +5,7 @@
 #define _USE_MATH_DEFINES  1 // Include constants defined in math.h
 #include <math.h>
 #include <float.h>
+#include <ostream>
 
 namespace vmath
 {
@@ -237,6 +238,15 @@ public:
         assign(*this / that);
         return *this;
     }
+
+	inline friend std::ostream& operator<<(std::ostream& out, const vecN &that) {
+		out<<"[ ";
+		for(int n = 0; n < len; n++) {
+			out<<that[n]<<" ";
+		}
+		out<<"]";
+		return out;
+	}
 
     inline T& operator[](int n) { return data[n]; }
     inline const T& operator[](int n) const { return data[n]; }
