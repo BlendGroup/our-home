@@ -80,8 +80,13 @@ vector<texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, textur
 
 texture loadPBRTextures(textureTypes typeString,string directory,string matName) {
 	texture tex;
-	tex.id = createTexture2D(directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".jpg",GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
-    tex.type = typeString;
+	if(isTexturePresent(directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".jpg")) {
+		tex.id = createTexture2D(directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".jpg",GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
+		tex.type = typeString;
+	} else {
+		tex.id = 0;
+		tex.type = TEX_DIFFUSE;
+	}
 	return tex;
 }
 
@@ -730,7 +735,7 @@ void glmodel::update(float dt, int baseAnimation , int layeredAnimation , float 
 void glmodel::draw(glshaderprogram *program,int instance) {
 	for(unsigned int i = 0; i < this->meshes.size(); i++) {
 		
-		// Set Material Uniforms  Can't Do This Outside of Draw !!!!
+		//Set Material Uniforms  Can't Do This Outside of Draw !!!!
 
 		//setup textures	
 		if(this->materials[this->meshes[i].materialIndex].textures.size() > 0)
@@ -753,6 +758,13 @@ void glmodel::draw(glshaderprogram *program,int instance) {
 			glUniform1f(program->getUniformLocation(materialTypeMap[MAT_SPECULAR_INTENSITY]),this->materials[this->meshes[i].materialIndex].roughness);
 		}
 		glUniform1f(program->getUniformLocation(materialTypeMap[MAT_OPACITY]),this->materials[this->meshes[i].materialIndex].opacity);
+		
+		//TEMP
+		// glUniform1i(program->getUniformLocation("texture_diffuse"), 0);
+		// glBindTextureUnit(0, this->materials[this->meshes[i].materialIndex].textures[TEX_DIFFUSE].id);
+		//////
+
+
 		glBindVertexArray(this->meshes[i].vao);
 		glDrawElementsInstanced(GL_TRIANGLES, this->meshes[i].trianglePointCount, GL_UNSIGNED_INT, 0, instance);
 		// unbind textures

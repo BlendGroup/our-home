@@ -47,7 +47,7 @@ void initTestLab(){
     try {
 
         static_model.push_back(new glmodel("resources/models/spaceship/SpaceLab.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs, true));
-        static_model.push_back(new glmodel("resources/models/cup.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true));
+        static_model.push_back(new glmodel("resources/models/mug/mug.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true));
         dynamic_model.push_back(new glmodel("resources/models/robot/robot.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true));
         dynamic_model.push_back(new glmodel("resources/models/astronaut/MCAnim.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true));        
         envMap = new CubeMapRenderTarget(2048,2048,false);

@@ -3,6 +3,7 @@
 #include<stb_image.h>
 #include<gltextureloader.h>
 #include<iostream>
+#include<fstream>
 #include<unordered_map>
 #include<errorlog.h>
 
@@ -12,6 +13,13 @@ static unordered_map<string, GLuint> textureMap;
 
 void initTextureLoader() {
 	stbi_set_flip_vertically_on_load(1);
+}
+
+bool isTexturePresent(string filename) {
+	ifstream i(filename);
+	bool b = i.is_open();
+	i.close();
+	return b;
 }
 
 GLuint createTexture2D(string filename, GLint minFilter, GLint magFilter, GLint wrapS, GLint wrapT) {
