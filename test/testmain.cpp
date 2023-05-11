@@ -185,6 +185,7 @@ void render(glwindow* window) {
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
 			glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
+			glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 			hdr->render();
 		}
@@ -221,7 +222,9 @@ void keyboard(glwindow* window, int key) {
 	}
 	hdr->keyboardfunc(key);
 	debugcamera->keyboardFunc(key);
+#ifdef SHOW_LAB_SCENE
 	keyboardFuncTestLab(key);
+#endif
 #if SHOW_CAMERA_RIG
 	scenecamerarig->keyboardfunc(key);
 #endif

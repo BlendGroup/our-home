@@ -49,7 +49,7 @@ void HDR::init(void) {
 	glBindTexture(GL_TEXTURE_2D, this->CTex);
 	//glTexImage2D(GL_TEXTURE_2D, this->mipLevels, GL_RGBA32F, this->getSize(), this->getSize(), 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexStorage2D(GL_TEXTURE_2D, this->mipLevels, GL_RGBA32F, this->getSize(),this->getSize());
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
 
@@ -57,7 +57,7 @@ void HDR::init(void) {
 	glBindTexture(GL_TEXTURE_2D, this->ETex);
 	//glTexImage2D(GL_TEXTURE_2D, this->mipLevels, GL_RGBA32F, this->getSize(), this->getSize(), 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexStorage2D(GL_TEXTURE_2D, this->mipLevels, GL_RGBA32F, this->getSize(),this->getSize());
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
 
@@ -132,6 +132,8 @@ void HDR::render(void) {
 	glBindVertexArray(tempVao);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
