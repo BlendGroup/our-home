@@ -2,8 +2,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include<stb_image.h>
 #include<gltextureloader.h>
-#include <iostream>
+#include<iostream>
 #include<unordered_map>
+#include<errorlog.h>
 
 using namespace std;
 
@@ -16,11 +17,12 @@ void initTextureLoader() {
 GLuint createTexture2D(string filename, GLint minFilter, GLint magFilter, GLint wrapS, GLint wrapT) {
 	if(textureMap.count(filename) == 0) {
 		int w, h, channels;
-
-		GLuint texId;
-		glGenTextures(1, &texId);
-		glBindTexture(GL_TEXTURE_2D, texId);
 		unsigned char* data = stbi_load(filename.c_str(), &w, &h, &channels, 0);
+		cout<<filename<<channels<<endl;
+
+		if(data == NULL){
+			throwErr("'" + filename + "': texture couldn't load");
+		}
 		GLenum format;
 		if(channels == 1)
 			format = GL_RED;
@@ -31,6 +33,9 @@ GLuint createTexture2D(string filename, GLint minFilter, GLint magFilter, GLint 
 		else
 			return 0;
 	
+		GLuint texId;
+		glGenTextures(1, &texId);
+		glBindTexture(GL_TEXTURE_2D, texId);
 		glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, GL_UNSIGNED_BYTE, data);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);

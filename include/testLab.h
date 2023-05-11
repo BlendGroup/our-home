@@ -6,6 +6,7 @@
 void setupProgramTestLab();
 void initTestLab();
 void renderTestLab(camera* cam,vmath::vec3 camPos);
+void keyboardFuncTestLab(int key);
 void uninitTestLab();
 
 #endif
