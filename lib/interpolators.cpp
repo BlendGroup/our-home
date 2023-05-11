@@ -45,15 +45,15 @@ float CubicBezierInterpolator::getDistanceOnSpline(float t)
 vec3 CubicBezierInterpolator::interpolate(float t)
 {
 	float ct = clamp(vec1(t), vec1(0.0f), vec1(1.0f))[0];
-    float splineLocal = getDistanceOnSpline(ct);
-    unsigned indexIntoCtrlps = unsigned(splineLocal);
+	float splineLocal = getDistanceOnSpline(ct);
+    unsigned indexIntoCtrlps = unsigned(splineLocal - 0.00001f);
 	
     vec3 A = m_ctrlps[indexIntoCtrlps * 3 + 0];
     vec3 B = m_ctrlps[indexIntoCtrlps * 3 + 1];
     vec3 C = m_ctrlps[indexIntoCtrlps * 3 + 2];
     vec3 D = m_ctrlps[indexIntoCtrlps * 3 + 3];
 
-    return cubicBezier(A, B, C, D, splineLocal - unsigned(splineLocal));
+    return cubicBezier(A, B, C, D, splineLocal - indexIntoCtrlps);
 }
 
 const std::vector<vmath::vec3> &CubicBezierInterpolator::getPoints(void)

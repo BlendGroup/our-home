@@ -1,4 +1,3 @@
-#define DEBUG
 #include<scenes/lab.h>
 #include<glmodelloader.h>
 #include<glshaderloader.h>
@@ -84,7 +83,7 @@ void labscene::init() {
 #endif
 }
 
-static float t = 0.0f;
+static float t = 0.01f;
 
 void labscene::render() {
 
@@ -100,8 +99,8 @@ void labscene::render() {
 	renderModelAnimDebug->use();
 	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	vec3 position = bspRobot->interpolate(t);
-	vec3 front = bspRobot->interpolate(t + 0.01f);
+	vec3 position = bspRobot->interpolate(t - 0.01f);
+	vec3 front = bspRobot->interpolate(t);
 	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(position) * targetat(position, front, vec3(0.0f, 1.0f, 0.0f)) * scale(0.042f));
 	modelRobot->setBoneMatrixUniform(renderModelAnimDebug->getUniformLocation("bMat[0]"), 0);
 	modelRobot->draw(renderModelAnimDebug);
@@ -121,6 +120,7 @@ void labscene::render() {
 #endif
 
 	t += 0.0006f;
+	t = std::min(t, 1.0f);
 }
 
 void labscene::uninit() {
@@ -130,6 +130,7 @@ void labscene::uninit() {
 }
 
 void splineKeyboardFunc(int key) {
+#ifdef DEBUG
 	bool updatePos;
 	switch(key) {
 		//Path Point Select
@@ -194,11 +195,11 @@ void splineKeyboardFunc(int key) {
 		splineRender = new SplineRenderer(bspRobot);
 		splineRender->setRenderPoints(true);
 	}
+#endif
 }
 
 void labscene::keyboardfunc(int key) {
 #ifdef DEBUG
-	bool updatePos = false;
 	// astroPlacer->keyboardfunc(key);
 	// splineKeyboardFunc(key);
 	switch(key) {

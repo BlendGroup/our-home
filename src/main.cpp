@@ -194,22 +194,6 @@ void uninit(void) {
 
 int main(int argc, char **argv) {
 	try {
-		CubicBezierInterpolator* c = new CubicBezierInterpolator({
-			vec3(0.0f),
-			vec3(1.0f),
-			vec3(2.0f),
-			vec3(3.0f),
-			vec3(4.0f),
-			vec3(5.0f),
-			vec3(6.0f),
-			vec3(7.0f),
-			vec3(8.0f),
-			vec3(9.0f)
-		});
-
-		for(float i = 0.0f; i <= 1.0f; i += 0.00001f) {
-			cout<<c->interpolate(i)<<endl;
-		}
 		glwindow* window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
 		init();
 		setupProgram();
