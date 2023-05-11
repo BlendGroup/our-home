@@ -6,3 +6,4 @@
 .vs
 .DS_Store
 *.log
+.clangd

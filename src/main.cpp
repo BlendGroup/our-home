@@ -9,6 +9,8 @@
 #include<scenecamera.h>
 #include<scenecamerarig.h>
 #include<debugcamera.h>
+#include<testPBR.h>
+#include<testLab.h>
 #include<hdr.h>
 #include<windowing.h>
 #include<errorlog.h>
