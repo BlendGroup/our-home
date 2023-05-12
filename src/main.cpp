@@ -1,5 +1,6 @@
 #include<iostream>
 #include<memory>
+#include<chrono>
 
 #include<GL/glew.h>
 #include<GL/gl.h>
@@ -195,7 +196,11 @@ void uninit(void) {
 int main(int argc, char **argv) {
 	try {
 		glwindow* window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
+		auto start = chrono::steady_clock::now();
 		init();
+		auto end = chrono::steady_clock::now();
+		auto diff = chrono::duration_cast<chrono::seconds>(end - start).count();
+		cout<<diff<<endl;
 		setupProgram();
 		setupSceneCamera();
 		window->setKeyboardFunc(keyboard);
