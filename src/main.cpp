@@ -199,8 +199,8 @@ int main(int argc, char **argv) {
 		auto start = chrono::steady_clock::now();
 		init();
 		auto end = chrono::steady_clock::now();
-		auto diff = chrono::duration_cast<chrono::seconds>(end - start).count();
-		cout<<diff<<endl;
+		chrono::duration<double> diff = end - start;
+		cout<<diff.count()<<endl;
 		setupProgram();
 		setupSceneCamera();
 		window->setKeyboardFunc(keyboard);
