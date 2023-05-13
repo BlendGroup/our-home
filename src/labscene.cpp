@@ -9,17 +9,32 @@
 #include<X11/keysym.h>
 #include<interpolators.h>
 #include<splinerenderer.h>
+#include<CubeMapRenderTarget.h>
+#include<glLight.h>
 
 using namespace std;
 using namespace vmath;
+
+#define CUBEMAP_SIZE 2048
 
 static glmodel* modelLab;
 static glmodel* modelMug;
 static glmodel* modelRobot;
 static glmodel* modelAstro;
-static glshaderprogram* renderModelDebug;
-static glshaderprogram* renderModelAnimDebug;
+
 static BsplineInterpolator* bspRobot;
+
+static CubeMapRenderTarget* envMapper;
+
+static SceneLight* sceneLightManager;
+
+static glshaderprogram* programStaticPBR;
+static glshaderprogram* programDynamicPBR;
+static glshaderprogram* programLight;
+static glshaderprogram* programDiffusePass;
+static glshaderprogram* programSkybox;
+
+static GLuint skybox_vao,vbo;
 
 #ifdef DEBUG
 static modelplacer* astroPlacer;
@@ -35,10 +50,15 @@ static vector<vec3> robotSpline = {
 };
 
 void labscene::setupProgram() {
-	//Debug Program/////////////////
-	renderModelDebug = new glshaderprogram({"shaders/debug/basictex.vert", "shaders/debug/basictex.frag"});
-	renderModelAnimDebug = new glshaderprogram({"shaders/debug/basicanimtex.vert", "shaders/debug/basictex.frag"});
-	////////////////////////////////
+	try {
+		programStaticPBR = new glshaderprogram({"shaders/pbr.vert", "shaders/pbrMain.frag"});
+		programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
+		programLight = new glshaderprogram({"shaders/debug/lightSrc.vert", "shaders/debug/lightSrc.frag"});
+		programDiffusePass = new glshaderprogram({"shaders/pbr.vert", "shaders/common.frag"});
+		programSkybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
+	} catch(string errorString)  {
+		throwErr(errorString);
+	}
 }
 
 sceneCamera* labscene::setupCamera() {
@@ -73,8 +93,73 @@ void labscene::init() {
 	modelLab = new glmodel("resources/models/spaceship/SpaceLab.fbx", 0, false);
 	modelMug = new glmodel("resources/models/mug/mug.glb", 0, false);
 	modelRobot = new glmodel("resources/models/robot/robot.fbx", 0, false);
-	modelAstro = new glmodel("resources/models/astronaut/MCAnim.fbx", 0, false);
+	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", 0, false);
+	
 	bspRobot = new BsplineInterpolator(robotSpline);
+
+	envMapper = new CubeMapRenderTarget(CUBEMAP_SIZE, CUBEMAP_SIZE, false);
+	
+	sceneLightManager = new SceneLight(true);
+	sceneLightManager->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,0.0,-1.0f)));
+	sceneLightManager->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(-5.0f,5.0f,-5.0f),25.0f));
+	sceneLightManager->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,-5.0f),25.0f));
+	sceneLightManager->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,5.0f),25.0f));
+	sceneLightManager->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(-5.0f,5.0f,5.0f),25.0f));
+	sceneLightManager->addSpotLight(SpotLight(vec3(0.0f,1.0f,0.0f),100.0f,vec3(-6.0f,8.0f,3.5f),35.0f,vec3(0.0f,0.0f,-1.0f),30.0f,45.0f));
+
+
+	float skybox_positions[] = {
+		// positions          
+		-1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		-1.0f,  1.0f, -1.0f,
+		1.0f,  1.0f, -1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		1.0f, -1.0f,  1.0f
+	};
+	glCreateVertexArrays(1, &skybox_vao);
+	glBindVertexArray(skybox_vao);
+	glCreateBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skybox_positions), skybox_positions, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), NULL);
+	glEnableVertexAttribArray(0);
+
 #ifdef DEBUG
 	splineRender = new SplineRenderer(bspRobot);
 	splineRender->setRenderPoints(true);
@@ -87,38 +172,78 @@ static float t = 0.01f;
 
 void labscene::render() {
 
-	renderModelDebug->use();
-	glUniformMatrix4fv(renderModelDebug->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	glUniformMatrix4fv(renderModelDebug->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(renderModelDebug->getUniformLocation("mMat"), 1, GL_FALSE, mat4::identity());
-	modelLab->draw(renderModelDebug);
+	try {
+	    if(true){
+            glBindFramebuffer(GL_FRAMEBUFFER, envMapper->FBO);
+			glViewport(0, 0, envMapper->width, envMapper->height);
 
-	glUniformMatrix4fv(renderModelDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(-1.3f,-0.41f,-1.5f) * scale(0.08f,0.08f,0.08f));
-	modelMug->draw(renderModelDebug);
+            for(int side = 0; side < 6; side++){
+                //std::cout<<"i "<<side<<std::endl;
+                glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_CUBE_MAP_POSITIVE_X + side,envMapper->cubemap_texture,0); 
+                glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
+                glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 
-	renderModelAnimDebug->use();
-	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	vec3 position = bspRobot->interpolate(t - 0.01f);
-	vec3 front = bspRobot->interpolate(t);
-	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(position) * targetat(position, front, vec3(0.0f, 1.0f, 0.0f)) * scale(0.042f));
-	modelRobot->setBoneMatrixUniform(renderModelAnimDebug->getUniformLocation("bMat[0]"), 0);
-	modelRobot->draw(renderModelAnimDebug);
-	modelRobot->update(0.01f, 0);
+                programStaticPBR->use();
+                glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"),1,GL_FALSE,envMapper->projection);
+                glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"),1,GL_FALSE,envMapper->view[side]);
+                glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) * scale(1.0f,1.0f,1.0f));
+                glUniform3fv(programStaticPBR->getUniformLocation("viewPos"),1,envMapper->position);
+                // Lights data
+                glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
+                sceneLightManager->setLightUniform(programStaticPBR);
+                modelLab->draw(programStaticPBR,1);
+            }
+            glBindFramebuffer(GL_FRAMEBUFFER,0);
+            sceneLightManager->setEnvmap(envMapper->cubemap_texture);
+            sceneLightManager->PrecomputeIndirectLighting();
+            // crt = false;
+        }
 
+		programStaticPBR->use();
+        glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"),1,GL_FALSE, programglobal::perspective);
+        glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"),1,GL_FALSE, programglobal::currentCamera->matrix());
+        glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(0.0f,0.0f,0.0f) * scale(1.0f,1.0f,1.0f));
+        glUniform3fv(programStaticPBR->getUniformLocation("viewPos"),1, programglobal::currentCamera->position());
+        // Lights data
+        glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
+        sceneLightManager->setLightUniform(programStaticPBR);
+        modelLab->draw(programStaticPBR);
+		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-1.3f,-0.41f,-1.5f) * scale(0.08f,0.08f,0.08f));
+		modelMug->draw(programStaticPBR);
 
-	renderModelAnimDebug->use();
-	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(renderModelAnimDebug->getUniformLocation("mMat"), 1, GL_FALSE, translate(-3.41f, -1.39f, 2.03f) * scale(0.00889994f));
-	modelAstro->setBoneMatrixUniform(renderModelAnimDebug->getUniformLocation("bMat[0]"), 0);
-	modelAstro->draw(renderModelAnimDebug);
-	modelAstro->update(0.01f, 0);
+        programDynamicPBR->use();
+        glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"), 1,GL_FALSE, programglobal::perspective);
+        glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"), 1,GL_FALSE, programglobal::currentCamera->matrix());
+        vec3 position = bspRobot->interpolate(t - 0.01f);
+		vec3 front = bspRobot->interpolate(t);
+		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(position) * targetat(position, front, vec3(0.0f, 1.0f, 0.0f)) * scale(0.042f));
+	    glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
+        // Lights data
+        glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"), true);
+        sceneLightManager->setLightUniform(programDynamicPBR);
+        modelRobot->update(0.005f, 0);
+        modelRobot->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+        modelRobot->draw(programDynamicPBR,1); 
+
+        programDynamicPBR->use();
+        glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
+        glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE, programglobal::currentCamera->matrix());
+        glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(-3.41f, -1.39f, 2.03f) * scale(0.00889994f));
+        glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1, programglobal::currentCamera->position());
+        // Lights data
+        glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),true);
+        sceneLightManager->setLightUniform(programDynamicPBR);
+        modelAstro->update(0.005f, 1);
+        modelAstro->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+        modelAstro->draw(programDynamicPBR,1);
 
 #ifdef DEBUG
 	splineRender->render(vec4(0.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f, 1.0f, 0.0f, 1.0f), vec4(0.0f, 1.0f, 1.0f, 1.0f), selectedPoint, 0.01f);
 #endif
 
+	} catch(string errString) {
+		throwErr(errString);
+	}
 	t += 0.0006f;
 	t = std::min(t, 1.0f);
 }

@@ -11,6 +11,7 @@ namespace programglobal {
 	extern clglcontext* oclContext;
 	extern camera* currentCamera;
 	extern opensimplexnoise* noiseGenerator;
+	extern double deltaTime;
 } // namespace programglobal
 
 #endif

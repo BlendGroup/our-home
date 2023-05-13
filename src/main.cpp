@@ -24,7 +24,7 @@
 using namespace std;
 using namespace vmath;
 
-static bool hdrEnabled = true;
+static bool hdrEnabled = false;
 static HDR* hdr;
 static vector<sceneCamera*> scenecamera;
 static sceneCameraRig* scenecamerarig;
@@ -39,6 +39,7 @@ static labscene* labScene;
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
 camera* programglobal::currentCamera;
+double programglobal::deltaTime = 0.0f;
 
 void setupProgram(void) {
 	try {
@@ -87,6 +88,8 @@ void init(void) {
 
 		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_MULTISAMPLE);
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -124,8 +127,10 @@ void render(glwindow* window) {
 }
 
 void update(void) {
+#define CAMERA_SPEED 0.1f
+
 	if(isAnimating) {
-		currentSceneCamera->updateT(0.001f);
+		currentSceneCamera->updateT(programglobal::deltaTime * CAMERA_SPEED);
 	}
 }
 
@@ -193,14 +198,22 @@ void uninit(void) {
 	delete debugcamera;
 }
 
+double getDeltaTime(glwindow *win) {
+	static double prev = win->getTime();
+	double current = win->getTime();
+	double delta = current - prev;
+	prev = current;
+	return delta;
+}
+
 int main(int argc, char **argv) {
 	try {
 		glwindow* window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
-		auto start = chrono::steady_clock::now();
+		auto initstart = chrono::steady_clock::now();
 		init();
-		auto end = chrono::steady_clock::now();
-		chrono::duration<double> diff = end - start;
-		cout<<diff.count()<<endl;
+		auto initend = chrono::steady_clock::now();
+		chrono::duration<double> diff = initend - initstart;
+		cout<<"Time taken to initialize "<<diff.count()<<" sec"<<endl;
 		setupProgram();
 		setupSceneCamera();
 		window->setKeyboardFunc(keyboard);
@@ -209,6 +222,8 @@ int main(int argc, char **argv) {
 		while(!window->isClosed()) {
 			window->processEvents();
 			render(window);
+			programglobal::deltaTime = getDeltaTime(window);
+			// cout<<programglobal::deltaTime<<endl;
 			if(isAnimating) {
 				update();
 			}
