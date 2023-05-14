@@ -19,6 +19,7 @@ using namespace vmath;
 #define CUBEMAP_SIZE 2048
 
 static glmodel* modelLab;
+static glmodel* modelDoor;
 static glmodel* modelMug;
 static glmodel* modelRobot;
 static glmodel* modelAstro;
@@ -92,6 +93,7 @@ sceneCamera* labscene::setupCamera() {
 
 void labscene::init() {
 	modelLab = new glmodel("resources/models/spaceship/SpaceLab.fbx", aiProcessPreset_TargetRealtime_Quality, true);
+	modelDoor = new glmodel("resources/models/spaceship/door.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	modelMug = new glmodel("resources/models/mug/mug.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelRobot = new glmodel("resources/models/robot/robot.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
@@ -108,7 +110,6 @@ void labscene::init() {
 	sceneLightManager->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,5.0f),25.0f));
 	sceneLightManager->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(-5.0f,5.0f,5.0f),25.0f));
 	sceneLightManager->addSpotLight(SpotLight(vec3(0.0f,1.0f,0.0f),100.0f,vec3(-6.0f,8.0f,3.5f),35.0f,vec3(0.0f,0.0f,-1.0f),30.0f,45.0f));
-
 
 	float skybox_positions[] = {
 		// positions          
@@ -210,6 +211,8 @@ void labscene::render() {
         glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
         sceneLightManager->setLightUniform(programStaticPBR);
         modelLab->draw(programStaticPBR);
+		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-3.3f, -0.4f, 2.8f) * scale(1.0f));
+		modelDoor->draw(programStaticPBR);
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-1.3f,-0.41f,-1.5f) * scale(0.08f,0.08f,0.08f));
 		modelMug->draw(programStaticPBR);
 
@@ -266,6 +269,7 @@ void labscene::render() {
 
 void labscene::uninit() {
 	delete modelLab;
+	delete modelDoor;
 	delete modelMug;
 	delete modelRobot;
 }
@@ -341,11 +345,12 @@ void splineKeyboardFunc(int key) {
 
 void labscene::keyboardfunc(int key) {
 #ifdef DEBUG
+	//doorplacer->keyboardfunc(key);
 	// astroPlacer->keyboardfunc(key);
 	// splineKeyboardFunc(key);
 	switch(key) {
 	case XK_Tab:
-		cout<<astroPlacer<<endl;
+		//cout<<doorplacer<<endl;
 		for(int i = 0; i < robotSpline.size(); i++) {
 			cout<<"\t"<<robotSpline[i]<<",\n";
 		}
