@@ -1,3 +1,4 @@
+#define DEBUG
 #include<scenes/lab.h>
 #include<glmodelloader.h>
 #include<glshaderloader.h>
@@ -40,7 +41,7 @@ static GLuint skybox_vao,vbo;
 static bool crt = true;
 
 #ifdef DEBUG
-static modelplacer* astroPlacer;
+static modelplacer* doorPlacer;
 static SplineRenderer* splineRender;
 int selectedPoint = 0;
 #endif
@@ -167,11 +168,12 @@ void labscene::init() {
 	splineRender = new SplineRenderer(bspRobot);
 	splineRender->setRenderPoints(true);
 	//Astronaut: vec3(-3.41f, -1.39f, 2.03f), vec3(0f, 0f, 0f), 0.00889994f
-	astroPlacer = new modelplacer();
+	// doorPlacer = new modelplacer(vec3(-3.5f, -0.4f, 2.8f), vec3(0.0f, 0.0f, 0.0f), 1.0f);
 #endif
 }
 
 static float t = 0.01f;
+static float doort = 0.0f;
 
 void labscene::render() {
 
@@ -211,7 +213,7 @@ void labscene::render() {
         glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
         sceneLightManager->setLightUniform(programStaticPBR);
         modelLab->draw(programStaticPBR);
-		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-3.3f, -0.4f, 2.8f) * scale(1.0f));
+		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(mix(vec3(-3.3, -0.4f, 2.8f), vec3(-4.62f, -0.4f, 2.8f), doort)));
 		modelDoor->draw(programStaticPBR);
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-1.3f,-0.41f,-1.5f) * scale(0.08f,0.08f,0.08f));
 		modelMug->draw(programStaticPBR);
@@ -345,16 +347,16 @@ void splineKeyboardFunc(int key) {
 
 void labscene::keyboardfunc(int key) {
 #ifdef DEBUG
-	//doorplacer->keyboardfunc(key);
+	// doorPlacer->keyboardfunc(key);
 	// astroPlacer->keyboardfunc(key);
 	// splineKeyboardFunc(key);
 	switch(key) {
 	case XK_Tab:
-		//cout<<doorplacer<<endl;
-		for(int i = 0; i < robotSpline.size(); i++) {
-			cout<<"\t"<<robotSpline[i]<<",\n";
-		}
-		cout<<"\b"<<endl;
+		// cout<<doorPlacer<<endl;
+		// for(int i = 0; i < robotSpline.size(); i++) {
+		// 	cout<<"\t"<<robotSpline[i]<<",\n";
+		// }
+		// cout<<"\b"<<endl;
 		break;
 	}
 #endif

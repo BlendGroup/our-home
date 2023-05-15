@@ -143,7 +143,7 @@ void renderTestLab(camera *cam,vec3 camPos){
                 glUniform3fv(programStaticPBR->getUniformLocation("viewPos"),1,envMap->position);
                 // Lights data
                 glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
-                sceneLights->setLightUniform(programStaticPBR);
+                sceneLights->setLightUniform(programStaticPBR, false);
                 static_model[0]->draw(programStaticPBR,1);
             }
             glBindFramebuffer(GL_FRAMEBUFFER,0);
