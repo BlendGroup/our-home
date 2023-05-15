@@ -266,7 +266,7 @@ void SceneLight::addSpotLight(SpotLight sl){
     this->spots.push_back(sl);
 }
 
-void SceneLight::setLightUniform(glshaderprogram *program){
+void SceneLight::setLightUniform(glshaderprogram *program, bool useIndirectLight){
 
     // Directional Lights
     glUniform1i(program->getUniformLocation("numOfDL"),directional.size());
@@ -298,7 +298,7 @@ void SceneLight::setLightUniform(glshaderprogram *program){
         glUniform1f(program->getUniformLocation("sl["+std::to_string(i)+"].outer_angle"),spots[i].outer_angle);
     }
 
-    if(this->indirectLight){   
+    if(this->indirectLight && useIndirectLight){   
         glUniform1i(program->getUniformLocation("IBL"),this->indirectLight);
         glBindTextureUnit(8,irradianceMap->cubemap_texture);
         glBindTextureUnit(9,prefilterMap->cubemap_texture);

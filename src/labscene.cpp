@@ -193,7 +193,7 @@ void labscene::render() {
                 glUniform3fv(programStaticPBR->getUniformLocation("viewPos"),1,envMapper->position);
                 // Lights data
                 glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
-                sceneLightManager->setLightUniform(programStaticPBR);
+                sceneLightManager->setLightUniform(programStaticPBR, false);
                 modelLab->draw(programStaticPBR,1);
             }
             glBindFramebuffer(GL_FRAMEBUFFER,0);
