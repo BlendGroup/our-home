@@ -17,6 +17,7 @@
 #include<global.h>
 #include<clhelper.h>
 #include<gltextureloader.h>
+#include<shapes.h>
 
 #include<scenes/base.h>
 #include<scenes/lab.h>
@@ -40,6 +41,7 @@ mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
 camera* programglobal::currentCamera;
 double programglobal::deltaTime = 0.0f;
+shaperenderer* programglobal::shapeRenderer;
 
 void setupProgram(void) {
 	try {
@@ -65,7 +67,6 @@ void setupSceneCamera(void) {
 		scenecamerarig->setRenderPathToFront(true);
 		scenecamerarig->setScalingFactor(0.01f);
 #endif
-
 		currentSceneCamera = scenecamera[0];
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -77,6 +78,7 @@ void init(void) {
 		//Object Creation
 		hdr = new HDR(1.5f, 1.0f, 2048);
 		programglobal::oclContext = new clglcontext(1);
+		programglobal::shapeRenderer = new shaperenderer();
 		labScene = new labscene();
 
 		//Inititalize
