@@ -35,6 +35,7 @@ static glshaderprogram* programStaticPBR;
 static glshaderprogram* programDynamicPBR;
 static glshaderprogram* programLight;
 static glshaderprogram* programSkybox;
+static glshaderprogram* programColor;
 
 static GLuint skybox_vao,vbo;
 
@@ -59,6 +60,7 @@ void labscene::setupProgram() {
 		programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
 		programLight = new glshaderprogram({"shaders/debug/lightSrc.vert", "shaders/debug/lightSrc.frag"});
 		programSkybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
+		programColor = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
 	} catch(string errorString)  {
 		throwErr(errorString);
 	}
@@ -168,7 +170,7 @@ void labscene::init() {
 	splineRender = new SplineRenderer(bspRobot);
 	splineRender->setRenderPoints(true);
 	//Astronaut: vec3(-3.41f, -1.39f, 2.03f), vec3(0f, 0f, 0f), 0.00889994f
-	// doorPlacer = new modelplacer(vec3(-3.5f, -0.4f, 2.8f), vec3(0.0f, 0.0f, 0.0f), 1.0f);
+	doorPlacer = new modelplacer(vec3(-3.43f, -0.3f, 2.748f), vec3(0.0f, 0.0f, 0.0f), 1.0f);
 #endif
 }
 
@@ -243,6 +245,11 @@ void labscene::render() {
         modelAstro->update(0.005f, 1);
         modelAstro->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
         modelAstro->draw(programDynamicPBR,1);
+
+		programColor->use();
+		glUniformMatrix4fv(programColor->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * programglobal::currentCamera->matrix() * translate(-3.45f, -0.3f, 2.828f));
+		glUniform4f(programColor->getUniformLocation("color"), 1.0f, 1.0f, 1.0f, 1.0f);
+		programglobal::shapeRenderer->renderQuad();
 
 		// render light src
         programLight->use();
@@ -347,12 +354,12 @@ void splineKeyboardFunc(int key) {
 
 void labscene::keyboardfunc(int key) {
 #ifdef DEBUG
-	// doorPlacer->keyboardfunc(key);
+	doorPlacer->keyboardfunc(key);
 	// astroPlacer->keyboardfunc(key);
 	// splineKeyboardFunc(key);
 	switch(key) {
 	case XK_Tab:
-		// cout<<doorPlacer<<endl;
+		cout<<doorPlacer<<endl;
 		// for(int i = 0; i < robotSpline.size(); i++) {
 		// 	cout<<"\t"<<robotSpline[i]<<",\n";
 		// }

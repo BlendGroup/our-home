@@ -10,6 +10,7 @@ using namespace vmath;
 #define SELECTED_PATH_POINT_COLOR vec4(1.0f, 1.0f, 0.0f, 1.0f)
 #define FRONT_POINT_COLOR vec4(0.0f, 0.0f, 1.0f, 0.0f)
 #define SELECTED_FRONT_POINT_COLOR vec4(0.0f, 1.0f, 1.0f, 1.0f)
+#define CAMERA_RIG_COLOR vec4(1.0f, 0.0f, 0.0f, 1.0f)
 
 /*********************************************************************/
 /*                              SceneCameraRig                       */
@@ -24,7 +25,7 @@ sceneCameraRig::sceneCameraRig(sceneCamera* scenecam)
 	  selectedPathPoint(0),
 	  selectedFrontPoint(0)
 {
-    program = new glshaderprogram({"shaders/cameraRig.vert", "shaders/cameraRig.frag"});
+    program = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
 
     glCreateVertexArrays(1, &vaoPoint);
     glCreateBuffers(1, &vboPoint);
@@ -159,23 +160,21 @@ void sceneCameraRig::render() const
 		};
 
         program->use();
-        glUniformMatrix4fv(1, 1, GL_FALSE, programglobal::currentCamera->matrix());
-        glUniformMatrix4fv(2, 1, GL_FALSE, programglobal::perspective);
+		glUniform4fv(program->getUniformLocation("color"), 1, CAMERA_RIG_COLOR);
+		mat4 vpMat = programglobal::perspective * programglobal::currentCamera->matrix();
 
         // draw a line connecting the 2 points
-        glUniform1i(3, 0); // isPoint = false
         glBindVertexArray(vaoPathToFront);
         glBindBuffer(GL_ARRAY_BUFFER, vboPathToFront);
         glBufferData(GL_ARRAY_BUFFER, sizeof(point_front), point_front, GL_DYNAMIC_DRAW);
-        glUniformMatrix4fv(0, 1, GL_FALSE, mat4::identity());
+        glUniformMatrix4fv(program->getUniformLocation("mvpMatrix"), 1, GL_FALSE, vpMat);
         glDrawArrays(GL_LINES, 0, 2);
 
         // draw the 2 points
-        glUniform1i(3, 1); // isPoint = true
         glBindVertexArray(vaoPoint);
-        glUniformMatrix4fv(0, 1, GL_FALSE, translate(point_front[0]) * scale(this->scalingFactor));
+        glUniformMatrix4fv(program->getUniformLocation("mvpMatrix"), 1, GL_FALSE, vpMat * translate(point_front[0]) * scale(this->scalingFactor));
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        glUniformMatrix4fv(0, 1, GL_FALSE, translate(point_front[1]) * scale(this->scalingFactor));
+        glUniformMatrix4fv(program->getUniformLocation("mvpMatrix"), 1, GL_FALSE, vpMat * translate(point_front[1]) * scale(this->scalingFactor));
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 }
