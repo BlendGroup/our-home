@@ -79,6 +79,23 @@ kernel void fbm2(global short* perm, global double2* permGrad2, global latticepo
 		float amplitude = 0.5;
 
 		for (int i = 0; i < octaves; i++) {
+			double n = fabs(noise2_base(perm, permGrad2, lookup2d, st));
+			value += amplitude * n;
+			st *= 2.0;
+			amplitude *= 0.5;
+		}
+		output[index] = 1.0 - value;
+	}
+}
+
+kernel void turbulencefbm2(global short* perm, global double2* permGrad2, global latticepoint2D_t* lookup2d, global float2* input, global float* output, const uint numPoints, const int octaves) {
+	int index = get_global_id(0);
+	if(index < numPoints) {
+		double2 st = convert_double2(input[index]);
+		float value = 0.0;
+		float amplitude = 0.5;
+
+		for (int i = 0; i < octaves; i++) {
 			value += amplitude * noise2_base(perm, permGrad2, lookup2d, st);
 			st *= 2.0;
 			amplitude *= 0.5;
