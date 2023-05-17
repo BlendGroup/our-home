@@ -30,29 +30,47 @@ void setupProgramTestCamera(void) {
 }
 
 void setupSceneCameraTestCamera(sceneCamera* &scenecam) {
-	PathDescriptor path;
-	path.positionKeyFrames.push_back(vec3(0.0f, 20.0f, 35.0f));
-    path.positionKeyFrames.push_back(vec3(5.0f, 15.0f, 15.0f));
-    path.positionKeyFrames.push_back(vec3(-5.0f, 13.0f, 5.0f));
-    path.positionKeyFrames.push_back(vec3(-10.0f, 14.0f, 8.0f));
-    path.positionKeyFrames.push_back(vec3(-15.0f, 15.0f, 10.0f));
+	vector<vec3> positionKeyFrames;
+	vector<vec3> frontKeyFrames;
 
-	path.frontKeyFrames.push_back(vec3(0.0f, -1.0f, 0.0f));
-    path.frontKeyFrames.push_back(vec3(10.0f, -1.0f, 10.0f));
-    path.frontKeyFrames.push_back(vec3(0.0f, -1.0f, 5.0f));
-    path.frontKeyFrames.push_back(vec3(-8.0f, -1.0f, 5.0f));
-    path.frontKeyFrames.push_back(vec3(10.0f, 1.0f, 10.0f));
+	positionKeyFrames.push_back(vec3(0.0f, 20.0f, 35.0f));
+    positionKeyFrames.push_back(vec3(5.0f, 15.0f, 15.0f));
+    positionKeyFrames.push_back(vec3(-5.0f, 13.0f, 5.0f));
+    positionKeyFrames.push_back(vec3(-10.0f, 14.0f, 8.0f));
+    positionKeyFrames.push_back(vec3(-15.0f, 15.0f, 10.0f));
 
-	scenecam = new sceneCamera(&path);
+	frontKeyFrames.push_back(vec3(0.0f, -1.0f, 0.0f));
+    frontKeyFrames.push_back(vec3(10.0f, -1.0f, 10.0f));
+    frontKeyFrames.push_back(vec3(0.0f, -1.0f, 5.0f));
+    frontKeyFrames.push_back(vec3(-8.0f, -1.0f, 5.0f));
+    frontKeyFrames.push_back(vec3(10.0f, 1.0f, 10.0f));
+
+	scenecam = new sceneCamera(positionKeyFrames, frontKeyFrames);
 }
 
-void setupSceneCameraRigTestCamera(sceneCamera* scenecam, sceneCameraRig* &scenecamrig) {
-	scenecamrig = new sceneCameraRig(scenecam);
+void setupSceneCameraRigTestCamera(sceneCameraRig* &scenecamrig) {
+	vector<vec3> positionKeyFrames;
+	vector<vec3> frontKeyFrames;
+
+	positionKeyFrames.push_back(vec3(0.0f, 20.0f, 35.0f));
+    positionKeyFrames.push_back(vec3(5.0f, 15.0f, 15.0f));
+    positionKeyFrames.push_back(vec3(-5.0f, 13.0f, 5.0f));
+    positionKeyFrames.push_back(vec3(-10.0f, 14.0f, 8.0f));
+    positionKeyFrames.push_back(vec3(-15.0f, 15.0f, 10.0f));
+
+	frontKeyFrames.push_back(vec3(0.0f, -1.0f, 0.0f));
+    frontKeyFrames.push_back(vec3(10.0f, -1.0f, 10.0f));
+    frontKeyFrames.push_back(vec3(0.0f, -1.0f, 5.0f));
+    frontKeyFrames.push_back(vec3(-8.0f, -1.0f, 5.0f));
+    frontKeyFrames.push_back(vec3(10.0f, 1.0f, 10.0f));
+
+	scenecamrig = new sceneCameraRig(positionKeyFrames, frontKeyFrames);
 	scenecamrig->setRenderPath(true);
 	scenecamrig->setRenderPathPoints(true);
 	scenecamrig->setRenderFront(true);
 	scenecamrig->setRenderFrontPoints(true);
 	scenecamrig->setRenderPathToFront(true);
+	scenecamrig->setScalingFactor(0.1f);
 }
 
 void initTestCamera() {

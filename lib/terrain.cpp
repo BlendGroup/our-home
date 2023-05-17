@@ -19,7 +19,7 @@ void terrain::setupProgram(void) {
 
 		programglobal::oclContext->setKernelParameters(this->normalKernel, {param(0, this->heightMap.cl), param(1, this->normalMap.cl)});
 		size_t globalWorkSize[] = { TEXTURE_SIZE, TEXTURE_SIZE };
-		size_t localWorkSize[] = { 32, 32 };
+		size_t localWorkSize[] = { 16, 16 };
 		programglobal::oclContext->runCLKernel(this->normalKernel, 2, globalWorkSize, localWorkSize, {this->heightMap, this->normalMap});
 		CLErr(clhelpererr = clFinish(programglobal::oclContext->getCommandQueue()));
 	} catch(string errorstring) {
