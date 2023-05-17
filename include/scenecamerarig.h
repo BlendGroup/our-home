@@ -11,6 +11,10 @@
 #include <splinerenderer.h>
 #include <global.h>
 
+#ifndef CAMERA_RIG_SCALER
+#define CAMERA_RIG_SCALER 0.01f
+#endif
+
 class sceneCameraRig
 {
 private:
@@ -22,15 +26,13 @@ private:
     GLuint vboPoint, vboPathToFront;
     bool isRenderPath, isRenderFront, isRenderPathToFront, isRenderPathPoints, isRenderFrontPoints;
     float scalingFactor;
-	std::vector<vmath::vec3> positionKeyFrames;
-	std::vector<vmath::vec3> frontKeyFrames;
-    int selectedPathPoint;
+	int selectedPathPoint;
     int selectedFrontPoint;
 
 	void loadGeometry(void);
 
 public:
-    sceneCameraRig(std::vector<vmath::vec3> positionKeyFrames, std::vector<vmath::vec3> frontKeyFrames);
+    sceneCameraRig(sceneCamera* camera);
     ~sceneCameraRig();
     void render() const;
     void updateT(float speed);

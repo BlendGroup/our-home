@@ -14,7 +14,7 @@
 class SplineInterpolator
 {
 public:
-    virtual vmath::vec3 interpolate(const float t) = 0;
+    virtual vmath::vec3 interpolate(float t) = 0;
     virtual const std::vector<vmath::vec3> &getPoints(void) = 0;
     virtual const std::vector<vmath::vec3> &getControlPoints(void) = 0;
 };
@@ -25,7 +25,6 @@ private:
     std::vector<vmath::vec3> m_ctrlps;
     int m_nSplines;
 
-    vmath::vec3 lerp(const vmath::vec3 &A, const vmath::vec3 &B, const float t);
     vmath::vec3 quadraticBezier(const vmath::vec3 &A, const vmath::vec3 &B, const vmath::vec3 &C, const float t);
     vmath::vec3 cubicBezier(const vmath::vec3 &A, const vmath::vec3 &B, const vmath::vec3 &C, const vmath::vec3 &D, const float t);
 public:

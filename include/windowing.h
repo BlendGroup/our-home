@@ -41,6 +41,7 @@ public:
 	bool isClosed(void);
 	void close(void);
 	windowsize_t getSize(void);
+	double getTime(void);
 	void swapBuffers(void);
 	void setKeyboardFunc(glwindowkeyboardfunc keyboardcallback);
 	void setMouseFunc(glwindowmousefunc mousecallback);

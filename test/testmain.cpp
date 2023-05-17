@@ -39,7 +39,6 @@ static bool isAnimating = false;
 #define SHOW_CAMERA_SCENE 		0
 #define SHOW_PBR_SCENE			0
 #define SHOW_LAB_SCENE			1
-#define SHOW_CAMERA_RIG			0
 #define SHOW_TERRAIN_SCENE 		0
 #define SHOW_CUBEMAP_SCENE		0
 #define SHOW_NOISE_SCENE 		0
@@ -86,13 +85,9 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 0.0f), -90.0f, 0.0f);
+		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
 		setupSceneCameraTestCamera(scenecamera);
-#if SHOW_CAMERA_RIG
-		setupSceneCameraRigTestCamera(scenecamerarig);
-#else
-		setupSceneCameraTestCamera(scenecamera);
-#endif // SHOW_CAMERA_RIG
+		setupSceneCameraRigTestCamera(scenecamerarig, scenecamera);
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -138,12 +133,7 @@ void init(void) {
 
 void render(glwindow* window) {
 	try {
-#if SHOW_CAMERA_RIG
-		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamerarig->getCamera());
-		scenecamerarig->setRenderPathToFront(isDebugCameraOn);
-#else
 		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamera);
-#endif
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
 			glClearBufferfv(GL_COLOR, 1, vec4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -160,9 +150,7 @@ void render(glwindow* window) {
 		renderTestEffect();
 #endif
 #if SHOW_CAMERA_SCENE
-#if SHOW_CAMERA_RIG
 		renderCameraRigTestCamera(scenecamerarig);
-#endif // SHOW_CAMERA_RIG
 		renderTestCamera();
 #endif // SHOW_CAMERA_SCENE
 #if SHOW_PBR_SCENE
@@ -195,11 +183,7 @@ void render(glwindow* window) {
 }
 
 void update(void) {
-#if SHOW_CAMERA_RIG
-	scenecamerarig->updateT(0.0005f);
-#else
 	scenecamera->updateT(0.0005f);
-#endif // SHOW_CAMERA_RIG
 }
 
 void keyboard(glwindow* window, int key) {
@@ -248,11 +232,9 @@ void uninit(void) {
 	uninitTestEffect();
 #endif
 #if SHOW_CAMERA_SCENE
-#if SHOW_CAMERA_RIG
 	if(scenecamerarig) {
 		delete scenecamerarig;
 	}
-#endif // SHOW_CAMERA_RIG
 	if(scenecamera) {
 		delete scenecamera;
 	}

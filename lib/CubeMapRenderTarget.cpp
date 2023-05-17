@@ -53,12 +53,12 @@ void CubeMapRenderTarget::setPosition(const vmath::vec3 pos){
 
     view[0] = lookat(pos, pos + vec3(1,0,0), vec3(0,1,0));
     view[1] = lookat(pos, pos + vec3(-1,0,0), vec3(0,1,0));
-    view[2] = lookat(pos, pos + vec3(0,1,0), vec3(0,0,1));
-    view[3] = lookat(pos, pos + vec3(0,-1,0), vec3(0,0,-1));
-    view[4] = lookat(pos, pos + vec3(0,0,1), vec3(0,1,0));
-    view[5] = lookat(pos, pos + vec3(0,0,-1), vec3(0,1,0));
+    view[2] = lookat(pos, pos + vec3(0,-1,0), vec3(0,0,-1));
+    view[3] = lookat(pos, pos + vec3(0,1,0), vec3(0,0,1));
+    view[4] = lookat(pos, pos + vec3(0,0,-1), vec3(0,1,0));
+    view[5] = lookat(pos, pos + vec3(0,0,1), vec3(0,1,0));
 
-    projection = perspective(45.0f, 1.0f, 0.1f, 10.0f);
+    projection = perspective(90.0f, 1.0f, 0.1f, 200.0f);
 }
 
 const vec3 CubeMapRenderTarget::getPosition(void){
