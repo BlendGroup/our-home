@@ -30,7 +30,9 @@ int3 fast_floor3(double3 s){
 	return (int3)(xi, yi, zi);
 }
 
-double noise2_base(global short* perm, global double2* permGrad2, global latticepoint2D_t* lookup2, double2 s) {
+double noise2_base(global short* perm, global double2* permGrad2, global latticepoint2D_t* lookup2, double2 xy) {
+	double s1 = 0.366025403784439 * (xy.x + xy.y);
+	double2 s = xy + s1;
 	double value = 0;
 	int2 sb = fast_floor2(s);
 	double2 si = s - convert_double2(sb);
@@ -65,14 +67,29 @@ kernel void noise2(global short* perm, global double2* permGrad2, global lattice
 	int index = get_global_id(0);
 	if(index < numPoints) {
 		double2 xy = convert_double2(input[index]);
-		double s = 0.366025403784439 * (xy.x + xy.y);
-		double2 s2 = xy + s;
-
-		output[index] = noise2_base(perm, permGrad2, lookup2d, s2) * amplitude;
+		output[index] = noise2_base(perm, permGrad2, lookup2d, xy) * amplitude;
 	}
 }
 
-double noise3_base(global short* perm, global double* permGrad3, global latticepoint3D_t* lookup3, double3 r) {
+kernel void fbm2(global short* perm, global double2* permGrad2, global latticepoint2D_t* lookup2d, global float2* input, global float* output, const uint numPoints, const int octaves) {
+	int index = get_global_id(0);
+	if(index < numPoints) {
+		double2 st = convert_double2(input[index]);
+		float value = 0.0;
+		float amplitude = 0.5;
+
+		for (int i = 0; i < octaves; i++) {
+			value += amplitude * noise2_base(perm, permGrad2, lookup2d, st);
+			st *= 2.0;
+			amplitude *= 0.5;
+		}
+		output[index] = value;
+	}
+}
+
+double noise3_base(global short* perm, global double* permGrad3, global latticepoint3D_t* lookup3, double3 xyz) {
+	double r1 = 0.6666666666667 * (xyz.x + xyz.y + xyz.z);
+	double3 r = r1 - xyz;
 	double value = 0;
 	int3 rb = fast_floor3(r);
 	double3 ri = r - convert_double3(rb);
@@ -107,8 +124,6 @@ kernel void noise3(global short* perm, global double* permGrad3, global latticep
 	int index = get_global_id(0);
 	if(index < numPoints) {
 		double3 xyz = (double3)(input[index * 3 + 0], input[index * 3 + 1], input[index * 3 + 2]);
-		double r = 0.6666666666667 * (xyz.x + xyz.y + xyz.z);
-		double3 r2 = r - xyz;
-		output[index] = noise3_base(perm, permGrad3, lookup3d, r2);
+		output[index] = noise3_base(perm, permGrad3, lookup3d, xyz);
 	}
 }

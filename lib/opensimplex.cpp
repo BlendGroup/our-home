@@ -18,9 +18,14 @@ using namespace std;
 #define PROGRAM_NAME "opensimplexnoise.cl"
 #define ERROR_INVALID_NOISE "Invalid Noise Type"
 
-unordered_map<noisetype, string> kernelnamelookup = {
+unordered_map<noisetype, string> noisekernelnamelookup = {
 	{Noise2D, "noise2"},
 	{Noise3D, "noise3"}
+};
+
+unordered_map<noisetype, string> fbmkernelnamelookup = {
+	{FBM2D, "fbm2"},
+	{FBM3D, "fbm3"}
 };
 
 typedef struct latticepoint2D_t {
@@ -98,7 +103,7 @@ cl_mem create3DUniformInput(ivec3 dim, ivec3 offset, float timeInterval) {
 }
 
 cl_mem createUniformInput(noisetype type, const int* dim, const int* offset, float timeInterval) {
-	if(type == Noise2D) {
+	if(type == Noise2D || type == FBM2D) {
 		return create2DUniformInput(ivec2(dim[0], dim[1]), ivec2(offset[0], offset[1]), timeInterval);
 	} else if(type == Noise3D) {
 		return create3DUniformInput(ivec3(dim[0], dim[1], dim[2]), ivec3(offset[0], offset[1], offset[2]), timeInterval);
@@ -214,6 +219,122 @@ void create2DNoiseTexture(cl_kernel kernel, cl_mem inputGrid, clglmem outputNois
 		size_t globalWorkSize = pointCount;
 
 		programglobal::oclContext->setKernelParameters(kernel, { param(0, clPerm), param(1, clPermGrad2d), param(2, clLookup2d), param(3, inputGrid), param(4, outputNoise.cl), param(5, pointCount), param(6, amplitude) });
+		programglobal::oclContext->runCLKernel(kernel, 1, &globalWorkSize, NULL, { outputNoise });
+
+		clReleaseMemObject(clPerm);
+		clReleaseMemObject(clPermGrad2d);
+		clReleaseMemObject(clLookup2d);
+	} catch(string errorString) {
+		throwErr(errorString);
+	}
+}
+
+void create2DFBMTexture(cl_kernel kernel, cl_mem inputGrid, clglmem outputNoise, ivec2 dim, int octaves, long seed) {
+	try {
+		static dvec2 gradients2d[PSIZE];
+		static latticepoint2D_t lookup2d[NUM_LATTICE * NUM_POINTS_PER_2D_LATICE];
+		static short perm[PSIZE];
+		static dvec2 permGrad2d[PSIZE];
+
+		//Fill Gradients Array -- TODO find out why this array and N2
+		const double N2 = 0.05481866495625118;
+
+		static const dvec2 arr[24] = {
+			dvec2(0.130526192220052, 0.99144486137381) / N2,
+			dvec2(0.38268343236509, 0.923879532511287) / N2,
+			dvec2(0.608761429008721, 0.793353340291235) / N2,
+			dvec2(0.793353340291235, 0.608761429008721) / N2,
+			dvec2(0.923879532511287, 0.38268343236509) / N2,
+			dvec2(0.99144486137381, 0.130526192220051) / N2,
+			dvec2(0.99144486137381, -0.130526192220051) / N2,
+			dvec2(0.923879532511287, -0.38268343236509) / N2,
+			dvec2(0.793353340291235, -0.60876142900872) / N2,
+			dvec2(0.608761429008721, -0.793353340291235) / N2,
+			dvec2(0.38268343236509, -0.923879532511287) / N2,
+			dvec2(0.130526192220052, -0.99144486137381) / N2,
+			dvec2(-0.130526192220052, -0.99144486137381) / N2,
+			dvec2(-0.38268343236509, -0.923879532511287) / N2,
+			dvec2(-0.608761429008721, -0.793353340291235) / N2,
+			dvec2(-0.793353340291235, -0.608761429008721) / N2,
+			dvec2(-0.923879532511287, -0.38268343236509) / N2,
+			dvec2(-0.99144486137381, -0.130526192220052) / N2,
+			dvec2(-0.99144486137381, 0.130526192220051) / N2,
+			dvec2(-0.923879532511287, 0.38268343236509) / N2,
+			dvec2(-0.793353340291235, 0.608761429008721) / N2,
+			dvec2(-0.608761429008721, 0.793353340291235) / N2,
+			dvec2(-0.38268343236509, 0.923879532511287) / N2,
+			dvec2(-0.130526192220052, 0.99144486137381) / N2
+		};
+		for(int i = 0; i < PSIZE; i++) {
+			gradients2d[i] = arr[i % 24];
+		}
+
+		//Fill Lookup Array -- TODO find out why
+
+		for(int i = 0; i < NUM_LATTICE; i++) {
+			int i1, i2, j1, j2;
+			if((i & 1) == 0) {//Once every 2 Times
+				if((i & 2) == 0) { //Twice every 4 times
+					i1 = -1;
+					j1 = 0;
+				} else { //Twice every 4 times
+					i1 = 1;
+					j1 = 0;
+				}
+				if((i & 4) == 0) { //Quadrice every 8 times
+					i2 = 0;
+					j2 = -1;
+				} else { //Quadrice every 8 times
+					i2 = 0;
+					j2 = 1;
+				}
+			} else {//Once every 2 Times
+				if((i & 2) == 0) { //Twice every 4 times
+					i1 = 0;
+					j1 = 1;
+				} else { //Twice every 4 times
+					i1 = 2;
+					j1 = 1;
+				}
+				if((i & 4) == 0) { //Quadrice every 8 times
+					i2 = 1;
+					j2 = 0;
+				} else { //Quadrice every 8 times
+					i2 = 1;
+					j2 = 2;
+				}
+			}
+			lookup2d[i * NUM_POINTS_PER_2D_LATICE + 0] = latticepoint2D(0, 0);
+			lookup2d[i * NUM_POINTS_PER_2D_LATICE + 1] = latticepoint2D(1, 1);
+			lookup2d[i * NUM_POINTS_PER_2D_LATICE + 2] = latticepoint2D(i1, j1);
+			lookup2d[i * NUM_POINTS_PER_2D_LATICE + 3] = latticepoint2D(i2, j2);
+		}
+		
+		//Fill Perm Array -- TODO find why
+
+		short source[PSIZE];
+		for(int i = 0; i < PSIZE; i++) {
+			source[i] = i;
+		}
+		for(int i = PSIZE - 1; i >= 0; i--) {
+			//Whyyyy
+			seed = seed * 6364136223846793005L + 1442695040888963407L;
+			int r = (int)((seed + 31) % (i + 1));
+			if (r < 0) {
+				r += (i + 1);
+			}
+			perm[i] = source[r];
+			permGrad2d[i] = gradients2d[perm[i]];
+			source[r] = source[i];
+		}
+
+		CLErr(cl_mem clPerm = clCreateBuffer(programglobal::oclContext->getContext(), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(perm), perm, &clhelpererr));
+		CLErr(cl_mem clPermGrad2d = clCreateBuffer(programglobal::oclContext->getContext(), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(permGrad2d), permGrad2d, &clhelpererr));
+		CLErr(cl_mem clLookup2d = clCreateBuffer(programglobal::oclContext->getContext(), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(lookup2d), lookup2d, &clhelpererr));
+		cl_uint pointCount = dim[0] * dim[1];
+		size_t globalWorkSize = pointCount;
+
+		programglobal::oclContext->setKernelParameters(kernel, { param(0, clPerm), param(1, clPermGrad2d), param(2, clLookup2d), param(3, inputGrid), param(4, outputNoise.cl), param(5, pointCount), param(6, octaves) });
 		programglobal::oclContext->runCLKernel(kernel, 1, &globalWorkSize, NULL, { outputNoise });
 
 		clReleaseMemObject(clPerm);
@@ -448,15 +569,59 @@ GLuint createNoiseTexture(cl_kernel kernel, noisetype type, cl_mem inputGrid, co
 	return tex;
 }
 
+GLuint createFBMTexture(cl_kernel kernel, noisetype type, cl_mem inputGrid, const int* dim, int octaves, long seed) {
+	GLuint tex;
+	glGenTextures(1, &tex);
+	try {
+		clglmem outputNoise;
+		if(type == FBM2D) {
+			outputNoise = programglobal::oclContext->createCLGLBuffer(sizeof(float) * dim[0] * dim[1], GL_MAP_WRITE_BIT | GL_MAP_READ_BIT, CL_MEM_READ_WRITE);
+			create2DFBMTexture(kernel, inputGrid, outputNoise, ivec2(dim[0], dim[1]), octaves, seed);
+			glBindTexture(GL_TEXTURE_2D, tex);
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, outputNoise.gl);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, dim[0], dim[1], 0, GL_RED, GL_FLOAT, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+		} else if(type == FBM3D) {
+			outputNoise = programglobal::oclContext->createCLGLBuffer(sizeof(float) * dim[0] * dim[1] * dim[2], GL_MAP_WRITE_BIT | GL_MAP_READ_BIT, CL_MEM_READ_WRITE);
+			// create3DNoiseTexture(kernel, inputGrid, outputNoise, ivec3(dim[0], dim[1], dim[2]), amplitude, seed);
+			glBindTexture(GL_TEXTURE_3D, tex);
+			// glTexImage3D();
+		} else {
+			throwErr(ERROR_INVALID_NOISE);
+		}
+	} catch(string errString) {
+		throwErr(errString);
+	}
+	return tex;
+}
+
 GLuint opensimplexnoise::createNoiseTextureOnUniformInput(noisetype type, const int* dim, const int* offset, float timeInterval, float amplitude, long seed) {
-	if(kernelnamelookup.count(type) == 0) {
+	if(noisekernelnamelookup.count(type) == 0) {
 		throwErr("Invalid Noise Type");
 	}
-	cl_kernel noiseKernel = programglobal::oclContext->getKernel(kernelnamelookup[type]);
+	cl_kernel noiseKernel = programglobal::oclContext->getKernel(noisekernelnamelookup[type]);
 	// programglobal::oclContext->printKernelList(cout);
 	cl_mem inputGrid;
 	inputGrid = createUniformInput(type, dim, offset, timeInterval);
 	GLuint outputNoise = createNoiseTexture(noiseKernel, type, inputGrid, dim, amplitude, seed);
+	clReleaseMemObject(inputGrid);
+
+	return outputNoise;
+}
+
+GLuint opensimplexnoise::createFBMTextureOnUniformInput(noisetype type, const int* dim, const int* offset, float timeInterval, int octaves, long seed) {
+	if(fbmkernelnamelookup.count(type) == 0) {
+		throwErr("Invalid FBM Type");
+	}
+	cl_kernel noiseKernel = programglobal::oclContext->getKernel(fbmkernelnamelookup[type]);
+	// programglobal::oclContext->printKernelList(cout);
+	cl_mem inputGrid;
+	inputGrid = createUniformInput(type, dim, offset, timeInterval);
+	GLuint outputNoise = createFBMTexture(noiseKernel, type, inputGrid, dim, octaves, seed);
 	clReleaseMemObject(inputGrid);
 
 	return outputNoise;
