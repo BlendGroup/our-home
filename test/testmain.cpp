@@ -131,6 +131,7 @@ void init(void) {
 		initTestNoise();
 #endif
 #if SHOW_AUDIO_SCENE
+		alutInit(0, NULL);
 		initTestAudio();
 #endif
 		hdr->init();

@@ -17,7 +17,6 @@
 
 class audioplayer {
 private:
-    ALCdevice *device;
     ALuint buffer;
     ALuint source;
     bool isPlaying;
