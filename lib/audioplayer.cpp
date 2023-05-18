@@ -1,5 +1,7 @@
+#include <AL/al.h>
 #include <iostream>
 #include <audio.h>
+#include <type_traits>
 
 /************ audioplayer ************/
 using namespace std;
@@ -12,6 +14,11 @@ audioplayer::audioplayer(const std::string &wavFilePath) {
 }
 
 void audioplayer::play(void) {
+    ALint state;
+    alGetSourcei(this->source,AL_SOURCE_STATE,&state);
+    if(state == AL_STOPPED) {
+        isPlaying = false;
+    }
     if(!isPlaying) {
         alSourcePlay(source);
         isPlaying = true;

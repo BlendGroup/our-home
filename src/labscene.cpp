@@ -1,3 +1,4 @@
+#include <cmath>
 #include <unordered_map>
 #define DEBUG
 #include<scenes/lab.h>
@@ -54,6 +55,7 @@ static glshaderprogram* programColor;
 static GLuint skybox_vao,vbo;
 
 static audioplayer *playerBkgnd;
+static audioplayer *playerRobotThump;
 static bool crt = true;
 
 #ifdef DEBUG
@@ -111,6 +113,7 @@ sceneCamera* labscene::setupCamera() {
 
 void labscene::init() {
 	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKai.wav");
+	playerRobotThump = new audioplayer("resources/audio/MetallicThumps.wav");
 
 	modelLab = new glmodel("resources/models/spaceship/SpaceLab.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	modelDoor = new glmodel("resources/models/spaceship/door.fbx", aiProcessPreset_TargetRealtime_Quality, true);
@@ -307,6 +310,10 @@ void labscene::render() {
 		}
 	}
 	if(eventManager[ROBOT_ANIM]) {
+
+		if(fmod(robotT, 0.04f) <= 0.001f) {
+			playerRobotThump->play();
+		}
 		robotT += ROBOT_MOVE_SPEED * programglobal::deltaTime;
 		robotT = std::min(robotT, 1.0f);
 		if(robotT >= 0.99f) {
