@@ -40,6 +40,7 @@ static glmodel* modelDoor;
 static glmodel* modelMug;
 static glmodel* modelRobot;
 static glmodel* modelAstro;
+static glmodel* modelBLEND;
 
 static BsplineInterpolator* bspRobot;
 
@@ -52,6 +53,7 @@ static glshaderprogram* programDynamicPBR;
 static glshaderprogram* programLight;
 static glshaderprogram* programSkybox;
 static glshaderprogram* programColor;
+static glshaderprogram* programHologram;
 
 static GLuint skybox_vao,vbo;
 
@@ -62,7 +64,7 @@ static audioplayer *playerRobotThump;
 static bool crt = true;
 
 #ifdef DEBUG
-// static modelplacer* doorPlacer;
+//static modelplacer* doorPlacer;
 static SplineRenderer* splineRender;
 int selectedPoint = 0;
 #endif
@@ -81,6 +83,7 @@ void labscene::setupProgram() {
 		programLight = new glshaderprogram({"shaders/debug/lightSrc.vert", "shaders/debug/lightSrc.frag"});
 		programSkybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
 		programColor = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
+		programHologram = new glshaderprogram{"shaders/hologram/hologram.vert","shaders/hologram/hologram.frag"};
 	} catch(string errorString)  {
 		throwErr(errorString);
 	}
@@ -123,7 +126,8 @@ void labscene::init() {
 	modelMug = new glmodel("resources/models/mug/mug.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelRobot = new glmodel("resources/models/robot/robot.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
-	
+	modelBLEND = new glmodel("resources/models/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
+
 	bspRobot = new BsplineInterpolator(robotSpline);
 
 	skyboxdemo = createTextureCubemap("resources/textures/skybox.jpg");
@@ -195,7 +199,7 @@ void labscene::init() {
 	splineRender = new SplineRenderer(bspRobot);
 	splineRender->setRenderPoints(true);
 	//Astronaut: vec3(-3.41f, -1.39f, 2.03f), vec3(0f, 0f, 0f), 0.00889994f
-	// doorPlacer = new modelplacer(vec3(-3.43f, -0.3f, 2.748f), vec3(0.0f, 0.0f, 0.0f), 1.0f);
+	//doorPlacer = new modelplacer(vec3(-3.43f, -0.3f, 2.748f), vec3(0.0f, 0.0f, 0.0f), 1.0f);
 #endif
 }
 
@@ -207,6 +211,7 @@ void labscene::render() {
 
 	static float robotT = 0.01f;
 	static float doorT = 0.0f;
+	static float blendT = 0.0f;
 
 	try {
 	    if(crt){
@@ -277,6 +282,30 @@ void labscene::render() {
         modelAstro->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
         modelAstro->draw(programDynamicPBR);
 
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC1_ALPHA);
+		//glEnable(GL_ALPHA_TEST);
+		programHologram->use();
+		glUniformMatrix4fv(programHologram->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
+        glUniformMatrix4fv(programHologram->getUniformLocation("vMat"),1,GL_FALSE, programglobal::currentCamera->matrix());
+		//translate(-1.96f, -0.27f, -1.682f) * rotate(13f, 1.0f, 0.0f, 0.0f) * rotate(-50f, 0.0f, 1.0f, 0.0f) * rotate(-1f, 0.0f, 0.0f, 1.0f) * scale(0.11f)
+        glUniformMatrix4fv(programHologram->getUniformLocation("mMat"),1,GL_FALSE, translate(-1.96f, -0.27f, -1.682f) * rotate(0.0f, 1.0f, 0.0f, 0.0f) * rotate(blendT, 0.0f, 1.0f, 0.0f) * rotate(0.0f, 0.0f, 0.0f, 1.0f) * scale(0.11f));
+		glUniform4fv(programHologram->getUniformLocation("MainColor"),1,vec4(0.0f,0.0f,1.0f,1.0f));
+		glUniform4fv(programHologram->getUniformLocation("RimColor"),1,vec4(0.0f,1.0f,1.0f,1.0f));
+		glUniform1f(programHologram->getUniformLocation("gTime"),blendT * 0.0001f);
+		glUniform1f(programHologram->getUniformLocation("GlitechIntensity"),1.0f);
+		glUniform1f(programHologram->getUniformLocation("GlitchSpeed"),1.0f);
+		glUniform1f(programHologram->getUniformLocation("BarSpeed"),1.0f);
+		glUniform1f(programHologram->getUniformLocation("BarDistance"),10.0f);
+		glUniform1f(programHologram->getUniformLocation("alpha"),1.0f);
+		glUniform1f(programHologram->getUniformLocation("FlickerSpeed"),1.0f);
+		glUniform1f(programHologram->getUniformLocation("RimPower"),5.0f);
+		//glUniform1f(programHologram->getUniformLocation("GlowSpeed"),1.0f);
+		//glUniform1f(programHologram->getUniformLocation("GlowDistance"),1.0f);
+		modelBLEND->draw(programHologram,1,false);
+		glDisable(GL_BLEND);
+		//glDisable(GL_ALPHA_TEST);
+
 		programColor->use();
 		glUniformMatrix4fv(programColor->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * programglobal::currentCamera->matrix() * translate(-3.45f, -0.3f, 2.828f));
 		glUniform4f(programColor->getUniformLocation("color"), 1.0f, 1.0f, 1.0f, 1.0f);
@@ -327,6 +356,9 @@ void labscene::render() {
 			eventManager[ROBOT_ANIM] = false;
 		}
 	}
+	if(blendT >= 360.0f)
+		blendT = 0.0f;
+	blendT += 0.5f;
 }
 
 void labscene::update(sceneCamera* cam) {
@@ -347,6 +379,7 @@ void labscene::uninit() {
 	delete modelDoor;
 	delete modelMug;
 	delete modelRobot;
+	delete modelBLEND;
 }
 
 void splineKeyboardFunc(int key) {
@@ -420,17 +453,17 @@ void splineKeyboardFunc(int key) {
 
 void labscene::keyboardfunc(int key) {
 #ifdef DEBUG
-	// doorPlacer->keyboardfunc(key);
+	//doorPlacer->keyboardfunc(key);
 	// astroPlacer->keyboardfunc(key);
 	splineKeyboardFunc(key);
 	switch(key) {
 	case XK_Tab:
-		cout << "Camera T = "<<dynamic_cast<sceneCamera *>(programglobal::currentCamera)->getDistanceOnSpline() << endl;
-		// cout<<doorPlacer<<endl;
-		for(int i = 0; i < robotSpline.size(); i++) {
-			cout<<"\t"<<robotSpline[i]<<",\n";
-		}
-		cout<<"\b"<<endl;
+		//cout << "Camera T = "<<dynamic_cast<sceneCamera *>(programglobal::currentCamera)->getDistanceOnSpline() << endl;
+		//cout<<doorPlacer<<endl;
+		//for(int i = 0; i < robotSpline.size(); i++) {
+			//cout<<"\t"<<robotSpline[i]<<",\n";
+		//}
+		//cout<<"\b"<<endl;
 		break;
 	}
 #endif

@@ -732,40 +732,40 @@ void glmodel::update(float dt, int baseAnimation , int layeredAnimation , float 
 	}
 }
 
-void glmodel::draw(glshaderprogram *program,int instance) {
+void glmodel::draw(glshaderprogram *program,int instance,bool setMaterials) {
 	try {
 		for(unsigned int i = 0; i < this->meshes.size(); i++) {
 			
 			//Set Material Uniforms  Can't Do This Outside of Draw !!!!
-
-			//setup textures	
-			if(this->materials[this->meshes[i].materialIndex].textures.size() > 0)
+			if(setMaterials)
 			{
-				glUniform1i(program->getUniformLocation("isTexture"),true);
-				for(int t = 0; t < this->materials[this->meshes[i].materialIndex].textures.size(); t++)
+				//setup textures	
+				if(this->materials[this->meshes[i].materialIndex].textures.size() > 0)
 				{
-					glBindTextureUnit(this->materials[this->meshes[i].materialIndex].textures[t].type,this->materials[this->meshes[i].materialIndex].textures[t].id);
+					glUniform1i(program->getUniformLocation("isTexture"),true);
+					for(int t = 0; t < this->materials[this->meshes[i].materialIndex].textures.size(); t++)
+					{
+						glBindTextureUnit(this->materials[this->meshes[i].materialIndex].textures[t].type,this->materials[this->meshes[i].materialIndex].textures[t].id);
+					}
+				}else {
+					glUniform1i(program->getUniformLocation("isTexture"),false);
+					glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_DIFFUSE]),1,this->materials[this->meshes[i].materialIndex].diffuse);
+					glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_EMISSIVE]),1,this->materials[this->meshes[i].materialIndex].emissive);
+				}		
+				if(PBR){
+					glUniform1f(program->getUniformLocation(materialTypeMap[MAT_METALLIC]),this->materials[this->meshes[i].materialIndex].metallic);
+					glUniform1f(program->getUniformLocation(materialTypeMap[MAT_ROUGHNESS]),this->materials[this->meshes[i].materialIndex].roughness);
+				}else {
+					glUniform1f(program->getUniformLocation(materialTypeMap[MAT_SPECULAR_POWER]),this->materials[this->meshes[i].materialIndex].metallic);
+					glUniform1f(program->getUniformLocation(materialTypeMap[MAT_SPECULAR_INTENSITY]),this->materials[this->meshes[i].materialIndex].roughness);
 				}
-			}else {
-				glUniform1i(program->getUniformLocation("isTexture"),false);
-				glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_DIFFUSE]),1,this->materials[this->meshes[i].materialIndex].diffuse);
-				glUniform3fv(program->getUniformLocation(materialTypeMap[MAT_EMISSIVE]),1,this->materials[this->meshes[i].materialIndex].emissive);
-			}		
-			if(PBR){
-				glUniform1f(program->getUniformLocation(materialTypeMap[MAT_METALLIC]),this->materials[this->meshes[i].materialIndex].metallic);
-				glUniform1f(program->getUniformLocation(materialTypeMap[MAT_ROUGHNESS]),this->materials[this->meshes[i].materialIndex].roughness);
-			}else {
-				glUniform1f(program->getUniformLocation(materialTypeMap[MAT_SPECULAR_POWER]),this->materials[this->meshes[i].materialIndex].metallic);
-				glUniform1f(program->getUniformLocation(materialTypeMap[MAT_SPECULAR_INTENSITY]),this->materials[this->meshes[i].materialIndex].roughness);
+				glUniform1f(program->getUniformLocation(materialTypeMap[MAT_OPACITY]),this->materials[this->meshes[i].materialIndex].opacity);
+				
+				//TEMP
+				// glUniform1i(program->getUniformLocation("texture_diffuse"), 0);
+				// glBindTextureUnit(0, this->materials[this->meshes[i].materialIndex].textures[TEX_DIFFUSE].id);
+				//////
 			}
-			glUniform1f(program->getUniformLocation(materialTypeMap[MAT_OPACITY]),this->materials[this->meshes[i].materialIndex].opacity);
-			
-			//TEMP
-			// glUniform1i(program->getUniformLocation("texture_diffuse"), 0);
-			// glBindTextureUnit(0, this->materials[this->meshes[i].materialIndex].textures[TEX_DIFFUSE].id);
-			//////
-
-
 			glBindVertexArray(this->meshes[i].vao);
 			glDrawElementsInstanced(GL_TRIANGLES, this->meshes[i].trianglePointCount, GL_UNSIGNED_INT, 0, instance);
 			// unbind textures
