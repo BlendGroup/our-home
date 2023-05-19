@@ -40,9 +40,9 @@ static bool isAnimating = false;
 #define SHOW_PBR_SCENE			0
 #define SHOW_LAB_SCENE			0
 #define SHOW_CAMERA_RIG			0
-#define SHOW_TERRAIN_SCENE 		0
+#define SHOW_TERRAIN_SCENE 		1
 #define SHOW_CUBEMAP_SCENE		0
-#define SHOW_NOISE_SCENE 		1
+#define SHOW_NOISE_SCENE 		0
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;

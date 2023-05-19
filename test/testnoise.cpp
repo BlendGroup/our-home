@@ -30,7 +30,8 @@ void initTestNoise() {
 		glBindVertexArray(tempVao);
 
 		// texture = programglobal::noiseGenerator->createNoiseTextureOnUniformInput(Noise2D, ivec2(1024, 1024), ivec2(0, 0), 128.0f, 1.0f, 3423);
-		texture = programglobal::noiseGenerator->createFBMTextureOnUniformInput(FBM2D, ivec2(1024, 1024), ivec2(0, 0), 128.0f, 5, 3423);
+		// texture = programglobal::noiseGenerator->createNoiseTexture2D(ivec2(1024, 1024), ivec2(0, 0), 128.0f, 5, 3423);
+		texture = programglobal::noiseGenerator->createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 0), 256.0f, 3, 3423);
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
