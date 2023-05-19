@@ -14,6 +14,7 @@
 #include<global.h>
 #include<clhelper.h>
 #include<opensimplexnoise.h>
+#include<gltextureloader.h>
 
 #include<testeffect.h>
 #include<testcamera.h>
