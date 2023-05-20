@@ -136,7 +136,7 @@ void clglcontext::compilePrograms(vector<string> programNames) {
 			len[i] = strs[i].length();
 		}
 		CLErr(cl_program program = clCreateProgramWithSource(this->context, programNames.size(), (const char**)src, len, &clhelpererr));
-		CLErr(clhelpererr = clBuildProgram(program, 1, &this->device, NULL, NULL, NULL));
+		clhelpererr = clBuildProgram(program, 1, &this->device, NULL, NULL, NULL);
 		if(clhelpererr != CL_SUCCESS) {
 			char *buffer;
 			size_t s;
