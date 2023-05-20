@@ -47,7 +47,7 @@ void initTestLab(){
     try {
 
         static_model.push_back(new glmodel("resources/models/spaceship/SpaceLab.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs, true));
-        static_model.push_back(new glmodel("resources/models/cup.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true));
+        static_model.push_back(new glmodel("resources/models/mug/mug.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true));
         dynamic_model.push_back(new glmodel("resources/models/robot/robot.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true));
         dynamic_model.push_back(new glmodel("resources/models/astronaut/MCAnim.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true));        
         envMap = new CubeMapRenderTarget(2048,2048,false);
@@ -143,7 +143,7 @@ void renderTestLab(camera *cam,vec3 camPos){
                 glUniform3fv(programStaticPBR->getUniformLocation("viewPos"),1,envMap->position);
                 // Lights data
                 glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
-                sceneLights->setLightUniform(programStaticPBR);
+                sceneLights->setLightUniform(programStaticPBR, false);
                 static_model[0]->draw(programStaticPBR,1);
             }
             glBindFramebuffer(GL_FRAMEBUFFER,0);

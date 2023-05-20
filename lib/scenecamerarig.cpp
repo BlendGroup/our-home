@@ -10,29 +10,29 @@ using namespace vmath;
 #define SELECTED_PATH_POINT_COLOR vec4(1.0f, 1.0f, 0.0f, 1.0f)
 #define FRONT_POINT_COLOR vec4(0.0f, 0.0f, 1.0f, 0.0f)
 #define SELECTED_FRONT_POINT_COLOR vec4(0.0f, 1.0f, 1.0f, 1.0f)
+#define CAMERA_RIG_COLOR vec4(1.0f, 0.0f, 0.0f, 1.0f)
 
 /*********************************************************************/
 /*                              SceneCameraRig                       */
 /*********************************************************************/
-sceneCameraRig::sceneCameraRig(std::vector<vmath::vec3> positionKeyFrames, std::vector<vmath::vec3> frontKeyFrames)
-    : isRenderPath(true),
+sceneCameraRig::sceneCameraRig(sceneCamera* scenecam)
+    : isRenderPath(false),
       isRenderFront(false),
       isRenderPathToFront(false),
+	  isRenderPathPoints(false),
+	  isRenderFrontPoints(false),
       scalingFactor(1.0f),
 	  selectedPathPoint(0),
 	  selectedFrontPoint(0)
 {
-    program = new glshaderprogram({"shaders/cameraRig.vert", "shaders/cameraRig.frag"});
+    program = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
 
     glCreateVertexArrays(1, &vaoPoint);
     glCreateBuffers(1, &vboPoint);
     glCreateVertexArrays(1, &vaoPathToFront);
     glCreateBuffers(1, &vboPathToFront);
 
-	this->positionKeyFrames = positionKeyFrames;
-	this->frontKeyFrames = frontKeyFrames;
-
-    mountCamera = new sceneCamera(positionKeyFrames, frontKeyFrames);
+	mountCamera = scenecam;
     pathRenderer = new SplineRenderer(mountCamera->m_bspPositions);
     frontRenderer = new SplineRenderer(mountCamera->m_bspFront);
 
@@ -160,35 +160,33 @@ void sceneCameraRig::render() const
 		};
 
         program->use();
-        glUniformMatrix4fv(1, 1, GL_FALSE, programglobal::currentCamera->matrix());
-        glUniformMatrix4fv(2, 1, GL_FALSE, programglobal::perspective);
+		glUniform4fv(program->getUniformLocation("color"), 1, CAMERA_RIG_COLOR);
+		mat4 vpMat = programglobal::perspective * programglobal::currentCamera->matrix();
 
         // draw a line connecting the 2 points
-        glUniform1i(3, 0); // isPoint = false
         glBindVertexArray(vaoPathToFront);
         glBindBuffer(GL_ARRAY_BUFFER, vboPathToFront);
         glBufferData(GL_ARRAY_BUFFER, sizeof(point_front), point_front, GL_DYNAMIC_DRAW);
-        glUniformMatrix4fv(0, 1, GL_FALSE, mat4::identity());
+        glUniformMatrix4fv(program->getUniformLocation("mvpMatrix"), 1, GL_FALSE, vpMat);
         glDrawArrays(GL_LINES, 0, 2);
 
         // draw the 2 points
-        glUniform1i(3, 1); // isPoint = true
         glBindVertexArray(vaoPoint);
-        glUniformMatrix4fv(0, 1, GL_FALSE, translate(point_front[0]) * scale(this->scalingFactor));
+        glUniformMatrix4fv(program->getUniformLocation("mvpMatrix"), 1, GL_FALSE, vpMat * translate(point_front[0]) * scale(this->scalingFactor));
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        glUniformMatrix4fv(0, 1, GL_FALSE, translate(point_front[1]) * scale(this->scalingFactor));
+        glUniformMatrix4fv(program->getUniformLocation("mvpMatrix"), 1, GL_FALSE, vpMat * translate(point_front[1]) * scale(this->scalingFactor));
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 }
 
-void sceneCameraRig::updateT(float speed)
-{
-    mountCamera->t = std::min(mountCamera->t + speed, 1.0f);
-}
+// void sceneCameraRig::updateT(float speed)
+// {
+//     mountCamera->t = std::min(mountCamera->t + speed, 1.0f);
+// }
 
-void sceneCameraRig::resetT(void) {
-	mountCamera->t = 0.0f;
-}
+// void sceneCameraRig::resetT(void) {
+// 	mountCamera->t = 0.0f;
+// }
 
 void sceneCameraRig::setRenderPath(bool setting)
 {
@@ -196,7 +194,7 @@ void sceneCameraRig::setRenderPath(bool setting)
 }
 
 void sceneCameraRig::setRenderPathPoints(bool setting)
-{	this->isRenderPathPoints;
+{	this->isRenderPathPoints = setting;
     pathRenderer->setRenderPoints(setting);
 }
 
@@ -207,7 +205,7 @@ void sceneCameraRig::setRenderFront(bool setting)
 
 void sceneCameraRig::setRenderFrontPoints(bool setting)
 {
-	this->isRenderFrontPoints;
+	this->isRenderFrontPoints = setting;
     frontRenderer->setRenderPoints(setting);
 }
 
@@ -230,84 +228,104 @@ void sceneCameraRig::keyboardfunc(int key) {
 	switch(key) {
 	//Front Point Select
 	case XK_v:
-		selectedFrontPoint = (selectedFrontPoint == 0) ? frontKeyFrames.size() - 1 : (selectedFrontPoint - 1) % this->frontKeyFrames.size();
+		selectedFrontPoint = (selectedFrontPoint == 0) ? mountCamera->frontKeyFrames.size() - 1 : (selectedFrontPoint - 1) % this->mountCamera->frontKeyFrames.size();
 		break;
 	case XK_b:
-		selectedFrontPoint = (selectedFrontPoint + 1) % this->frontKeyFrames.size();
+		selectedFrontPoint = (selectedFrontPoint + 1) % this->mountCamera->frontKeyFrames.size();
 		break;
 	//Path Point Select
 	case XK_n:
-		selectedPathPoint = (selectedPathPoint == 0) ? positionKeyFrames.size() - 1 : (selectedPathPoint - 1) % this->positionKeyFrames.size();
+		selectedPathPoint = (selectedPathPoint == 0) ? mountCamera->positionKeyFrames.size() - 1 : (selectedPathPoint - 1) % this->mountCamera->positionKeyFrames.size();
 		break;
 	case XK_m:
-		selectedPathPoint = (selectedPathPoint + 1) % this->positionKeyFrames.size();
+		selectedPathPoint = (selectedPathPoint + 1) % this->mountCamera->positionKeyFrames.size();
 		break;
 	//Front Point Move Z
 	case XK_t:
-		this->frontKeyFrames[selectedFrontPoint][2] += 1.0f;
+		this->mountCamera->frontKeyFrames[selectedFrontPoint][2] += CAMERA_RIG_SCALER;
 		refreshFront = true;
 		break;
 	case XK_g:
-		this->frontKeyFrames[selectedFrontPoint][2] -= 1.0f;
+		this->mountCamera->frontKeyFrames[selectedFrontPoint][2] -= CAMERA_RIG_SCALER;
 		refreshFront = true;
 		break;
 	//Front Point Move X
 	case XK_h:
-		this->frontKeyFrames[selectedFrontPoint][0] += 1.0f;
+		this->mountCamera->frontKeyFrames[selectedFrontPoint][0] += CAMERA_RIG_SCALER;
 		refreshFront = true;
 		break;
 	case XK_f:
-		this->frontKeyFrames[selectedFrontPoint][0] -= 1.0f;
+		this->mountCamera->frontKeyFrames[selectedFrontPoint][0] -= CAMERA_RIG_SCALER;
 		refreshFront = true;
 		break;
 	//Front Point Move Y
 	case XK_y:
-		this->frontKeyFrames[selectedFrontPoint][1] += 1.0f;
+		this->mountCamera->frontKeyFrames[selectedFrontPoint][1] += CAMERA_RIG_SCALER;
 		refreshFront = true;
 		break;
 	case XK_r:
-		this->frontKeyFrames[selectedFrontPoint][1] -= 1.0f;
+		this->mountCamera->frontKeyFrames[selectedFrontPoint][1] -= CAMERA_RIG_SCALER;
 		refreshFront = true;
 		break;
 	//Path Point Move Z
 	case XK_i:
-		this->positionKeyFrames[selectedPathPoint][2] += 1.0f;
+		this->mountCamera->positionKeyFrames[selectedPathPoint][2] += CAMERA_RIG_SCALER;
 		refreshPos = true;
 		break;
 	case XK_k:
-		this->positionKeyFrames[selectedPathPoint][2] -= 1.0f;
+		this->mountCamera->positionKeyFrames[selectedPathPoint][2] -= CAMERA_RIG_SCALER;
 		refreshPos = true;
 		break;
 	//Path Point Move X
 	case XK_l:
-		this->positionKeyFrames[selectedPathPoint][0] += 1.0f;
+		this->mountCamera->positionKeyFrames[selectedPathPoint][0] += CAMERA_RIG_SCALER;
 		refreshPos = true;
 		break;
 	case XK_j:
-		this->positionKeyFrames[selectedPathPoint][0] -= 1.0f;
+		this->mountCamera->positionKeyFrames[selectedPathPoint][0] -= CAMERA_RIG_SCALER;
 		refreshPos = true;
 		break;
 	//Path Point Move Y
 	case XK_o:
-		this->positionKeyFrames[selectedPathPoint][1] += 1.0f;
+		this->mountCamera->positionKeyFrames[selectedPathPoint][1] += CAMERA_RIG_SCALER;
 		refreshPos = true;
 		break;
 	case XK_u:
-		this->positionKeyFrames[selectedPathPoint][1] -= 1.0f;
+		this->mountCamera->positionKeyFrames[selectedPathPoint][1] -= CAMERA_RIG_SCALER;
 		refreshPos = true;
+		break;
+	//Add/Remove Path Points
+	case XK_bracketleft:
+		this->mountCamera->positionKeyFrames.insert(this->mountCamera->positionKeyFrames.begin() + selectedPathPoint + 1, vec3(0.0f, 0.0f, 0.0f));
+		refreshPos = true;
+		break;
+	case XK_bracketright:
+		this->mountCamera->positionKeyFrames.erase(this->mountCamera->positionKeyFrames.begin() + selectedPathPoint);
+		selectedPathPoint = selectedPathPoint % this->mountCamera->positionKeyFrames.size();
+		refreshPos = true;
+		break;
+	//Add/Remove Front Points
+	case XK_comma:
+		this->mountCamera->frontKeyFrames.insert(this->mountCamera->frontKeyFrames.begin() + selectedFrontPoint + 1, vec3(0.0f, 0.0f, 0.0f));
+		refreshFront = true;
+		break;
+	case XK_period:
+		this->mountCamera->frontKeyFrames.erase(this->mountCamera->frontKeyFrames.begin() + selectedFrontPoint);
+		selectedFrontPoint = selectedFrontPoint % this->mountCamera->frontKeyFrames.size();
+		refreshFront = true;
 		break;
 	}
 
 	if(refreshPos) {
 		delete this->mountCamera->m_bspPositions;
-		this->mountCamera->m_bspPositions = new BsplineInterpolator(this->positionKeyFrames);
+		this->mountCamera->m_bspPositions = new BsplineInterpolator(this->mountCamera->positionKeyFrames);
 		delete this->pathRenderer;
 		this->pathRenderer = new SplineRenderer(this->mountCamera->m_bspPositions);
 		this->pathRenderer->setRenderPoints(this->isRenderPathPoints);
 	}
 	if(refreshFront) {
 		delete this->mountCamera->m_bspFront;
-		this->mountCamera->m_bspFront = new BsplineInterpolator(this->frontKeyFrames);
+		this->mountCamera->m_bspFront = new BsplineInterpolator(this->mountCamera->frontKeyFrames);
 		delete this->frontRenderer;
 		this->frontRenderer = new SplineRenderer(this->mountCamera->m_bspFront);
 		this->frontRenderer->setRenderPoints(this->isRenderFrontPoints);

@@ -15,18 +15,6 @@ template <typename T, const int len> class vecN;
 template <typename T> class Tquaternion;
 
 
-template <typename T>
-static inline T mix(const T& A, const T& B, typename T::element_type t)
-{
-    return B + t * (B - A);
-}
-
-template <typename T>
-static inline T mix(const T& A, const T& B, const T& t)
-{
-    return B + t * (B - A);
-}
-
 template <typename T> 
 inline T degrees(T angleInRadians)
 {
@@ -240,11 +228,11 @@ public:
     }
 
 	inline friend std::ostream& operator<<(std::ostream& out, const vecN &that) {
-		out<<"[ ";
+		out<<"vec3(";
 		for(int n = 0; n < len; n++) {
-			out<<that[n]<<" ";
+			out<<that[n]<<"f, ";
 		}
-		out<<"]";
+		out<<"\b\b)";
 		return out;
 	}
 
@@ -787,10 +775,7 @@ static inline Tquaternion<T> slerp(const Tquaternion<T>& x, const Tquaternion<T>
 	
 	if(cosTheta > T(1) - T(FLT_EPSILON))	{
 		Tquaternion<T> q;
-		q.w = mix(x.w, z.w, a);
-		q.x = mix(x.x, z.x, a);
-		q.y = mix(x.y, z.y, a);
-		q.z = mix(x.z, z.z, a);
+		q = mix(x, z, a);
 		return q;
 	}
 	else
@@ -1224,6 +1209,21 @@ static inline Tmat4<T> lookat(const vecN<T,3>& eye, const vecN<T,3>& center, con
 }
 
 template <typename T>
+static inline Tmat4<T> targetat(const vecN<T,3>& eye, const vecN<T,3>& center, const vecN<T,3>& up)
+{
+    const Tvec3<T> f = normalize(center - eye);
+    const Tvec3<T> upN = normalize(up);
+    const Tvec3<T> s = normalize(cross(f, upN));
+    const Tvec3<T> u = normalize(cross(s, f));
+    const Tmat4<T> M = Tmat4<T>(Tvec4<T>(s[0], u[0], f[0], T(0)),
+                                Tvec4<T>(s[1], u[1], f[1], T(0)),
+                                Tvec4<T>(s[2], u[2], f[2], T(0)),
+                                Tvec4<T>(T(0), T(0), T(0), T(1)));
+
+    return M;
+}
+
+template <typename T>
 static inline Tmat4<T> scale(T x, T y, T z)
 {
     return Tmat4<T>(Tvec4<T>(x, 0.0f, 0.0f, 0.0f),
@@ -1288,26 +1288,6 @@ static inline Tmat4<T> rotate(T angle_x, T angle_y, T angle_z)
            rotate(angle_x, 1.0f, 0.0f, 0.0f);
 }
 
-#ifdef min
-#undef min
-#endif
-
-template <typename T>
-static inline T min(T a, T b)
-{
-    return a < b ? a : b;
-}
-
-#ifdef max
-#undef max
-#endif
-
-template <typename T>
-static inline T max(T a, T b)
-{
-    return a >= b ? a : b;
-}
-
 template <typename T, const int N>
 static inline vecN<T,N> min(const vecN<T,N>& x, const vecN<T,N>& y)
 {
@@ -1316,7 +1296,7 @@ static inline vecN<T,N> min(const vecN<T,N>& x, const vecN<T,N>& y)
 
     for (n = 0; n < N; n++)
     {
-        t[n] = min(x[n], y[n]);
+        t[n] = std::min<T>(x[n], y[n]);
     }
 
     return t;
@@ -1324,13 +1304,13 @@ static inline vecN<T,N> min(const vecN<T,N>& x, const vecN<T,N>& y)
 
 template <typename T, const int N>
 static inline vecN<T,N> max(const vecN<T,N>& x, const vecN<T,N>& y)
-{
-    vecN<T,N> t;
+{	
+	vecN<T,N> t;
     int n;
 
     for (n = 0; n < N; n++)
     {
-        t[n] = max<T>(x[n], y[n]);
+        t[n] = std::max<T>(x[n], y[n]);
     }
 
     return t;
@@ -1339,7 +1319,21 @@ static inline vecN<T,N> max(const vecN<T,N>& x, const vecN<T,N>& y)
 template <typename T, const int N>
 static inline vecN<T,N> clamp(const vecN<T,N>& x, const vecN<T,N>& minVal, const vecN<T,N>& maxVal)
 {
-    return min<T>(max<T>(x, minVal), maxVal);
+    return min<T,N>(max<T,N>(x, minVal), maxVal);
+}
+
+template <typename T, const int N>
+static inline vecN<T,N> mix(const vecN<T,N>& A, const vecN<T,N>& B, const T& t)
+{
+	T ct = clamp(vecN<T, 1>(t), vecN<T, 1>(0.0f), vecN<T, 1>(1.0f))[0];
+	return ((T(1) - ct) * A) + (ct * B);
+}
+
+template <typename T>
+static inline Tquaternion<T> mix(const Tquaternion<T>& A, const Tquaternion<T>& B, const T& t)
+{
+	T ct = clamp(vecN<T, 1>(t), vecN<T, 1>(0.0f), vecN<T, 1>(1.0f))[0];
+	return ((T(1) - ct) * A) + (ct * B);
 }
 
 template <typename T, const int N>

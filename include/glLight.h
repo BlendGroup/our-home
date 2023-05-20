@@ -139,7 +139,7 @@ class SceneLight{
     void addDirectionalLight(DirectionalLight dl);
     void addPointLight(PointLight pl);
     void addSpotLight(SpotLight sl);
-    void setLightUniform(glshaderprogram* program);
+    void setLightUniform(glshaderprogram* program, bool useIndirectLight = true);
     void renderSceneLights(glshaderprogram* program);
     void SceneLightKeyBoardFunc(int key);
     friend std::ostream& operator<<(std::ostream &out, SceneLight* s);

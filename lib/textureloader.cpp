@@ -2,8 +2,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include<stb_image.h>
 #include<gltextureloader.h>
-#include <iostream>
+#include<iostream>
+#include<fstream>
 #include<unordered_map>
+#include<errorlog.h>
 
 using namespace std;
 
@@ -13,6 +15,13 @@ void initTextureLoader() {
 	stbi_set_flip_vertically_on_load(1);
 }
 
+bool isTexturePresent(string filename) {
+	ifstream i(filename);
+	bool b = i.is_open();
+	i.close();
+	return b;
+}
+
 GLuint createTexture2D(string filename, GLint minFilter, GLint magFilter, GLint wrapS, GLint wrapT) {
 	if(textureMap.count(filename) == 0) {
 		int w, h, channels;
@@ -20,7 +29,7 @@ GLuint createTexture2D(string filename, GLint minFilter, GLint magFilter, GLint 
 		cout<<filename<<channels<<endl;
 
 		if(data == NULL){
-			return 0;
+			throwErr("'" + filename + "': texture couldn't load");
 		}
 		GLenum format;
 		if(channels == 1)

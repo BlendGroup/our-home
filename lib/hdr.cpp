@@ -110,8 +110,8 @@ void HDR::render(void) {
 		glBindTexture(GL_TEXTURE_2D, this->ETex);
 		for(size_t i = this->mipLevels - 1; i >= 1; --i){
 			
-			mip_size[0] = vmath::max(1.0f,float(this->getSize()/pow(2,i-1)));
-			mip_size[1] = vmath::max(1.0f,float(this->getSize()/pow(2,i-1)));
+			mip_size[0] = max(1.0f, float(this->getSize()/pow(2,i-1)));
+			mip_size[1] = max(1.0f, float(this->getSize()/pow(2,i-1)));
 
 			glUniform2fv(this->upscaleprogram->getUniformLocation("u_texel_size"),1,1.0f/vec2(mip_size[0],mip_size[1]));
 			glUniform1i(this->upscaleprogram->getUniformLocation("u_mip_level"),i);

@@ -10,6 +10,16 @@
 
 using namespace std;
 
+static uint64_t clockOffset = 0; 
+static const clockid_t currentclock = CLOCK_REALTIME;
+static const uint64_t frequency = 1000000000;
+
+uint64_t getTimerValue() {
+	struct timespec ts;
+	clock_gettime(currentclock, &ts);
+	return (uint64_t)ts.tv_sec * frequency + (uint64_t)ts.tv_nsec;
+}
+
 void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
 	if(severity != GL_DEBUG_SEVERITY_NOTIFICATION) {
 		fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n", ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ), type, severity, message);
@@ -196,6 +206,10 @@ void glwindow::setKeyboardFunc(glwindowkeyboardfunc keyboardcallback) {
 
 void glwindow::setMouseFunc(glwindowmousefunc mousecallback) {
 	this->mouseFunc = mousecallback;
+}
+
+double glwindow::getTime() {
+	return (double)(getTimerValue() - clockOffset) / frequency;
 }
 
 glwindow::~glwindow(void) {

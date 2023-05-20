@@ -1,5 +1,6 @@
 #include<iostream>
 #include<memory>
+#include<chrono>
 
 #include<GL/glew.h>
 #include<GL/gl.h>
@@ -7,16 +8,16 @@
 #include<vmath.h>
 #include<glshaderloader.h>
 #include<scenecamera.h>
+#define CAMERA_RIG_SCALER 0.01
 #include<scenecamerarig.h>
 #include<debugcamera.h>
-#include<testPBR.h>
-#include<testLab.h>
 #include<hdr.h>
 #include<windowing.h>
 #include<errorlog.h>
 #include<global.h>
 #include<clhelper.h>
 #include<gltextureloader.h>
+#include<shapes.h>
 
 #include<scenes/base.h>
 #include<scenes/lab.h>
@@ -24,7 +25,7 @@
 using namespace std;
 using namespace vmath;
 
-static bool hdrEnabled = true;
+static bool hdrEnabled = false;
 static HDR* hdr;
 static vector<sceneCamera*> scenecamera;
 static sceneCameraRig* scenecamerarig;
@@ -32,12 +33,15 @@ static debugCamera* debugcamera;
 static sceneCamera* currentSceneCamera;
 static bool isDebugCameraOn = true;
 static bool isAnimating = false;
+static bool isSceneCameraEditing = false;
 static basescene* currentScene;
 static labscene* labScene;
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
 camera* programglobal::currentCamera;
+double programglobal::deltaTime = 0.0f;
+shaperenderer* programglobal::shapeRenderer;
 
 void setupProgram(void) {
 	try {
@@ -61,8 +65,8 @@ void setupSceneCamera(void) {
 		scenecamerarig->setRenderFront(true);
 		scenecamerarig->setRenderFrontPoints(true);
 		scenecamerarig->setRenderPathToFront(true);
+		scenecamerarig->setScalingFactor(0.01f);
 #endif
-
 		currentSceneCamera = scenecamera[0];
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -74,6 +78,7 @@ void init(void) {
 		//Object Creation
 		hdr = new HDR(1.5f, 1.0f, 2048);
 		programglobal::oclContext = new clglcontext(1);
+		programglobal::shapeRenderer = new shaperenderer();
 		labScene = new labscene();
 
 		//Inititalize
@@ -85,6 +90,8 @@ void init(void) {
 
 		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_MULTISAMPLE);
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -122,26 +129,21 @@ void render(glwindow* window) {
 }
 
 void update(void) {
+#define CAMERA_SPEED 0.1f
+
 	if(isAnimating) {
-#ifdef DEBUG
-		scenecamerarig->updateT(0.001f);
-#else
-		currentSceneCamera->updateT(0.001f);
-#endif
+		currentSceneCamera->updateT(programglobal::deltaTime * CAMERA_SPEED);
 	}
 }
 
 void resetCamera(void) {
-#ifdef DEBUG
-		scenecamerarig->resetT();
-#else
 		currentSceneCamera->resetT();
-#endif
 }
 
 void keyboard(glwindow* window, int key) {
 	switch(key) {
 	case XK_Escape:
+		// cout<<currentSceneCamera<<endl;
 		window->close();
 		break;
 	case XK_F1:
@@ -156,15 +158,31 @@ void keyboard(glwindow* window, int key) {
 	case XK_F4:
 		resetCamera();
 		break;
+	case XK_F5:
+		isSceneCameraEditing = !isSceneCameraEditing;
+		break;
 	case XK_space:
 		isAnimating = !isAnimating;
 		break;
 	case XK_Tab:
-		cout<<programglobal::currentCamera->position()<<endl;
+		cout<<currentSceneCamera<<endl;
+		break;
+	case XK_Left:
+		currentSceneCamera->updateT(-0.001f);
+		break;
+	case XK_Right:
+		currentSceneCamera->updateT(0.001f);
 		break;
 	}
 	hdr->keyboardfunc(key);
 	debugcamera->keyboardFunc(key);
+#ifdef DEBUG
+	if(isSceneCameraEditing) {
+		scenecamerarig->keyboardfunc(key);
+	} else {
+		currentScene->keyboardfunc(key);
+	}
+#endif
 }
 
 void mouse(glwindow* window, int button, int action, int x, int y) {
@@ -182,10 +200,22 @@ void uninit(void) {
 	delete debugcamera;
 }
 
+double getDeltaTime(glwindow *win) {
+	static double prev = win->getTime();
+	double current = win->getTime();
+	double delta = current - prev;
+	prev = current;
+	return delta;
+}
+
 int main(int argc, char **argv) {
 	try {
 		glwindow* window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
+		auto initstart = chrono::steady_clock::now();
 		init();
+		auto initend = chrono::steady_clock::now();
+		chrono::duration<double> diff = initend - initstart;
+		cout<<"Time taken to initialize "<<diff.count()<<" sec"<<endl;
 		setupProgram();
 		setupSceneCamera();
 		window->setKeyboardFunc(keyboard);
@@ -194,6 +224,8 @@ int main(int argc, char **argv) {
 		while(!window->isClosed()) {
 			window->processEvents();
 			render(window);
+			programglobal::deltaTime = getDeltaTime(window);
+			// cout<<programglobal::deltaTime<<endl;
 			if(isAnimating) {
 				update();
 			}
