@@ -12,11 +12,14 @@ LD_FLAGS := -L ./lib
 
 all: run
 
-run: main.run
+run: build main.run
 	./main.run
 
-test: main.test
+test: build main.test
 	./main.test
+
+build:
+	mkdir build
 
 main.test: $(OBJ_FILES_TEST)
 	g++ $^ $(LD_FLAGS) -o $@ $(LIB_DEPS)
