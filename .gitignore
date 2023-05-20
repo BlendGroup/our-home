@@ -1,5 +1,6 @@
 *.exe
 *.run
+*.test
 *.app
 .vscode
 *.pdb
@@ -7,3 +8,4 @@
 .DS_Store
 *.log
 .clangd
+build/*
