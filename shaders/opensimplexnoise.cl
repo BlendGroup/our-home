@@ -57,20 +57,20 @@ kernel void noise2(global float2* input, global float* output, const uint numPoi
 kernel void fbm2(global float2* input, global float* output, const uint numPoints, const int octaves) {
 	int index = get_global_id(0);
 	if(index < numPoints) {
+		// Initial values
 		float2 st = input[index];
-		st /= 1.5f;
-		float value = 0.;
-		float amplitude = 1.;
-		float freq = 0.8;
-		
-		for (int i = 0; i < octaves; i++)
-		{
-			value = max(value, value + (.25f - fabs(snoise2(st * freq) - .3f) * amplitude));
-			amplitude *= .37;			
-			freq *= 2.05;
-			st = st.yx;
+		float value = 0.0;
+		float amplitude = 0.5f;
+		float frequency = 0.0f;
+		for (int i = 0; i < octaves; i++) {
+			float f = fabs(snoise2(st));
+			f = 1.2f - f;
+			f = f * f;
+			value += amplitude * f;
+			st *= 2.0f;
+			amplitude *= 0.5f;
 		}
-		output[index] = value*2.0-2.0;
+		output[index] = value;
 	}
 }
 
