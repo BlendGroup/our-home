@@ -13,7 +13,7 @@ LD_FLAGS := -L ./lib
 all: run
 
 run: build main.run
-	./main.run
+	prime-run ./main.run
 
 test: build main.test
 	./main.test
@@ -28,13 +28,13 @@ main.run: $(OBJ_FILES_RUN)
 	g++ $^ $(LD_FLAGS) -o $@ $(LIB_DEPS)
 
 $(OBJ_DIR)/%.o: $(LIB_DIR)/%.cpp
-	g++ -c -o $@ $< -I ./include -D DEBUG
+	g++ -c -o $@ $< -I ./include -D DEBUG -g
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	g++ -c -o $@ $< -I ./include -D DEBUG
+	g++ -c -o $@ $< -I ./include -D DEBUG -g
 
 $(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp
-	g++ -c -o $@ $< -I ./include -D DEBUG
+	g++ -c -o $@ $< -I ./include -D DEBUG -g
 
 clean:
 	rm -f $(OBJ_FILES_RUN)
