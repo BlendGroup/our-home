@@ -63,9 +63,7 @@ kernel void fbm2(global float2* input, global float* output, const uint numPoint
 		float amplitude = 0.5f;
 		float frequency = 0.0f;
 		for (int i = 0; i < octaves; i++) {
-			float f = fabs(snoise2(st));
-			f = 1.2f - f;
-			f = f * f;
+			float f = snoise2(st);
 			value += amplitude * f;
 			st *= 2.0f;
 			amplitude *= 0.5f;
@@ -74,21 +72,25 @@ kernel void fbm2(global float2* input, global float* output, const uint numPoint
 	}
 }
 
-// kernel void turbulencefbm2(global short* perm, global double2* permGrad2, global latticepoint2D_t* lookup2d, global float2* input, global float* output, const uint numPoints, const int octaves) {
-// 	int index = get_global_id(0);
-// 	if(index < numPoints) {
-// 		double2 st = convert_double2(input[index]);
-// 		float value = 0.0;
-// 		float amplitude = 0.5;
-
-// 		for (int i = 0; i < octaves; i++) {
-// 			value += amplitude * noise2_base(perm, permGrad2, lookup2d, st);
-// 			st *= 2.0;
-// 			amplitude *= 0.5;
-// 		}
-// 		output[index] = value;
-// 	}
-// }
+kernel void turbulencefbm2(global float2* input, global float* output, const uint numPoints, const int octaves, const float offset) {
+	int index = get_global_id(0);
+	if(index < numPoints) {
+		// Initial values
+		float2 st = input[index];
+		float value = 0.0;
+		float amplitude = 0.5f;
+		float frequency = 0.0f;
+		for (int i = 0; i < octaves; i++) {
+			float f = fabs(snoise2(st));
+			f = offset - f;
+			f = f * f;
+			value += amplitude * f;
+			st *= 2.0f;
+			amplitude *= 0.5f;
+		}
+		output[index] = value;
+	}
+}
 
 // kernel void noise3(global short* perm, global double* permGrad3, global latticepoint3D_t* lookup3d, global float* input, global float* output, const uint numPoints) {
 // 	int index = get_global_id(0);
