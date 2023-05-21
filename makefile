@@ -7,8 +7,9 @@ TEST_FILES := $(wildcard $(TEST_DIR)/*.cpp)
 LIB_FILES := $(wildcard $(LIB_DIR)/*.cpp)
 OBJ_FILES_RUN := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES)) $(patsubst $(LIB_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(LIB_FILES))
 OBJ_FILES_TEST := $(patsubst $(TEST_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(TEST_FILES)) $(patsubst $(LIB_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(LIB_FILES))
-LIB_DEPS := -lX11 -lGL -lGLEW -lassimp -lOpenCL
+LIB_DEPS := -lX11 -lGL -lGLEW -lassimp -lOpenCL -lopenal -lalut
 LD_FLAGS := -L ./lib
+export LD_LIBRARY_PATH := :./lib
 
 all: run
 
