@@ -18,7 +18,8 @@ GLuint colortex;
 void initTestTerrain(void) {
 	// GLuint texture = createTexture2D("resources/textures/heightmap2.png", GL_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	// GLuint texture = programglobal::noiseGenerator->createNoiseTextureOnUniformInput(Noise2D, ivec2(TEXTURE_SIZE, TEXTURE_SIZE), ivec2(0, 0), 80.0f, 0.5f, 324);
-	GLuint texture = programglobal::noiseGenerator->createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 0), 512.0f, 4, 3423);
+	// GLuint texture = programglobal::noiseGenerator->createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 0), 800.0f, 3, 3423);
+	GLuint texture = programglobal::noiseGenerator->createTurbulenceFBMTexture2D(ivec2(1024, 1024), ivec2(0, 0), 1200.0f, 6, 0.8f, 3423);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
