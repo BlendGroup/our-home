@@ -11,6 +11,6 @@ if [[ $1 == "DEBUG" ]]; then
 		./main.run
 	fi
 else
-	g++ lib/*.cpp src/*.cpp -I ./include -L ./lib -lX11 -lGL -lGLEW -lassimp -lOpenCL -o main.run
+	make run
 	./main.run
 fi
