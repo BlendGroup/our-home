@@ -10,6 +10,7 @@ public:
 	sceneCamera* setupCamera() override;
 	void init() override;
 	void render() override;
+	void update(sceneCamera* cam) override;
 	void uninit() override;
 	void keyboardfunc(int key) override;
 };

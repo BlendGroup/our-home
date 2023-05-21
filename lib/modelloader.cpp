@@ -15,11 +15,11 @@
 #include<assimp/Importer.hpp>
 #include<assimp/scene.h>
 #include<assimp/postprocess.h>
-#include"../include/glshaderloader.h"
-#include"../include/gltextureloader.h"
+#include<glshaderloader.h>
+#include<gltextureloader.h>
 #include<vmath.h>
-#include"../include/glmodelloader.h"
-#include"../include/errorlog.h"
+#include<glmodelloader.h>
+#include<errorlog.h>
 
 using namespace vmath;
 using namespace std;

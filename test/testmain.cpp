@@ -14,6 +14,7 @@
 #include<global.h>
 #include<clhelper.h>
 #include<opensimplexnoise.h>
+#include<gltextureloader.h>
 
 #include<testeffect.h>
 #include<testcamera.h>
@@ -22,6 +23,7 @@
 #include<testPBR.h>
 #include<testLab.h>
 #include<testnoise.h>
+#include<testaudio.h>
 
 using namespace std;
 using namespace vmath;
@@ -33,15 +35,17 @@ static sceneCameraRig* scenecamerarig;
 static debugCamera *debugcamera;
 static bool isDebugCameraOn = false;
 static bool isAnimating = false;
+static bool isAudioPlaying = true;
 
 #define SHOW_TEST_SCENE 		0
 #define SHOW_MODEL_SCENE 		0
 #define SHOW_CAMERA_SCENE 		0
 #define SHOW_PBR_SCENE			0
 #define SHOW_LAB_SCENE			0
-#define SHOW_TERRAIN_SCENE 		1
+#define SHOW_TERRAIN_SCENE 		0
 #define SHOW_CUBEMAP_SCENE		0
 #define SHOW_NOISE_SCENE 		0
+#define SHOW_AUDIO_SCENE		1
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
@@ -122,6 +126,10 @@ void init(void) {
 #if SHOW_NOISE_SCENE
 		initTestNoise();
 #endif
+#if SHOW_AUDIO_SCENE
+		alutInit(0, NULL);
+		initTestAudio();
+#endif
 		hdr->init();
 
 		glDepthFunc(GL_LEQUAL);
@@ -169,6 +177,9 @@ void render(glwindow* window) {
 #if SHOW_NOISE_SCENE
 		renderTestNoise();
 #endif
+#if SHOW_AUDIO_SCENE
+		renderTestAudio(isAudioPlaying);
+#endif
 
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
@@ -199,6 +210,9 @@ void keyboard(glwindow* window, int key) {
 		break;
 	case XK_F3:
 		hdrEnabled = !hdrEnabled;
+		break;
+	case XK_F4:
+		isAudioPlaying = !isAudioPlaying;
 		break;
 	case XK_space:
 		isAnimating = !isAnimating;
@@ -251,6 +265,9 @@ void uninit(void) {
 #endif
 #if SHOW_CUBEMAP_SCENE
 	uninitTestRenderToCubemap();
+#endif
+#if SHOW_AUDIO_SCENE
+	uninitTestAudio();
 #endif
 	hdr->uninit();
 

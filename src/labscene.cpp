@@ -1,8 +1,12 @@
+#include <cmath>
+#include <unordered_map>
 #define DEBUG
 #include<scenes/lab.h>
 #include<glmodelloader.h>
 #include<glshaderloader.h>
+#include<gltextureloader.h>
 #include<iostream>
+#include<unordered_map>
 #include<global.h>
 #include<vmath.h>
 #include<scenecamera.h>
@@ -13,11 +17,23 @@
 #include<CubeMapRenderTarget.h>
 #include<glLight.h>
 #include<assimp/postprocess.h>
+#include<audio.h>
 
 using namespace std;
 using namespace vmath;
 
 #define CUBEMAP_SIZE 2048
+
+enum EVENTS {
+	DOOR_ANIM = 0,
+	ROBOT_ANIM,
+	BKGND_MUSIC_PLAY,
+
+//Dont Add	
+	NUM_EVENTS
+};
+
+static bool eventManager[NUM_EVENTS];
 
 static glmodel* modelLab;
 static glmodel* modelDoor;
@@ -39,16 +55,18 @@ static glshaderprogram* programColor;
 
 static GLuint skybox_vao,vbo;
 
+static audioplayer *playerBkgnd;
+static audioplayer *playerRobotThump;
 static bool crt = true;
 
 #ifdef DEBUG
-static modelplacer* doorPlacer;
+// static modelplacer* doorPlacer;
 static SplineRenderer* splineRender;
 int selectedPoint = 0;
 #endif
 static vector<vec3> robotSpline = {
-	vec3(2.8f, -1.067f, -0.18f),
-	vec3(0.9f, -1.067f, -0.21f),
+	vec3(1.6f, -1.067f, -1.28f),
+	vec3(1.1f, -1.067f, -0.21f),
 	vec3(0.2f, -1.067f, 0.6f),
 	vec3(-2.0f, -1.067f, 0.6f),
 	vec3(-2.5f, -1.067f, 1.8f)
@@ -69,10 +87,10 @@ void labscene::setupProgram() {
 sceneCamera* labscene::setupCamera() {
 	vector<vec3> positionKeyFrames = {
 		vec3(-1.96f, -0.22f, -1.11f),
-		vec3(-1.82f, -0.08f, -0.91f),
-		vec3(-1.71f, -0.12f, -1.07f),
-		vec3(-1.63f, -0.3f, -1.7f),
-		vec3(-1.15f, -0.05f, -1.81f),
+		vec3(-1.86f, -0.16f, -0.97f),
+		vec3(-1.84f, -0.2f, -1.21f),
+		vec3(-1.83f, -0.3f, -1.89f),
+		vec3(-1.15f, -0.05f, -1.94f),
 		vec3(-0.82f, 0.28f, -1.85f),
 		vec3(-1.17f, 0.06f, -1.1f),
 		vec3(-2.9f, -0.2f, -0.51f),
@@ -85,7 +103,7 @@ sceneCamera* labscene::setupCamera() {
 		vec3(-1.38f, -0.47f, -1.48f),
 		vec3(-1.26f, -0.4f, -1.5f),
 		vec3(-0.8f, -0.28f, -1.23f),
-		vec3(-0.47f, -0.26f, -0.37f),
+		vec3(-0.21f, -0.26f, -0.37f),
 		vec3(-1.67f, -0.42f, 0.45f),
 		vec3(-3.19f, -0.36f, 0.96f),
 		vec3(-3.49f, -0.27f, 2.02f)
@@ -95,6 +113,9 @@ sceneCamera* labscene::setupCamera() {
 }
 
 void labscene::init() {
+	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKai.wav");
+	playerRobotThump = new audioplayer("resources/audio/MetallicThumps.wav");
+
 	modelLab = new glmodel("resources/models/spaceship/SpaceLab.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	modelDoor = new glmodel("resources/models/spaceship/door.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	modelMug = new glmodel("resources/models/mug/mug.glb", aiProcessPreset_TargetRealtime_Quality, true);
@@ -170,14 +191,18 @@ void labscene::init() {
 	splineRender = new SplineRenderer(bspRobot);
 	splineRender->setRenderPoints(true);
 	//Astronaut: vec3(-3.41f, -1.39f, 2.03f), vec3(0f, 0f, 0f), 0.00889994f
-	doorPlacer = new modelplacer(vec3(-3.43f, -0.3f, 2.748f), vec3(0.0f, 0.0f, 0.0f), 1.0f);
+	// doorPlacer = new modelplacer(vec3(-3.43f, -0.3f, 2.748f), vec3(0.0f, 0.0f, 0.0f), 1.0f);
 #endif
 }
 
-static float t = 0.01f;
-static float doort = 0.0f;
-
 void labscene::render() {
+	static const float DOOR_OPEN_SPEED = 0.075f;
+	static const float ROBOT_MOVE_SPEED = 0.06f;
+	static const float ROBOT_ANIM_SPEED = 0.99f;
+	static const float ASTRO_ANIM_SPEED = 0.1f;
+
+	static float robotT = 0.01f;
+	static float doorT = 0.0f;
 
 	try {
 	    if(crt){
@@ -185,7 +210,6 @@ void labscene::render() {
 			glViewport(0, 0, envMapper->width, envMapper->height);
 
             for(int side = 0; side < 6; side++){
-                //std::cout<<"i "<<side<<std::endl;
                 glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_CUBE_MAP_POSITIVE_X + side,envMapper->cubemap_texture,0); 
                 glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
                 glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
@@ -215,7 +239,7 @@ void labscene::render() {
         glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
         sceneLightManager->setLightUniform(programStaticPBR);
         modelLab->draw(programStaticPBR);
-		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(mix(vec3(-3.3, -0.4f, 2.8f), vec3(-4.62f, -0.4f, 2.8f), doort)));
+		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(mix(vec3(-3.3, -0.4f, 2.8f), vec3(-4.62f, -0.4f, 2.8f), doorT)));
 		modelDoor->draw(programStaticPBR);
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-1.3f,-0.41f,-1.5f) * scale(0.08f,0.08f,0.08f));
 		modelMug->draw(programStaticPBR);
@@ -223,15 +247,17 @@ void labscene::render() {
         programDynamicPBR->use();
         glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"), 1,GL_FALSE, programglobal::perspective);
         glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"), 1,GL_FALSE, programglobal::currentCamera->matrix());
-        vec3 position = bspRobot->interpolate(t - 0.01f);
-		vec3 front = bspRobot->interpolate(t);
+        vec3 position = bspRobot->interpolate(robotT - 0.01f);
+		vec3 front = bspRobot->interpolate(robotT);
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(position) * targetat(position, front, vec3(0.0f, 1.0f, 0.0f)) * scale(0.042f));
 	    glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
         // Lights data
         glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"), true);
         sceneLightManager->setLightUniform(programDynamicPBR);
-        modelRobot->update(0.005f, 0);
-        modelRobot->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+        if(eventManager[ROBOT_ANIM]) {
+			modelRobot->update(ROBOT_ANIM_SPEED * programglobal::deltaTime, 0);
+		}
+		modelRobot->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
         modelRobot->draw(programDynamicPBR,1); 
 
         programDynamicPBR->use();
@@ -240,11 +266,11 @@ void labscene::render() {
         glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(-3.41f, -1.39f, 2.03f) * scale(1.0f));
         glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1, programglobal::currentCamera->position());
         // Lights data
-        glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),true);
+        glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
         sceneLightManager->setLightUniform(programDynamicPBR);
-        modelAstro->update(0.005f, 1);
+        modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 0);
         modelAstro->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
-        modelAstro->draw(programDynamicPBR,1);
+        modelAstro->draw(programDynamicPBR);
 
 		programColor->use();
 		glUniformMatrix4fv(programColor->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * programglobal::currentCamera->matrix() * translate(-3.45f, -0.3f, 2.828f));
@@ -272,8 +298,42 @@ void labscene::render() {
 	} catch(string errString) {
 		throwErr(errString);
 	}
-	t += 0.0006f;
-	t = std::min(t, 1.0f);
+
+	if(eventManager[BKGND_MUSIC_PLAY]) {
+		playerBkgnd->play();
+		eventManager[BKGND_MUSIC_PLAY] = false;
+	}
+	if(eventManager[DOOR_ANIM]) {
+		doorT += DOOR_OPEN_SPEED * programglobal::deltaTime;
+		if(doorT >= 1.0f) {
+			void callMeToExit(void);
+			callMeToExit();
+		}
+	}
+	if(eventManager[ROBOT_ANIM]) {
+
+		if(fmod(robotT, 0.04f) <= 0.001f) {
+			playerRobotThump->play();
+		}
+		robotT += ROBOT_MOVE_SPEED * programglobal::deltaTime;
+		robotT = std::min(robotT, 1.0f);
+		if(robotT >= 0.99f) {
+			eventManager[ROBOT_ANIM] = false;
+		}
+	}
+}
+
+void labscene::update(sceneCamera* cam) {
+	float t = cam->getDistanceOnSpline();
+	if(t >= 6.2f) {
+		eventManager[BKGND_MUSIC_PLAY] = true;
+	}
+	if(t >= 7.3f) {
+		eventManager[DOOR_ANIM] = true;
+	}
+	if(t >= 3.6f && t <= 3.7f) {
+		eventManager[ROBOT_ANIM] = true;
+	}
 }
 
 void labscene::uninit() {
@@ -333,14 +393,14 @@ void splineKeyboardFunc(int key) {
 		selectedPoint = selectedPoint % robotSpline.size();
 		updatePos = true;
 		break;
-	case XK_Left:
-		t -= 0.01f;
-		t = std::max(t, 0.0f);
-		break;
-	case XK_Right:
-		t += 0.01f;
-		t = std::min(t, 1.0f);
-		break;
+	// case XK_Left:
+	// 	t -= 0.01f;
+	// 	t = std::max(t, 0.0f);
+	// 	break;
+	// case XK_Right:
+	// 	t += 0.01f;
+	// 	t = std::min(t, 1.0f);
+	// 	break;
 	}
 	if(updatePos) {
 		delete bspRobot;
@@ -354,16 +414,17 @@ void splineKeyboardFunc(int key) {
 
 void labscene::keyboardfunc(int key) {
 #ifdef DEBUG
-	doorPlacer->keyboardfunc(key);
+	// doorPlacer->keyboardfunc(key);
 	// astroPlacer->keyboardfunc(key);
-	// splineKeyboardFunc(key);
+	splineKeyboardFunc(key);
 	switch(key) {
 	case XK_Tab:
-		cout<<doorPlacer<<endl;
-		// for(int i = 0; i < robotSpline.size(); i++) {
-		// 	cout<<"\t"<<robotSpline[i]<<",\n";
-		// }
-		// cout<<"\b"<<endl;
+		cout << "Camera T = "<<dynamic_cast<sceneCamera *>(programglobal::currentCamera)->getDistanceOnSpline() << endl;
+		// cout<<doorPlacer<<endl;
+		for(int i = 0; i < robotSpline.size(); i++) {
+			cout<<"\t"<<robotSpline[i]<<",\n";
+		}
+		cout<<"\b"<<endl;
 		break;
 	}
 #endif
