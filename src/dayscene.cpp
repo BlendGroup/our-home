@@ -58,16 +58,18 @@ sceneCamera* dayscene::setupCamera() {
 }
 
 void dayscene::init() {
-	valleyHeightMap = programglobal::noiseGenerator->createFBMTexture2D(ivec2(2048, 2048), ivec2(0, 0), 256.0f, 2, 1234);
-	valley = new terrain(mat4::identity(), valleyHeightMap);
+	valleyHeightMap = programglobal::noiseGenerator->createFBMTexture2D(ivec2(2048, 2048), ivec2(0, 0), 500.0f, 2, 1234);
+	valley = new terrain(translate(0.0f, 0.0f, -30.0f), valleyHeightMap, 2.0f);
 
 	valley->init();
 }
 
 void dayscene::render() {
+	valley->render();
 }
 
 void dayscene::uninit() {
+	valley->uninit();
 }
 
 void dayscene::keyboardfunc(int key) {

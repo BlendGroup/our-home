@@ -7,8 +7,9 @@
 using namespace std;
 using namespace vmath;
 
-terrain::terrain(mat4 modelMatrix, GLuint heightMap) {
+terrain::terrain(mat4 modelMatrix, GLuint heightMap, GLfloat amplitude) {
 	this->heightMap.gl = heightMap;
+	this->amplitude = amplitude;
 	this->modelMatrix = modelMatrix;
 }
 
@@ -59,6 +60,7 @@ void terrain::render(void) {
 	glUniform3fv(this->renderHeightMap->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
 	glUniform1i(this->renderHeightMap->getUniformLocation("texHeight"), 0);
 	glUniform1i(this->renderHeightMap->getUniformLocation("texNormal"), 1);
+	glUniform1f(this->renderHeightMap->getUniformLocation("amplitude"), this->amplitude);
 	glBindVertexArray(this->vao);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, this->heightMap.gl);

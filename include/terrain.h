@@ -23,8 +23,10 @@ private:
 	cl_kernel normalKernel;
 
 	vmath::mat4 modelMatrix;
+
+	GLfloat amplitude;
 public:
-	terrain(vmath::mat4 modelMatrix, GLuint heightMap);
+	terrain(vmath::mat4 modelMatrix, GLuint heightMap, GLfloat amplitude);
 	void setupProgram(void) override;
 	void init(void) override;
 	void render(void) override;
