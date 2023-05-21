@@ -4,24 +4,32 @@
 using namespace std;
 using namespace vmath;
 
-static godrays* godraysPasses;
+#define GODRAYS_RENDERPASS_WIDTH  960
+#define GODRAYS_RENDERPASS_HEIGHT 540
+
+static godrays* godRays;
 static glshaderprogram* colorProgram = NULL;
 static GLuint vaoCube, vboCube;
 static GLuint vaoPlane, vboPlane;
+static const vmath::mat4 godraysPerspective = vmath::perspective(
+	45.0f,
+	(float)GODRAYS_RENDERPASS_WIDTH / (float)GODRAYS_RENDERPASS_HEIGHT,
+	0.1f,
+	1000.0f
+);
 
-void setupProgramTestGodrays(int winWidth, int winHeight) {
+void setupProgramTestGodrays(void) {
 	try {
-		GLint defaultFbo;
-		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &defaultFbo);
-		godraysPasses = new godrays(defaultFbo, winWidth, winHeight);
 		colorProgram = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
 }
 
-void initTestGodrays() {
+void initTestGodrays(void) {
 	try {
+		godRays = new godrays(GODRAYS_RENDERPASS_WIDTH, GODRAYS_RENDERPASS_HEIGHT);
+		
 		const float planeVerts[] = {
 			-1.0f, 1.0f, 0.0f,
 			-1.0f, -1.0f, 0.0f,
@@ -101,31 +109,54 @@ void initTestGodrays() {
 	}
 }
 
-void renderTestGodrays(camera *cam) {
+static void renderTestGodraysScene(camera *cam, bool isOcclusionPass) {
 	try {
-		// occlusion pass
-		godraysPasses->beginOcclusionPass(cam->matrix() * scale(0.25f, 0.25f, 0.25f), false);
-		glBindVertexArray(vaoCube);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		
-		godraysPasses->beginOcclusionPass(cam->matrix() * translate(0.0f, 0.0f, -5.0f), true);
-		glBindVertexArray(vaoPlane);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		mat4 mvMatrixCube = cam->matrix() * scale(0.25f, 0.25f, 0.25f);
+		mat4 mvMatrixPlane = cam->matrix() * translate(0.0f, 0.0f, -5.0f);
 
-		godraysPasses->endOcclusionPass();
+		if(isOcclusionPass) {
+			// all occluding objects
+			godRays->occlusionPass(godraysPerspective * mvMatrixCube, false);
+			glBindVertexArray(vaoCube);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+
+			// all emissive objects
+			godRays->occlusionPass(godraysPerspective * mvMatrixPlane, true);
+			glBindVertexArray(vaoPlane);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
+		else {
+			colorProgram->use();
+			
+			glUniformMatrix4fv(colorProgram->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * mvMatrixCube);
+			glUniform4fv(colorProgram->getUniformLocation("color"), 1, vec4(0.1f, 0.1f, 0.1f, 1.0f));
+			glBindVertexArray(vaoCube);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+
+			glUniformMatrix4fv(colorProgram->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * mvMatrixPlane);
+			glUniform4fv(colorProgram->getUniformLocation("color"), 1, vec4(1.0f, 1.0f, 1.0f, 1.0f));
+			glBindVertexArray(vaoPlane);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
+	} catch(string errorString) {
+		throwErr(errorString);
+	}
+}
+
+void renderTestGodrays(camera *cam, int winWidth, int winHeight) {
+	try {
+		GLint renderingFbo;
+		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &renderingFbo);
+
+		// occlusion pass
+	    glBindFramebuffer(GL_FRAMEBUFFER, godRays->getFbo());
+		glViewport(0, 0, GODRAYS_RENDERPASS_WIDTH, GODRAYS_RENDERPASS_WIDTH);
+		renderTestGodraysScene(cam, true);
 
 		// regular pass
-		colorProgram->use();
-
-		glUniformMatrix4fv(colorProgram->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * cam->matrix() * scale(0.25f, 0.25f, 0.25f));
-		glUniform4fv(colorProgram->getUniformLocation("color"), 1, vec4(0.1f, 0.1f, 0.1f, 1.0f));
-		glBindVertexArray(vaoCube);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		
-		glUniformMatrix4fv(colorProgram->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * cam->matrix() * translate(0.0f, 0.0f, -5.0f));
-		glUniform4fv(colorProgram->getUniformLocation("color"), 1, vec4(1.0f, 1.0f, 1.0f, 1.0f));
-		glBindVertexArray(vaoPlane);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+	    glBindFramebuffer(GL_FRAMEBUFFER, renderingFbo);
+		glViewport(0, 0, winWidth, winHeight);
+		renderTestGodraysScene(cam, false);
 
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -137,9 +168,9 @@ void uninitTestGodrays() {
 		delete colorProgram;
 		colorProgram = NULL;
 	}
-	if(godraysPasses) {
-		delete godraysPasses;
-		godraysPasses = NULL;
+	if(godRays) {
+		delete godRays;
+		godRays = NULL;
 	}
 	if(vboPlane) {
 		glDeleteBuffers(1, &vboPlane);

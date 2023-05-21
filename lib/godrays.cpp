@@ -4,23 +4,20 @@
 using namespace std;
 using namespace vmath;
 
-godrays::godrays(GLuint defaultFbo, int defaultWidth, int defaultHeight)
-: defaultFbo(defaultFbo),
-  winWidth(defaultWidth),
-  winHeight(defaultHeight)
+godrays::godrays(int passWidth, int passHeight)
 {
     // create an offscreen framebuffer for occlusion render passes
-    glCreateFramebuffers(1, &this->godraysFbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, this->godraysFbo);
+    glCreateFramebuffers(1, &this->occlusionFbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, this->occlusionFbo);
 
     glCreateRenderbuffers(1, &this->rboDepth);
     glBindRenderbuffer(GL_RENDERBUFFER, this->rboDepth);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, GODRAYS_RENDERPASS_WIDTH, GODRAYS_RENDERPASS_HEIGHT);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, passWidth, passHeight);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, this->rboDepth);
     
     glCreateTextures(GL_TEXTURE_2D, 1, &this->texOcclusion);
     glBindTexture(GL_TEXTURE_2D, this->texOcclusion);
-    glTextureStorage2D(this->texOcclusion, 1, GL_RGBA8, GODRAYS_RENDERPASS_WIDTH, GODRAYS_RENDERPASS_HEIGHT);
+    glTextureStorage2D(this->texOcclusion, 1, GL_RGBA8, passWidth, passHeight);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -54,26 +51,34 @@ godrays::~godrays() {
         glDeleteRenderbuffers(1, &this->rboDepth);
         this->rboDepth = 0;
     }
-    if(this->godraysFbo) {
-        glDeleteFramebuffers(1, &this->godraysFbo);
-        this->godraysFbo = 0;
+    if(this->occlusionFbo) {
+        glDeleteFramebuffers(1, &this->occlusionFbo);
+        this->occlusionFbo = 0;
     }
 }
 
-void godrays::beginOcclusionPass(const mat4 &mvMatrix, bool isEmissive) {
-    glBindFramebuffer(GL_FRAMEBUFFER, godraysFbo);
-    glViewport(0, 0, GODRAYS_RENDERPASS_WIDTH, GODRAYS_RENDERPASS_WIDTH);
+GLuint godrays::getFbo(void) {
+    return this->occlusionFbo;
+}
+
+void godrays::occlusionPass(const mat4 &mvpMatrix, bool isEmissive) {
     colorProgram->use();
-    glUniformMatrix4fv(colorProgram->getUniformLocation("mvpMatrix"), 1, GL_FALSE, godraysPerspective * mvMatrix);
+    glUniformMatrix4fv(colorProgram->getUniformLocation("mvpMatrix"), 1, GL_FALSE, mvpMatrix);
     if(isEmissive)
         glUniform4fv(colorProgram->getUniformLocation("color"), 1, vec4(1.0f, 1.0f, 1.0f, 1.0f));
     else
         glUniform4fv(colorProgram->getUniformLocation("color"), 1, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
-void godrays::endOcclusionPass(void) {
-    glBindFramebuffer(GL_FRAMEBUFFER, this->defaultFbo);
-    glViewport(0, 0, this->winWidth, this->winHeight);
+void godrays::render(void) {
+    // enable additive blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ALPHA, GL_ONE);
+
+    
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_BLEND);
 }
 
 /******************************************************************************************/

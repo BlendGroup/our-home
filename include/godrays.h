@@ -6,29 +6,19 @@
 #include<glshaderloader.h>
 #include<errorlog.h>
 
-#define GODRAYS_RENDERPASS_WIDTH  455
-#define GODRAYS_RENDERPASS_HEIGHT 256
-
 class godrays {
 private:
     glshaderprogram *colorProgram;
-    GLuint godraysFbo;
-    GLuint defaultFbo;
+    GLuint occlusionFbo;
     GLuint rboDepth;
     GLuint texOcclusion;
-    int winWidth, winHeight;
-    const vmath::mat4 godraysPerspective = vmath::perspective(
-        45.0f,
-        (float)GODRAYS_RENDERPASS_WIDTH / (float)GODRAYS_RENDERPASS_HEIGHT,
-        0.1f,
-        1000.0f
-    );
 
 public:
-    godrays(GLuint defaultFbo, int defaultWidth, int defaultHeight);
+    godrays(int passWidth, int passHeight);
     ~godrays();
-    void endOcclusionPass(void);
-    void beginOcclusionPass(const vmath::mat4 &mvMatrix, bool isEmissive);
+    GLuint getFbo(void);
+    void occlusionPass(const vmath::mat4 &mvpMatrix, bool isEmissive);
+    void render(void);
 };
 
 #endif // __GODRAYS__

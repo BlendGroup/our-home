@@ -8,9 +8,9 @@
 #include<vmath.h>
 #include<errorlog.h>
 
-void setupProgramTestGodrays(int winWidth, int winHeight);
+void setupProgramTestGodrays(void);
 void initTestGodrays(void);
-void renderTestGodrays(camera *cam);
+void renderTestGodrays(camera *cam, int winWidth, int winHeight);
 void uninitTestGodrays(void);
 
 #endif // __TEST_GODRAYS__
