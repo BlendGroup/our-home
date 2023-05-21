@@ -59,6 +59,7 @@ void terrain::render(void) {
 	glUniform3fv(this->renderHeightMap->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
 	glUniform1i(this->renderHeightMap->getUniformLocation("texHeight"), 0);
 	glUniform1i(this->renderHeightMap->getUniformLocation("texNormal"), 1);
+	glBindVertexArray(this->vao);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, this->heightMap.gl);
 	glActiveTexture(GL_TEXTURE1);

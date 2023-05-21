@@ -27,7 +27,7 @@ void main(void) {
 	vec4 p2 = mix(gl_in[2].gl_Position, gl_in[3].gl_Position, gl_TessCoord.x);
 	vec4 p = mix(p2, p1, gl_TessCoord.y);
 
-	p.y += texture(texHeight, tc).r * 10.0;
+	p.y += texture(texHeight, tc).r * 4.0;
 
 	tes_out.tc = tc;
 	tes_out.nor = mat3(mMat) * (texture(texNormal, tc).rgb);
