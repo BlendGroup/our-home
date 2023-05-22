@@ -1,4 +1,4 @@
-#include"../include/scenecamerarig.h"
+#include<scenecamerarig.h>
 #include<X11/keysym.h>
 
 using namespace std;

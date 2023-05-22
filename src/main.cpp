@@ -1,3 +1,5 @@
+#include <AL/alut.h>
+#include <cstdlib>
 #include<iostream>
 #include<memory>
 #include<chrono>
@@ -26,7 +28,7 @@
 using namespace std;
 using namespace vmath;
 
-static bool hdrEnabled = false;
+static bool hdrEnabled = true;
 static HDR* hdr;
 static vector<sceneCamera*> scenecamera;
 static sceneCameraRig* scenecamerarig;
@@ -88,8 +90,10 @@ void init(void) {
 		dayScene = new dayscene();
 
 		//Inititalize
+		alutInit(0, NULL);
 		initTextureLoader();
 		hdr->init();
+		hdr->toggleBloom(true);
 		// labScene->init();
 		dayScene->init();
 
@@ -107,11 +111,14 @@ void init(void) {
 
 void render(glwindow* window) {
 	try {
+		void checkIfDone(double);
+		// checkIfDone(33.0f);
 		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(currentSceneCamera);
 
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
 			glViewport(0, 0, hdr->getSize(), hdr->getSize());
+			glClearBufferfv(GL_COLOR, 1, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		} else {
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 		}
@@ -137,16 +144,19 @@ void render(glwindow* window) {
 }
 
 void update(void) {
-#define CAMERA_SPEED 0.1f
+#define CAMERA_SPEED 0.025f
 
 	if(isAnimating) {
 		currentSceneCamera->updateT(programglobal::deltaTime * CAMERA_SPEED);
 	}
+	currentScene->update(currentSceneCamera);
 }
 
 void resetCamera(void) {
 		currentSceneCamera->resetT();
 }
+
+std::chrono::time_point<typename chrono::steady_clock> start;
 
 void keyboard(glwindow* window, int key) {
 	switch(key) {
@@ -171,6 +181,7 @@ void keyboard(glwindow* window, int key) {
 		break;
 	case XK_space:
 		isAnimating = !isAnimating;
+		start = chrono::steady_clock::now();
 		break;
 	case XK_Tab:
 		cout<<currentSceneCamera<<endl;
@@ -191,6 +202,22 @@ void keyboard(glwindow* window, int key) {
 		currentScene->keyboardfunc(key);
 	}
 #endif
+}
+
+void checkIfDone(double c) {
+	auto end = chrono::steady_clock::now();
+	chrono::duration<double> diff = end - start;
+	if(diff.count() >= c && isAnimating) {
+		cout<<"Camera Spline Pos:"<<currentSceneCamera->getDistanceOnSpline()<<endl;
+		exit(0);
+	}
+}
+
+void callMeToExit() {
+	auto end = chrono::steady_clock::now();
+	chrono::duration<double> diff = end - start;
+	cout<<"Time taken to render "<<diff.count()<<" sec"<<endl;
+	exit(0);
 }
 
 void mouse(glwindow* window, int button, int action, int x, int y) {
@@ -217,6 +244,7 @@ double getDeltaTime(glwindow *win) {
 }
 
 int main(int argc, char **argv) {
+#define SPEED_MULTIPLIER 1
 	try {
 		glwindow* window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
 		auto initstart = chrono::steady_clock::now();
@@ -233,7 +261,9 @@ int main(int argc, char **argv) {
 			window->processEvents();
 			render(window);
 			programglobal::deltaTime = getDeltaTime(window);
-			// cout<<programglobal::deltaTime<<endl;
+			#ifdef DEBUG
+			programglobal::deltaTime *= SPEED_MULTIPLIER;
+			#endif
 			if(isAnimating) {
 				update();
 			}
