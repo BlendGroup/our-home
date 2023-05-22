@@ -275,6 +275,7 @@ void labscene::render() {
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDepthMask(GL_FALSE);
 		//glEnable(GL_ALPHA_TEST);
 		programHologram->use();
 		glUniformMatrix4fv(programHologram->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
@@ -283,18 +284,19 @@ void labscene::render() {
         glUniformMatrix4fv(programHologram->getUniformLocation("mMat"),1,GL_FALSE, translate(-1.96f, -0.27f, -1.682f) * rotate(0.0f, 1.0f, 0.0f, 0.0f) * rotate(blendT, 0.0f, 1.0f, 0.0f) * rotate(0.0f, 0.0f, 0.0f, 1.0f) * scale(0.11f));
 		glUniform4fv(programHologram->getUniformLocation("MainColor"),1,vec4(0.0f,0.0f,1.0f,1.0f));
 		glUniform4fv(programHologram->getUniformLocation("RimColor"),1,vec4(0.0f,1.0f,1.0f,1.0f));
-		glUniform1f(programHologram->getUniformLocation("gTime"),blendT * 0.01f);
-		glUniform1f(programHologram->getUniformLocation("GlitechIntensity"),1.0f);
-		glUniform1f(programHologram->getUniformLocation("GlitchSpeed"),1.0f);
-		glUniform1f(programHologram->getUniformLocation("BarSpeed"),1.0f);
-		glUniform1f(programHologram->getUniformLocation("BarDistance"),0.1f);
-		glUniform1f(programHologram->getUniformLocation("alpha"),1.0f);
-		glUniform1f(programHologram->getUniformLocation("FlickerSpeed"),1.0f);
-		glUniform1f(programHologram->getUniformLocation("RimPower"),5.0f);
+		// glUniform1f(programHologram->getUniformLocation("gTime"),blendT * 0.01f);
+		// glUniform1f(programHologram->getUniformLocation("GlitechIntensity"),1.0f);
+		// glUniform1f(programHologram->getUniformLocation("GlitchSpeed"),1.0f);
+		// glUniform1f(programHologram->getUniformLocation("BarSpeed"),1.0f);
+		// glUniform1f(programHologram->getUniformLocation("BarDistance"),0.1f);
+		// glUniform1f(programHologram->getUniformLocation("alpha"),1.0f);
+		// glUniform1f(programHologram->getUniformLocation("FlickerSpeed"),1.0f);
+		// glUniform1f(programHologram->getUniformLocation("RimPower"),5.0f);
 		//glUniform1f(programHologram->getUniformLocation("GlowSpeed"),1.0f);
 		//glUniform1f(programHologram->getUniformLocation("GlowDistance"),1.0f);
 		modelBLEND->draw(programHologram,1,false);
 		glDisable(GL_BLEND);
+		glDepthMask(GL_TRUE);
 		//glDisable(GL_ALPHA_TEST);
 
 		programColor->use();

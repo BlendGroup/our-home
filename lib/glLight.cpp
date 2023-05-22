@@ -310,8 +310,7 @@ void SceneLight::setLightUniform(glshaderprogram *program, bool useIndirectLight
 
 void SceneLight::renderSceneLights(glshaderprogram *program){
 
-	cout<<directional.size()<<endl;
-    // directional lights
+	// directional lights
     for(size_t i = 0; i < directional.size(); i++){
         glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,vmath::translate(directional[i].direction) * vmath::scale(0.1f,0.1f,0.1f));
         glUniform3fv(program->getUniformLocation("color"),1,directional[i].color);
@@ -323,8 +322,7 @@ void SceneLight::renderSceneLights(glshaderprogram *program){
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
-	cout<<points.size()<<endl;
-    // render point lights
+	// render point lights
     for(size_t p = 0; p < points.size(); p++){
         glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,vmath::translate(points[p].position) * vmath::scale(points[p].radius/100.0f));
         glUniform3fv(program->getUniformLocation("color"),1,points[p].color);
