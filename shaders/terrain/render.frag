@@ -24,5 +24,5 @@ void calcPhongLightInWorld(in vec3 posInWorld, in vec3 norInWorld, in vec3 light
 void main(void) {
 	float diffuse, specular;
 	calcPhongLightInWorld(fs_in.pos, fs_in.nor, vec3(0.0, 10000.0, 0.0), cameraPos, 45.0, diffuse, specular);
-	FragColor = vec4(texture(texMap, fs_in.tc).rgb * diffuse + vec3(0.1, 0.1, 0.1) * specular, 1.0);
+	FragColor = vec4(vec3(fs_in.tc.x, 1.0, fs_in.tc.y) * diffuse + vec3(0.1, 0.1, 0.1) * specular, 1.0);
 }
