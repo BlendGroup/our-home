@@ -43,11 +43,8 @@ void main(void){
     float glow = fs_in.P.y * GlowDistance - gTime * GlowSpeed;
 
     FragColor = MainColor + rimColor + (0.35 * MainColor);
-    FragColor.a = 0.1;
-    //FragColor = vec4(1.0,0.0,0.0,1.0);
-    if(FragColor.a <= 0.01)
-        discard;
-	EmmisiveColor = vec4(FragColor.rgb, 1.0) *  0.2;
+    FragColor.a = alpha * (bars + rim) * flicker;
+    EmmisiveColor = vec4(FragColor.rgb, 1.0) *  0.2;
 }
 
 
