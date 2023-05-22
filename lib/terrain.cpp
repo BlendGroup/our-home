@@ -38,7 +38,7 @@ terrain::terrain(GLuint heightMap) {
 		glBindVertexArray(this->vao);
 		glGenBuffers(1, &this->vbo);
 		glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vec3), data, NULL);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vec3), data, GL_STATIC_DRAW);
 	} catch(string errorString) {
 		throwErr(errorString);
 	}

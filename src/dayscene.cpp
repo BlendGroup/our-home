@@ -86,6 +86,10 @@ void dayscene::render() {
 	land->render();
 }
 
+void dayscene::update(sceneCamera* cam) {
+	
+}
+
 void dayscene::uninit() {
 	delete land;
 }
