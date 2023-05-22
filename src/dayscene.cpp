@@ -30,6 +30,7 @@ void dayscene::setupProgram() {
 	try {
 		terrainRenderer = new glshaderprogram({"shaders/terrain/render.vert", "shaders/terrain/render.tesc", "shaders/terrain/render.tese", "shaders/terrain/render.frag"});
 	} catch(string errorString)  {
+	glUniform1i(terrainRenderer->getUniformLocation("texHeight"), 0);
 		throwErr(errorString);
 	}
 }
@@ -77,11 +78,13 @@ void dayscene::render() {
 	glUniform1f(terrainRenderer->getUniformLocation("maxTess"), MAX_PATCH_TESS_LEVEL);
 	glUniform1f(terrainRenderer->getUniformLocation("minTess"), MIN_PATCH_TESS_LEVEL);
 	glUniform3fv(terrainRenderer->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
-	glUniform1i(terrainRenderer->getUniformLocation("texHeight"), 0);
-	glUniform1i(terrainRenderer->getUniformLocation("texNormal"), 1);
+	glUniform1i(terrainRenderer->getUniformLocation("texMap"), 0);
+	glUniform1i(terrainRenderer->getUniformLocation("texHeight"), 1);
+	glUniform1i(terrainRenderer->getUniformLocation("texNormal"), 2);
 	glUniform1f(terrainRenderer->getUniformLocation("amplitude"), 1.0f);
-	glBindTextureUnit(0, valley->getHeightMap());
-	glBindTextureUnit(1, valley->getNormalMap());
+	glBindTextureUnit(0, heightMapMap);
+	glBindTextureUnit(1, valley->getHeightMap());
+	glBindTextureUnit(2, valley->getNormalMap());
 	valley->render();
 }
 
