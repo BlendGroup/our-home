@@ -122,7 +122,7 @@ void labscene::init() {
 	modelMug = new glmodel("resources/models/mug/mug.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelRobot = new glmodel("resources/models/robot/robot.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
-	modelBLEND = new glmodel("resources/models/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
+	modelBLEND = new glmodel("resources/models/blendlogo/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
 
 	bspRobot = new BsplineInterpolator(robotSpline);
 
