@@ -57,7 +57,6 @@ static GLuint skybox_vao,vbo;
 
 static audioplayer *playerBkgnd;
 static audioplayer *playerRobotThump;
-static bool crt = true;
 
 #ifdef DEBUG
 // static modelplacer* doorPlacer;
@@ -74,7 +73,6 @@ static vector<vec3> robotSpline = {
 
 void labscene::setupProgram() {
 	try {
-		programStaticPBR = new glshaderprogram({"shaders/pbr.vert", "shaders/pbrMain.frag"});
 		programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
 		programLight = new glshaderprogram({"shaders/debug/lightSrc.vert", "shaders/debug/lightSrc.frag"});
 		programSkybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
@@ -127,7 +125,7 @@ void labscene::init() {
 	envMapper = new CubeMapRenderTarget(CUBEMAP_SIZE, CUBEMAP_SIZE, false);
 	envMapper->setPosition(vec3(0.0f, 0.0f, 0.0f));
 	
-	sceneLightManager = new SceneLight(crt);
+	sceneLightManager = new SceneLight(true);
 	sceneLightManager->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,0.0,-1.0f)));
 	sceneLightManager->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(-5.0f,5.0f,-5.0f),25.0f));
 	sceneLightManager->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,-5.0f),25.0f));
@@ -193,6 +191,29 @@ void labscene::init() {
 	//Astronaut: vec3(-3.41f, -1.39f, 2.03f), vec3(0f, 0f, 0f), 0.00889994f
 	// doorPlacer = new modelplacer(vec3(-3.43f, -0.3f, 2.748f), vec3(0.0f, 0.0f, 0.0f), 1.0f);
 #endif
+	
+	programStaticPBR = new glshaderprogram({"shaders/pbr.vert", "shaders/pbrMain.frag"});
+	glBindFramebuffer(GL_FRAMEBUFFER, envMapper->FBO);
+	glViewport(0, 0, envMapper->width, envMapper->height);
+
+	for(int side = 0; side < 6; side++){
+		glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_CUBE_MAP_POSITIVE_X + side,envMapper->cubemap_texture,0); 
+		glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
+		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
+
+		programStaticPBR->use();
+		glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"),1,GL_FALSE,envMapper->projection);
+		glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"),1,GL_FALSE,envMapper->view[side]);
+		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) * scale(1.0f,1.0f,1.0f));
+		glUniform3fv(programStaticPBR->getUniformLocation("viewPos"),1,envMapper->position);
+		// Lights data
+		glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
+		sceneLightManager->setLightUniform(programStaticPBR, false);
+		modelLab->draw(programStaticPBR,1);
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER,0);
+	sceneLightManager->setEnvmap(envMapper->cubemap_texture);
+	sceneLightManager->PrecomputeIndirectLighting();
 }
 
 void labscene::render() {
@@ -204,32 +225,7 @@ void labscene::render() {
 	static float robotT = 0.01f;
 	static float doorT = 0.0f;
 
-	try {
-	    if(crt){
-            glBindFramebuffer(GL_FRAMEBUFFER, envMapper->FBO);
-			glViewport(0, 0, envMapper->width, envMapper->height);
-
-            for(int side = 0; side < 6; side++){
-                glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_CUBE_MAP_POSITIVE_X + side,envMapper->cubemap_texture,0); 
-                glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
-                glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
-
-                programStaticPBR->use();
-                glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"),1,GL_FALSE,envMapper->projection);
-                glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"),1,GL_FALSE,envMapper->view[side]);
-                glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) * scale(1.0f,1.0f,1.0f));
-                glUniform3fv(programStaticPBR->getUniformLocation("viewPos"),1,envMapper->position);
-                // Lights data
-                glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
-                sceneLightManager->setLightUniform(programStaticPBR, false);
-                modelLab->draw(programStaticPBR,1);
-            }
-            glBindFramebuffer(GL_FRAMEBUFFER,0);
-            sceneLightManager->setEnvmap(envMapper->cubemap_texture);
-            sceneLightManager->PrecomputeIndirectLighting();
-            crt = false;
-        }
-
+	try {	
 		programStaticPBR->use();
         glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"),1,GL_FALSE, programglobal::perspective);
         glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"),1,GL_FALSE, programglobal::currentCamera->matrix());
