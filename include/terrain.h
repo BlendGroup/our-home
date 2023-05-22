@@ -16,6 +16,7 @@
 class terrain {
 private:
 	GLuint vao;
+	GLuint vbo;
 	clglmem heightMap;
 	clglmem normalMap;
 public:

@@ -26,8 +26,19 @@ terrain::terrain(GLuint heightMap) {
 		programglobal::oclContext->runCLKernel(normalKernel, 2, globalWorkSize, localWorkSize, {this->heightMap, this->normalMap});
 		CLErr(clhelpererr = clFinish(programglobal::oclContext->getCommandQueue()));
 
+		vec3 *data = new vec3[MESH_SIZE * MESH_SIZE];
+
+		for(int i = 0; i < MESH_SIZE; i++) {
+			for(int j = 0; j < MESH_SIZE; j++) {
+				
+			}
+		}
+
 		glCreateVertexArrays(1, &this->vao);
 		glBindVertexArray(this->vao);
+		glGenBuffers(1, &this->vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vec3), data, NULL);
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
