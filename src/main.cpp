@@ -44,12 +44,10 @@ camera* programglobal::currentCamera;
 double programglobal::deltaTime;
 
 clglcontext* programglobal::oclContext;
-opensimplexnoise* programglobal::noiseGenerator;
 shaperenderer* programglobal::shapeRenderer;
 
 void setupProgram(void) {
 	try {
-		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl"});
 		hdr->setupProgram();
 		// labScene->setupProgram();
 		dayScene->setupProgram();
@@ -84,7 +82,7 @@ void init(void) {
 		//Object Creation
 		hdr = new HDR(1.5f, 1.0f, 2048);
 		programglobal::oclContext = new clglcontext(1);
-		programglobal::noiseGenerator = new opensimplexnoise();
+		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
 		programglobal::shapeRenderer = new shaperenderer();
 		labScene = new labscene();
 		dayScene = new dayscene();

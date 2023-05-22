@@ -7,29 +7,8 @@
 #include<unordered_map>
 #include<errorlog.h>
 
-#define PSIZE 2048
-#define NUM_LATTICE 8
-#define NUM_POINTS_PER_2D_LATICE 4
-#define NUM_POINTS_PER_3D_LATICE 14
-
 using namespace vmath;
 using namespace std;
-
-opensimplexnoise::opensimplexnoise() {
-	try {
-		string programName;
-		programglobal::oclContext->compilePrograms({"shaders/opensimplexnoise.cl"});
-	} catch(string errString) {
-		throwErr(errString);
-	}
-}
-
-void create2DNoiseTexture(cl_kernel kernel, cl_mem inputGrid, clglmem outputNoise, ivec2 dim, float amplitude, long seed) {
-	try {
-	} catch(string errorString) {
-		throwErr(errorString);
-	}
-}
 
 GLuint opensimplexnoise::createNoiseTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, float amplitude, long seed) {
 	cl_kernel noiseKernel = programglobal::oclContext->getKernel("noise2");

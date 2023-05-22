@@ -2,6 +2,7 @@
 #include<scenes/day.h>
 #include<glmodelloader.h>
 #include<glshaderloader.h>
+#include<gltextureloader.h>
 #include<iostream>
 #include<vmath.h>
 #include<scenecamera.h>
@@ -14,16 +15,20 @@
 #include<glLight.h>
 #include<assimp/postprocess.h>
 #include<global.h>
+#include<opensimplexnoise.h>
 
 using namespace std;
 using namespace vmath;
 
+glshaderprogram* terrainRenderer;
+
 static terrain* valley;
 static GLuint valleyHeightMap;
+static GLuint heightMapMap;
 
 void dayscene::setupProgram() {
 	try {
-		valley->setupProgram();
+		terrainRenderer = new glshaderprogram({"shaders/terrain/render.vert", "shaders/terrain/render.tesc", "shaders/terrain/render.tese", "shaders/terrain/render.frag"});
 	} catch(string errorString)  {
 		throwErr(errorString);
 	}
@@ -58,18 +63,30 @@ sceneCamera* dayscene::setupCamera() {
 }
 
 void dayscene::init() {
-	valleyHeightMap = programglobal::noiseGenerator->createFBMTexture2D(ivec2(2048, 2048), ivec2(0, 0), 500.0f, 2, 1234);
-	valley = new terrain(translate(0.0f, 0.0f, -30.0f), valleyHeightMap, 2.0f);
-
-	valley->init();
+	valleyHeightMap = opensimplexnoise::createFBMTexture2D(ivec2(2048, 2048), ivec2(0, 0), 500.0f, 2, 1234);
+	valley = new terrain(valleyHeightMap);
+	heightMapMap = createTexture2D("resources/textures/heightmapmap.png");
 }
 
 void dayscene::render() {
+	terrainRenderer->use();
+	glUniformMatrix4fv(terrainRenderer->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(terrainRenderer->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(terrainRenderer->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, -30.0f));
+	glUniform1i(terrainRenderer->getUniformLocation("numMeshes"), MESH_SIZE);
+	glUniform1f(terrainRenderer->getUniformLocation("maxTess"), MAX_PATCH_TESS_LEVEL);
+	glUniform1f(terrainRenderer->getUniformLocation("minTess"), MIN_PATCH_TESS_LEVEL);
+	glUniform3fv(terrainRenderer->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
+	glUniform1i(terrainRenderer->getUniformLocation("texHeight"), 0);
+	glUniform1i(terrainRenderer->getUniformLocation("texNormal"), 1);
+	glUniform1f(terrainRenderer->getUniformLocation("amplitude"), 1.0f);
+	glBindTextureUnit(0, valley->getHeightMap());
+	glBindTextureUnit(1, valley->getNormalMap());
 	valley->render();
 }
 
 void dayscene::uninit() {
-	valley->uninit();
+	delete valley;
 }
 
 void dayscene::keyboardfunc(int key) {
