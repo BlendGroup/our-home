@@ -31,8 +31,8 @@ void main(void) {
 	vec4 p2 = mix(gl_in[2].gl_Position, gl_in[3].gl_Position, gl_TessCoord.x);
 	vec4 p = mix(p2, p1, gl_TessCoord.y);
 
-	float mixvalue = p.z / 32.0 * 0.5 + 0.5;
-	mixvalue = 1.0 - mixvalue * mixvalue;
+	float mixvalue = 1.0 - (p.z / 32.0 * 0.5 + 0.5);
+	mixvalue = mixvalue * mixvalue * mixvalue;
 
 	p.y += mix(texture(texHeightValley, tc).r * amplitudeValley, texture(texHeightMountain, tc).r * amplitudeMountain * mixvalue, mixvalue);
 
