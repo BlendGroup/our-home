@@ -274,7 +274,7 @@ void labscene::render() {
         modelAstro->draw(programDynamicPBR);
 
 		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC1_ALPHA);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		//glEnable(GL_ALPHA_TEST);
 		programHologram->use();
 		glUniformMatrix4fv(programHologram->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
@@ -442,6 +442,7 @@ void splineKeyboardFunc(int key) {
 }
 
 void labscene::keyboardfunc(int key) {
+	sceneLightManager->SceneLightKeyBoardFunc(key);
 #ifdef DEBUG
 	//doorPlacer->keyboardfunc(key);
 	// astroPlacer->keyboardfunc(key);

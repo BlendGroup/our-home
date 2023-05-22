@@ -8,6 +8,8 @@
 #include  <X11/keysym.h>
 #include <CubeMapRenderTarget.h>
 
+using namespace std;
+
 static int mode = 0;
 static int selectedLight = 0;
 
@@ -308,6 +310,7 @@ void SceneLight::setLightUniform(glshaderprogram *program, bool useIndirectLight
 
 void SceneLight::renderSceneLights(glshaderprogram *program){
 
+	cout<<directional.size()<<endl;
     // directional lights
     for(size_t i = 0; i < directional.size(); i++){
         glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,vmath::translate(directional[i].direction) * vmath::scale(0.1f,0.1f,0.1f));
@@ -320,6 +323,7 @@ void SceneLight::renderSceneLights(glshaderprogram *program){
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
+	cout<<points.size()<<endl;
     // render point lights
     for(size_t p = 0; p < points.size(); p++){
         glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,vmath::translate(points[p].position) * vmath::scale(points[p].radius/100.0f));

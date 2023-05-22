@@ -19,7 +19,9 @@ uniform float RimPower;
 uniform float GlowSpeed;
 uniform float GlowDistance;
 
-out vec4 FragColor;
+layout(location = 0)out vec4 FragColor;
+layout(location = 1)out vec4 EmmisiveColor;
+
 
 float rand(float n){
     return fract(sin(n) * 43758.5453123);
@@ -45,6 +47,7 @@ void main(void){
     //FragColor = vec4(1.0,0.0,0.0,1.0);
     if(FragColor.a <= 0.01)
         discard;
+	EmmisiveColor = vec4(0.0);
 }
 
 

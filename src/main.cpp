@@ -27,7 +27,7 @@
 using namespace std;
 using namespace vmath;
 
-static bool hdrEnabled = false;
+static bool hdrEnabled = true;
 static HDR* hdr;
 static vector<sceneCamera*> scenecamera;
 static sceneCameraRig* scenecamerarig;
@@ -87,6 +87,7 @@ void init(void) {
 		alutInit(0, NULL);
 		initTextureLoader();
 		hdr->init();
+		hdr->toggleBloom(true);
 		labScene->init();
 
 		currentScene = dynamic_cast<basescene*>(labScene);
@@ -109,6 +110,7 @@ void render(glwindow* window) {
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
 			glViewport(0, 0, hdr->getSize(), hdr->getSize());
+			glClearBufferfv(GL_COLOR, 1, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		} else {
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 		}
