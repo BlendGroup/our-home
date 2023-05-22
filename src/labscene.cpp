@@ -276,7 +276,6 @@ void labscene::render() {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDepthMask(GL_FALSE);
-		//glEnable(GL_ALPHA_TEST);
 		programHologram->use();
 		glUniformMatrix4fv(programHologram->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
         glUniformMatrix4fv(programHologram->getUniformLocation("vMat"),1,GL_FALSE, programglobal::currentCamera->matrix());
@@ -297,7 +296,6 @@ void labscene::render() {
 		modelBLEND->draw(programHologram,1,false);
 		glDisable(GL_BLEND);
 		glDepthMask(GL_TRUE);
-		//glDisable(GL_ALPHA_TEST);
 
 		programColor->use();
 		glUniformMatrix4fv(programColor->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * programglobal::currentCamera->matrix() * translate(-3.45f, -0.3f, 2.828f));
