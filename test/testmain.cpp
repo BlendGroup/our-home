@@ -39,22 +39,19 @@ static bool isAnimating = false;
 #define SHOW_CAMERA_SCENE 		0
 #define SHOW_PBR_SCENE			0
 #define SHOW_LAB_SCENE			0
-#define SHOW_TERRAIN_SCENE 		1
+#define SHOW_TERRAIN_SCENE 		0
 #define SHOW_CUBEMAP_SCENE		0
-#define SHOW_NOISE_SCENE 		0
+#define SHOW_NOISE_SCENE 		1
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
 camera* programglobal::currentCamera;
-opensimplexnoise* programglobal::noiseGenerator;
 
 extern vector<vec3> positionKeyFrames;
 extern vector<vec3> frontKeyFrames;
 
 void setupProgram(void) {
-	try {
-		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl"});
-	
+	try {	
 #if SHOW_TEST_SCENE
 		setupProgramTestEffect();
 #endif
@@ -98,7 +95,7 @@ void init(void) {
 		//Object Creation
 		hdr = new HDR(1.0f, 1.0f, 2048);
 		programglobal::oclContext = new clglcontext(1);
-		programglobal::noiseGenerator = new opensimplexnoise();	
+		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
 
 		//Inititalize
 #if SHOW_TEST_SCENE

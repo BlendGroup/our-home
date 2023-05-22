@@ -44,7 +44,7 @@ GLuint opensimplexnoise::createNoiseTexture2D(vmath::ivec2 dim, vmath::ivec2 off
 	return outputNoise;
 }
 
-GLuint opensimplexnoise::createFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, float amplitude, int octaves, long seed) {
+GLuint opensimplexnoise::createFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, int octaves, long seed) {
 	cl_kernel noiseKernel = programglobal::oclContext->getKernel("fbm2");
 	// programglobal::oclContext->printKernelList(cout);
 	cl_mem inputGrid;
@@ -78,7 +78,7 @@ GLuint opensimplexnoise::createFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offse
 	return outputNoise;
 }
 
-GLuint opensimplexnoise::createTurbulenceFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, float amplitude, int octaves, float noiseoffset, long seed) {
+GLuint opensimplexnoise::createTurbulenceFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, int octaves, float noiseoffset, long seed) {
 	cl_kernel noiseKernel = programglobal::oclContext->getKernel("turbulencefbm2");
 	// programglobal::oclContext->printKernelList(cout);
 	cl_mem inputGrid;
@@ -110,4 +110,18 @@ GLuint opensimplexnoise::createTurbulenceFBMTexture2D(vmath::ivec2 dim, vmath::i
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	clReleaseMemObject(inputGrid);
 	return outputNoise;
+}
+
+GLuint opensimplexnoise::combineTwoNoiseTextures(GLuint inputTex1, GLuint inputTex2, ivec2 dim) {
+	cl_kernel combineKernel = programglobal::oclContext->getKernel("combinetex");
+	clglmem inputImage1 = programglobal::oclContext->createCLfromGLTexture(CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, inputTex1);
+	clglmem inputImage2 = programglobal::oclContext->createCLfromGLTexture(CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, inputTex2);
+	clglmem outputImage = programglobal::oclContext->createCLGLTexture(GL_TEXTURE_2D, GL_R32F, dim[0], dim[1], CL_MEM_WRITE_ONLY);
+
+	programglobal::oclContext->setKernelParameters(combineKernel, {param(0, inputImage1.cl), param(1, inputImage2.cl), param(2, outputImage.cl)});
+	size_t globalWorkSize[] = { dim[0], dim[1] };
+	size_t localWorkSize[] = { 16, 16 };
+	programglobal::oclContext->runCLKernel(combineKernel, 2, globalWorkSize, localWorkSize, {inputImage1, inputImage2, outputImage});
+
+	return outputImage.gl;
 }

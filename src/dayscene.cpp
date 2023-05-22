@@ -24,13 +24,11 @@ glshaderprogram* terrainRenderer;
 
 static terrain* valley;
 static terrain* mountain;
-static GLuint heightMapMap;
 
 void dayscene::setupProgram() {
 	try {
 		terrainRenderer = new glshaderprogram({"shaders/terrain/render.vert", "shaders/terrain/render.tesc", "shaders/terrain/render.tese", "shaders/terrain/render.frag"});
 	} catch(string errorString)  {
-	glUniform1i(terrainRenderer->getUniformLocation("texHeight"), 0);
 		throwErr(errorString);
 	}
 }
@@ -64,11 +62,10 @@ sceneCamera* dayscene::setupCamera() {
 }
 
 void dayscene::init() {
-	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(ivec2(2048, 2048), ivec2(0, 0), 1000.0f, 1.0f, 3, 1234);
-	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(ivec2(2048, 2048), ivec2(0, 0), 2048.0f, 1.0f, 5, 0.11f, 543);
+	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(ivec2(2048, 2048), ivec2(0, 0), 1000.0f, 3, 1234);
+	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(ivec2(2048, 2048), ivec2(0, 0), 2048.0f, 5, 0.11f, 543);
 	valley = new terrain(valleyHeightMap);
 	mountain = new terrain(mountainHeightMap);
-	heightMapMap = createTexture2D("resources/textures/heightmapmap.png");
 }
 
 void dayscene::render() {
@@ -80,18 +77,16 @@ void dayscene::render() {
 	glUniform1f(terrainRenderer->getUniformLocation("maxTess"), MAX_PATCH_TESS_LEVEL);
 	glUniform1f(terrainRenderer->getUniformLocation("minTess"), MIN_PATCH_TESS_LEVEL);
 	glUniform3fv(terrainRenderer->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
-	glUniform1i(terrainRenderer->getUniformLocation("texMap"), 0);
-	glUniform1i(terrainRenderer->getUniformLocation("texHeightValley"), 1);
-	glUniform1i(terrainRenderer->getUniformLocation("texNormalValley"), 2);
-	glUniform1i(terrainRenderer->getUniformLocation("texHeightMountain"), 3);
-	glUniform1i(terrainRenderer->getUniformLocation("texNormalMountain"), 4);
+	glUniform1i(terrainRenderer->getUniformLocation("texHeightValley"), 0);
+	glUniform1i(terrainRenderer->getUniformLocation("texNormalValley"), 1);
+	glUniform1i(terrainRenderer->getUniformLocation("texHeightMountain"), 2);
+	glUniform1i(terrainRenderer->getUniformLocation("texNormalMountain"), 3);
 	glUniform1f(terrainRenderer->getUniformLocation("amplitudeValley"), 5.0f);
 	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMountain"), 60.0f);
-	glBindTextureUnit(0, heightMapMap);
-	glBindTextureUnit(1, valley->getHeightMap());
-	glBindTextureUnit(2, valley->getNormalMap());
-	glBindTextureUnit(3, mountain->getHeightMap());
-	glBindTextureUnit(4, mountain->getNormalMap());
+	glBindTextureUnit(0, valley->getHeightMap());
+	glBindTextureUnit(1, valley->getNormalMap());
+	glBindTextureUnit(2, mountain->getHeightMap());
+	glBindTextureUnit(3, mountain->getNormalMap());
 	valley->render();
 }
 
