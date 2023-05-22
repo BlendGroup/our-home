@@ -44,7 +44,7 @@ GLuint opensimplexnoise::createNoiseTexture2D(vmath::ivec2 dim, vmath::ivec2 off
 	return outputNoise;
 }
 
-GLuint opensimplexnoise::createFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, int octaves, long seed) {
+GLuint opensimplexnoise::createFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, float amplitude, int octaves, long seed) {
 	cl_kernel noiseKernel = programglobal::oclContext->getKernel("fbm2");
 	// programglobal::oclContext->printKernelList(cout);
 	cl_mem inputGrid;
@@ -78,7 +78,7 @@ GLuint opensimplexnoise::createFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offse
 	return outputNoise;
 }
 
-GLuint opensimplexnoise::createTurbulenceFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, int octaves, float noiseoffset, long seed) {
+GLuint opensimplexnoise::createTurbulenceFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, float amplitude, int octaves, float noiseoffset, long seed) {
 	cl_kernel noiseKernel = programglobal::oclContext->getKernel("turbulencefbm2");
 	// programglobal::oclContext->printKernelList(cout);
 	cl_mem inputGrid;

@@ -15,9 +15,12 @@ out TES_OUT {
 uniform mat4 pMat;
 uniform mat4 vMat;
 uniform mat4 mMat;
-uniform sampler2D texHeight;
-uniform sampler2D texNormal;
-uniform float amplitude;
+uniform sampler2D texHeightValley;
+uniform sampler2D texNormalValley;
+uniform sampler2D texHeightMountain;
+uniform sampler2D texNormalMountain;
+uniform float amplitudeValley;
+uniform float amplitudeMountain;
 
 void main(void) {
 	vec2 tc1 = mix(tes_in[0].tc, tes_in[1].tc, gl_TessCoord.x);
@@ -28,10 +31,13 @@ void main(void) {
 	vec4 p2 = mix(gl_in[2].gl_Position, gl_in[3].gl_Position, gl_TessCoord.x);
 	vec4 p = mix(p2, p1, gl_TessCoord.y);
 
-	p.y += texture(texHeight, tc).r * amplitude;
+	float mixvalue = p.z / 32.0 * 0.5 + 0.5;
+	mixvalue = 1.0 - mixvalue * mixvalue;
+
+	p.y += mix(texture(texHeightValley, tc).r * amplitudeValley, texture(texHeightMountain, tc).r * amplitudeMountain * mixvalue, mixvalue);
 
 	tes_out.tc = tc;
-	tes_out.nor = mat3(mMat) * (texture(texNormal, tc).rgb);
+	tes_out.nor = mat3(mMat) * mix(texture(texNormalValley, tc).rgb, texture(texNormalMountain, tc).rgb, mixvalue);
 	tes_out.pos = vec3(mMat * p);
 	gl_Position = pMat * vMat * mMat * p;
 }

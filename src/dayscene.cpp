@@ -23,7 +23,7 @@ using namespace vmath;
 glshaderprogram* terrainRenderer;
 
 static terrain* valley;
-static GLuint valleyHeightMap;
+static terrain* mountain;
 static GLuint heightMapMap;
 
 void dayscene::setupProgram() {
@@ -64,8 +64,10 @@ sceneCamera* dayscene::setupCamera() {
 }
 
 void dayscene::init() {
-	valleyHeightMap = opensimplexnoise::createFBMTexture2D(ivec2(2048, 2048), ivec2(0, 0), 500.0f, 2, 1234);
+	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(ivec2(2048, 2048), ivec2(0, 0), 1000.0f, 1.0f, 2, 1234);
+	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(ivec2(2048, 2048), ivec2(0, 0), 2048.0f, 1.0f, 7, 0.11f, 543);
 	valley = new terrain(valleyHeightMap);
+	mountain = new terrain(mountainHeightMap);
 	heightMapMap = createTexture2D("resources/textures/heightmapmap.png");
 }
 
@@ -79,12 +81,17 @@ void dayscene::render() {
 	glUniform1f(terrainRenderer->getUniformLocation("minTess"), MIN_PATCH_TESS_LEVEL);
 	glUniform3fv(terrainRenderer->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
 	glUniform1i(terrainRenderer->getUniformLocation("texMap"), 0);
-	glUniform1i(terrainRenderer->getUniformLocation("texHeight"), 1);
-	glUniform1i(terrainRenderer->getUniformLocation("texNormal"), 2);
-	glUniform1f(terrainRenderer->getUniformLocation("amplitude"), 1.0f);
+	glUniform1i(terrainRenderer->getUniformLocation("texHeightValley"), 1);
+	glUniform1i(terrainRenderer->getUniformLocation("texNormalValley"), 2);
+	glUniform1i(terrainRenderer->getUniformLocation("texHeightMountain"), 3);
+	glUniform1i(terrainRenderer->getUniformLocation("texNormalMountain"), 4);
+	glUniform1f(terrainRenderer->getUniformLocation("amplitudeValley"), 2.0f);
+	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMountain"), 60.0f);
 	glBindTextureUnit(0, heightMapMap);
 	glBindTextureUnit(1, valley->getHeightMap());
 	glBindTextureUnit(2, valley->getNormalMap());
+	glBindTextureUnit(3, mountain->getHeightMap());
+	glBindTextureUnit(4, mountain->getNormalMap());
 	valley->render();
 }
 
