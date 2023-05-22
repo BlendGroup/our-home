@@ -17,6 +17,9 @@ static const vmath::mat4 godraysPerspective = vmath::perspective(
 	0.1f,
 	1000.0f
 );
+static const vec4 posPlane = vec4(0.0f, 0.0f, -5.0f, 1.0f);
+static const mat4 mMatCube = scale(0.25f, 0.25f, 0.25f);
+static const mat4 mMatPlane = translate(posPlane[0], posPlane[1], posPlane[2]);
 
 void setupProgramTestGodrays(void) {
 	try {
@@ -111,29 +114,26 @@ void initTestGodrays(void) {
 
 static void renderTestGodraysScene(camera *cam, bool isOcclusionPass) {
 	try {
-		mat4 mvMatrixCube = cam->matrix() * scale(0.25f, 0.25f, 0.25f);
-		mat4 mvMatrixPlane = cam->matrix() * translate(0.0f, 0.0f, -5.0f);
-
 		if(isOcclusionPass) {
 			// all occluding objects
-			godRays->occlusionPass(godraysPerspective * mvMatrixCube, false);
+			godRays->occlusionPass(godraysPerspective * cam->matrix() * mMatCube, false);
 			glBindVertexArray(vaoCube);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 
 			// all emissive objects
-			godRays->occlusionPass(godraysPerspective * mvMatrixPlane, true);
+			godRays->occlusionPass(godraysPerspective * cam->matrix() * mMatPlane, true);
 			glBindVertexArray(vaoPlane);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 		else {
 			colorProgram->use();
 			
-			glUniformMatrix4fv(colorProgram->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * mvMatrixCube);
+			glUniformMatrix4fv(colorProgram->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * cam->matrix() * mMatCube);
 			glUniform4fv(colorProgram->getUniformLocation("color"), 1, vec4(0.1f, 0.1f, 0.1f, 1.0f));
 			glBindVertexArray(vaoCube);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 
-			glUniformMatrix4fv(colorProgram->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * mvMatrixPlane);
+			glUniformMatrix4fv(colorProgram->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * cam->matrix() * mMatPlane);
 			glUniform4fv(colorProgram->getUniformLocation("color"), 1, vec4(1.0f, 1.0f, 1.0f, 1.0f));
 			glBindVertexArray(vaoPlane);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -158,6 +158,16 @@ void renderTestGodrays(camera *cam, int winWidth, int winHeight) {
 		glViewport(0, 0, winWidth, winHeight);
 		renderTestGodraysScene(cam, false);
 
+		// additive blending pass
+		godRays->render(
+			programglobal::perspective * cam->matrix() * mMatPlane,
+			posPlane,
+			1.0f,
+			0.01f,
+			1.0f,
+			1.0f,
+			100
+		);
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
