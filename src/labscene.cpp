@@ -57,8 +57,6 @@ static glshaderprogram* programHologram;
 
 static GLuint skybox_vao,vbo;
 
-static GLuint skyboxdemo;
-
 static audioplayer *playerBkgnd;
 static audioplayer *playerRobotThump;
 static bool crt = true;
@@ -129,8 +127,6 @@ void labscene::init() {
 	modelBLEND = new glmodel("resources/models/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
 
 	bspRobot = new BsplineInterpolator(robotSpline);
-
-	skyboxdemo = createTextureCubemap("resources/textures/skybox.jpg");
 
 	envMapper = new CubeMapRenderTarget(CUBEMAP_SIZE, CUBEMAP_SIZE, false);
 	envMapper->setPosition(vec3(0.0f, 0.0f, 0.0f));
@@ -234,8 +230,7 @@ void labscene::render() {
                 modelLab->draw(programStaticPBR,1);
             }
             glBindFramebuffer(GL_FRAMEBUFFER,0);
-            // sceneLightManager->setEnvmap(envMapper->cubemap_texture);
-            sceneLightManager->setEnvmap(skyboxdemo);
+            sceneLightManager->setEnvmap(envMapper->cubemap_texture);
             sceneLightManager->PrecomputeIndirectLighting();
             crt = false;
         }
@@ -322,8 +317,7 @@ void labscene::render() {
         glUniformMatrix4fv(programSkybox->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
         glUniformMatrix4fv(programSkybox->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
         glBindVertexArray(skybox_vao);
-        glBindTextureUnit(0,skyboxdemo);
-        // glBindTextureUnit(0,envMapper->cubemap_texture);
+        glBindTextureUnit(0,envMapper->cubemap_texture);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
 #ifdef DEBUG

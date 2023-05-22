@@ -7,16 +7,22 @@ TEST_FILES := $(wildcard $(TEST_DIR)/*.cpp)
 LIB_FILES := $(wildcard $(LIB_DIR)/*.cpp)
 OBJ_FILES_RUN := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES)) $(patsubst $(LIB_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(LIB_FILES))
 OBJ_FILES_TEST := $(patsubst $(TEST_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(TEST_FILES)) $(patsubst $(LIB_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(LIB_FILES))
-LIB_DEPS := -lX11 -lGL -lGLEW -lassimp -lOpenCL
+LIB_DEPS := -lX11 -lGL -lGLEW -lassimp -lOpenCL -lopenal -lalut
 LD_FLAGS := -L ./lib
+ifdef DEBUG
+	CPP_FLAGS := -g -D DEBUG
+endif
+
+.PHONY: run test clean
 
 all: run
 
+
 run: build main.run
-	./main.run
+
 
 test: build main.test
-	./main.test
+
 
 build:
 	mkdir build
@@ -28,13 +34,13 @@ main.run: $(OBJ_FILES_RUN)
 	g++ $^ $(LD_FLAGS) -o $@ $(LIB_DEPS)
 
 $(OBJ_DIR)/%.o: $(LIB_DIR)/%.cpp
-	g++ -c -o $@ $< -I ./include -D DEBUG
+	g++ -c -o $@ $< -I ./include $(CPP_FLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	g++ -c -o $@ $< -I ./include -D DEBUG
+	g++ -c -o $@ $< -I ./include $(CPP_FLAGS)
 
 $(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp
-	g++ -c -o $@ $< -I ./include -D DEBUG
+	g++ -c -o $@ $< -I ./include $(CPP_FLAGS)
 
 clean:
 	rm -f $(OBJ_FILES_RUN)
