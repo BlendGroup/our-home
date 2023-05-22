@@ -22,8 +22,7 @@ using namespace vmath;
 
 glshaderprogram* terrainRenderer;
 
-static terrain* valley;
-static terrain* mountain;
+static terrain* land;
 
 void dayscene::setupProgram() {
 	try {
@@ -62,10 +61,11 @@ sceneCamera* dayscene::setupCamera() {
 }
 
 void dayscene::init() {
-	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(ivec2(2048, 2048), ivec2(0, 0), 1000.0f, 3, 1234);
-	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(ivec2(2048, 2048), ivec2(0, 0), 2048.0f, 5, 0.11f, 543);
-	valley = new terrain(valleyHeightMap);
-	mountain = new terrain(mountainHeightMap);
+	ivec2 dim = ivec2(2048, 2048);
+	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 1000.0f, 3, 1234);
+	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1500.0f, 5, 0.11f, 543);
+	GLuint finalTerrain = opensimplexnoise::combineTwoNoiseTextures(mountainHeightMap, valleyHeightMap, dim);
+	land = new terrain(finalTerrain);
 }
 
 void dayscene::render() {
@@ -77,21 +77,17 @@ void dayscene::render() {
 	glUniform1f(terrainRenderer->getUniformLocation("maxTess"), MAX_PATCH_TESS_LEVEL);
 	glUniform1f(terrainRenderer->getUniformLocation("minTess"), MIN_PATCH_TESS_LEVEL);
 	glUniform3fv(terrainRenderer->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
-	glUniform1i(terrainRenderer->getUniformLocation("texHeightValley"), 0);
-	glUniform1i(terrainRenderer->getUniformLocation("texNormalValley"), 1);
-	glUniform1i(terrainRenderer->getUniformLocation("texHeightMountain"), 2);
-	glUniform1i(terrainRenderer->getUniformLocation("texNormalMountain"), 3);
-	glUniform1f(terrainRenderer->getUniformLocation("amplitudeValley"), 5.0f);
-	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMountain"), 60.0f);
-	glBindTextureUnit(0, valley->getHeightMap());
-	glBindTextureUnit(1, valley->getNormalMap());
-	glBindTextureUnit(2, mountain->getHeightMap());
-	glBindTextureUnit(3, mountain->getNormalMap());
-	valley->render();
+	glUniform1i(terrainRenderer->getUniformLocation("texHeight"), 0);
+	glUniform1i(terrainRenderer->getUniformLocation("texNormal"), 1);
+	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMin"), 3.0f);
+	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMax"), 60.0f);
+	glBindTextureUnit(0, land->getHeightMap());
+	glBindTextureUnit(1, land->getNormalMap());
+	land->render();
 }
 
 void dayscene::uninit() {
-	delete valley;
+	delete land;
 }
 
 void dayscene::keyboardfunc(int key) {

@@ -97,5 +97,6 @@ kernel void combinetex(read_only image2d_t heightMap1, read_only image2d_t heigh
 	float h1 = read_imagef(heightMap1, coord).r;
 	float h2 = read_imagef(heightMap2, coord).r;
 	float t = (float)get_global_id(1) / (float)get_image_height(heightMapOp);
+	t = t * t * t;
 	write_imagef(heightMapOp, coord, (float4)(mix(h1, h2, t)));
 }
