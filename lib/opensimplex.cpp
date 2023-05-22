@@ -119,7 +119,7 @@ GLuint opensimplexnoise::combineTwoNoiseTextures(GLuint inputTex1, GLuint inputT
 	clglmem outputImage = programglobal::oclContext->createCLGLTexture(GL_TEXTURE_2D, GL_R32F, dim[0], dim[1], CL_MEM_WRITE_ONLY);
 
 	programglobal::oclContext->setKernelParameters(combineKernel, {param(0, inputImage1.cl), param(1, inputImage2.cl), param(2, outputImage.cl)});
-	size_t globalWorkSize[] = { dim[0], dim[1] };
+	size_t globalWorkSize[] = { (size_t)dim[0], (size_t)dim[1] };
 	size_t localWorkSize[] = { 16, 16 };
 	programglobal::oclContext->runCLKernel(combineKernel, 2, globalWorkSize, localWorkSize, {inputImage1, inputImage2, outputImage});
 
