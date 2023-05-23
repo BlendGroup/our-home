@@ -200,7 +200,7 @@ void keyboard(glwindow* window, int key) {
 		currentSceneCamera->updateT(0.001f);
 		break;
 	}
-	hdr->keyboardfunc(key);
+	// hdr->keyboardfunc(key);
 	debugcamera->keyboardFunc(key);
 #ifdef DEBUG
 	if(isSceneCameraEditing) {

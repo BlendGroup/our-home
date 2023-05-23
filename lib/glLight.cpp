@@ -456,7 +456,6 @@ void SceneLight::SceneLightKeyBoardFunc(int key){
                 points[selectedLight].radius += 0.5f;
         break;
         case XK_comma:
-        std::cout<<"here";
             if(mode == 0)
                 directional[selectedLight].intensity -= 1.0f;
             else if(mode == 1)
@@ -465,7 +464,6 @@ void SceneLight::SceneLightKeyBoardFunc(int key){
                 spots[selectedLight].intensity -= 1.0f;
         break;
         case XK_period:
-                std::cout<<"here";
             if(mode == 0)
                 directional[selectedLight].intensity += 1.0f;
             else if(mode == 1)
