@@ -61,7 +61,7 @@ static audioplayer *playerRobotThump;
 //For tranistion
 static glshaderprogram* programRender;
 ////////////////
-//static modelplacer* doorPlacer;
+static modelplacer* doorPlacer;
 static SplineRenderer* splineRender;
 int selectedPoint = 0;
 #endif
@@ -90,7 +90,7 @@ void labscene::setupProgram() {
 
 sceneCamera* labscene::setupCamera() {
 	vector<vec3> positionKeyFrames = {
-		vec3(-1.96f, -0.22f, -1.11f),
+		vec3(-1.96f, -0.33f, -1.13f),
 		vec3(-1.86f, -0.16f, -0.97f),
 		vec3(-1.84f, -0.2f, -1.21f),
 		vec3(-1.83f, -0.3f, -1.89f),
@@ -102,7 +102,7 @@ sceneCamera* labscene::setupCamera() {
 	};
     
 	vector<vec3> frontKeyFrames = {
-		vec3(-1.96f, -0.35f, -1.65f),
+		vec3(-1.96f, -0.27f, -1.65f),
 		vec3(-1.74f, -0.3f, -1.29f),
 		vec3(-1.38f, -0.47f, -1.48f),
 		vec3(-1.26f, -0.4f, -1.5f),
@@ -195,8 +195,7 @@ void labscene::init() {
 #ifdef DEBUG
 	splineRender = new SplineRenderer(bspRobot);
 	splineRender->setRenderPoints(true);
-	//Astronaut: vec3(-3.41f, -1.39f, 2.03f), vec3(0f, 0f, 0f), 0.00889994f
-	//doorPlacer = new modelplacer(vec3(-3.43f, -0.3f, 2.748f), vec3(0.0f, 0.0f, 0.0f), 1.0f);
+	doorPlacer = new modelplacer(vec3(-1.96f, -0.27f, -1.682f), vec3(0.0f, 0.0f, 0.0f), 0.11f);
 #endif
 	
 	programStaticPBR = new glshaderprogram({"shaders/pbr.vert", "shaders/pbrMain.frag"});
@@ -292,7 +291,7 @@ void labscene::render() {
 		glUniformMatrix4fv(programHologram->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
         glUniformMatrix4fv(programHologram->getUniformLocation("vMat"),1,GL_FALSE, programglobal::currentCamera->matrix());
 		//translate(-1.96f, -0.27f, -1.682f) * rotate(13f, 1.0f, 0.0f, 0.0f) * rotate(-50f, 0.0f, 1.0f, 0.0f) * rotate(-1f, 0.0f, 0.0f, 1.0f) * scale(0.11f)
-        glUniformMatrix4fv(programHologram->getUniformLocation("mMat"),1,GL_FALSE, translate(-1.96f, -0.27f, -1.682f) * scale(0.11f));
+        glUniformMatrix4fv(programHologram->getUniformLocation("mMat"),1,GL_FALSE, translate(-1.96013f, -0.266205f, -1.682f) * scale(0.11f));
 		glUniform4fv(programHologram->getUniformLocation("MainColor"),1,vec4(0.0f,0.0f,1.0f,1.0f));
 		glUniform4fv(programHologram->getUniformLocation("RimColor"),1,vec4(0.0f,1.0f,1.0f,1.0f));
 		glUniform1f(programHologram->getUniformLocation("gTime"),blendT * 0.01f);
@@ -458,17 +457,16 @@ void splineKeyboardFunc(int key) {
 void labscene::keyboardfunc(int key) {
 	sceneLightManager->SceneLightKeyBoardFunc(key);
 #ifdef DEBUG
-	//doorPlacer->keyboardfunc(key);
-	// astroPlacer->keyboardfunc(key);
+	doorPlacer->keyboardfunc(key);
 	splineKeyboardFunc(key);
 	switch(key) {
 	case XK_Tab:
 		//cout << "Camera T = "<<dynamic_cast<sceneCamera *>(programglobal::currentCamera)->getDistanceOnSpline() << endl;
-		//cout<<doorPlacer<<endl;
-		//for(int i = 0; i < robotSpline.size(); i++) {
-			//cout<<"\t"<<robotSpline[i]<<",\n";
-		//}
-		//cout<<"\b"<<endl;
+		cout<<doorPlacer<<endl;
+		// for(int i = 0; i < robotSpline.size(); i++) {
+		// 	cout<<"\t"<<robotSpline[i]<<",\n";
+		// }
+		// cout<<"\b"<<endl;
 		break;
 	}
 #endif

@@ -69,13 +69,13 @@ void setupSceneCamera(void) {
 		// scenecamera.push_back(dayScene->setupCamera());
 		
 #ifdef DEBUG
-		// scenecamerarig = new sceneCameraRig(scenecamera[0]);
-		// scenecamerarig->setRenderPath(true);
-		// scenecamerarig->setRenderPathPoints(true);
-		// scenecamerarig->setRenderFront(true);
-		// scenecamerarig->setRenderFrontPoints(true);
-		// scenecamerarig->setRenderPathToFront(true);
-		// scenecamerarig->setScalingFactor(0.01f);
+		scenecamerarig = new sceneCameraRig(scenecamera[0]);
+		scenecamerarig->setRenderPath(true);
+		scenecamerarig->setRenderPathPoints(true);
+		scenecamerarig->setRenderFront(true);
+		scenecamerarig->setRenderFrontPoints(true);
+		scenecamerarig->setRenderPathToFront(true);
+		scenecamerarig->setScalingFactor(0.01f);
 #endif
 		currentSceneCamera = scenecamera[0];
 	} catch(string errorString) {
@@ -136,7 +136,7 @@ void render(glwindow* window) {
 
 		currentScene->render();
 
-		// scenecamerarig->render();
+		scenecamerarig->render();
 
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
@@ -204,7 +204,7 @@ void keyboard(glwindow* window, int key) {
 	debugcamera->keyboardFunc(key);
 #ifdef DEBUG
 	if(isSceneCameraEditing) {
-		// scenecamerarig->keyboardfunc(key);
+		scenecamerarig->keyboardfunc(key);
 	} else {
 		currentScene->keyboardfunc(key);
 	}
