@@ -46,7 +46,7 @@ void initTestPbr(){
         #if DYNAMIC  
         model = new glmodel("resources/models/astronaut/MCAnim.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
         #else
-        model = new glmodel("resources/models/tree/pine.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
+        model = new glmodel("resources/models/tree/purpletree.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
         
         //model = new glmodel("resources/models/door/door.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_RemoveRedundantMaterials | aiProcess_FlipUVs,true);
         #endif
