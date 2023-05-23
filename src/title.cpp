@@ -7,6 +7,7 @@
 #include<modelplacer.h>
 #include<X11/keysymdef.h>
 #include<iostream>
+#include<debugcamera.h>
 
 using namespace std;
 using namespace vmath;
@@ -14,6 +15,7 @@ using namespace vmath;
 #ifdef DEBUG
 static modelplacer* titlePlacer;
 #endif
+static debugCamera* staticcamera;
 static glshaderprogram* programRender;
 static glmodel* modelTitle;
 
@@ -22,6 +24,7 @@ void titlescene::setupProgram() {
 }
 
 void titlescene::setupCamera() {
+	staticcamera = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
 }
 
 void titlescene::init() {
@@ -35,7 +38,7 @@ void titlescene::render() {
 	programRender->use();
 	glUniformMatrix4fv(programRender->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(programRender->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(programRender->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 1.0f, 0.0f));
+	glUniformMatrix4fv(programRender->getUniformLocation("mMat"), 1, GL_FALSE, mat4::identity());
 	modelTitle->draw(programRender, 1, false);
 }
 
@@ -60,5 +63,5 @@ void titlescene::keyboardfunc(int key) {
 }
 
 camera* titlescene::getCamera() {
-	return NULL;
+	return staticcamera;
 }
