@@ -1,8 +1,11 @@
 #version 460 core
 
 layout(location = 0)out vec4 FragColor;
+layout(location = 1)out vec4 EmissionColor;
 
 uniform vec3 cameraPos;
+
+uniform sampler2D texMap;
 
 in TES_OUT {
 	vec2 tc;
@@ -21,6 +24,7 @@ void calcPhongLightInWorld(in vec3 posInWorld, in vec3 norInWorld, in vec3 light
 
 void main(void) {
 	float diffuse, specular;
-	calcPhongLightInWorld(fs_in.pos, fs_in.nor, vec3(0.0, 100.0, 0.0), cameraPos, 45.0, diffuse, specular);
-	FragColor = vec4(vec3(fs_in.tc, 1.0) * diffuse + vec3(0.1, 0.1, 0.1) * specular, 1.0);
+	calcPhongLightInWorld(fs_in.pos, fs_in.nor, vec3(0.0, 10000.0, 0.0), cameraPos, 45.0, diffuse, specular);
+	FragColor = vec4(vec3(fs_in.tc.x, 1.0, fs_in.tc.y) * diffuse + vec3(0.1, 0.1, 0.1) * specular, 1.0);
+	EmissionColor = vec4(0.0);
 }

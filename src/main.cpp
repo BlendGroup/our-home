@@ -23,6 +23,7 @@
 
 #include<scenes/base.h>
 #include<scenes/lab.h>
+#include<scenes/day.h>
 
 using namespace std;
 using namespace vmath;
@@ -38,18 +39,20 @@ static bool isAnimating = false;
 static bool isSceneCameraEditing = false;
 static basescene* currentScene;
 static labscene* labScene;
+static dayscene* dayScene;
 
-mat4 programglobal::perspective;
-clglcontext* programglobal::oclContext;
+vmath::mat4 programglobal::perspective;
 camera* programglobal::currentCamera;
-double programglobal::deltaTime = 0.0f;
+double programglobal::deltaTime;
+
+clglcontext* programglobal::oclContext;
 shaperenderer* programglobal::shapeRenderer;
 
 void setupProgram(void) {
 	try {
-		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl"});
 		hdr->setupProgram();
-		labScene->setupProgram();
+		// labScene->setupProgram();
+		dayScene->setupProgram();
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -58,7 +61,8 @@ void setupProgram(void) {
 void setupSceneCamera(void) {
 	try {
 		debugcamera = new debugCamera(vec3(0.0f, 1.0f, 5.0f), -90.0f, 0.0f);
-		scenecamera.push_back(labScene->setupCamera());
+		// scenecamera.push_back(labScene->setupCamera());
+		scenecamera.push_back(dayScene->setupCamera());
 		
 #ifdef DEBUG
 		scenecamerarig = new sceneCameraRig(scenecamera[0]);
@@ -80,17 +84,21 @@ void init(void) {
 		//Object Creation
 		hdr = new HDR(1.5f, 1.0f, 2048);
 		programglobal::oclContext = new clglcontext(1);
+		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
 		programglobal::shapeRenderer = new shaperenderer();
 		labScene = new labscene();
+		dayScene = new dayscene();
 
 		//Inititalize
 		alutInit(0, NULL);
 		initTextureLoader();
 		hdr->init();
 		hdr->toggleBloom(true);
-		labScene->init();
+		// labScene->init();
+		dayScene->init();
 
-		currentScene = dynamic_cast<basescene*>(labScene);
+		// currentScene = dynamic_cast<basescene*>(labScene);
+		currentScene = dynamic_cast<basescene*>(dayScene);
 
 		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);

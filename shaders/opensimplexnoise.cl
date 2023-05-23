@@ -92,10 +92,11 @@ kernel void turbulencefbm2(global float2* input, global float* output, const uin
 	}
 }
 
-// kernel void noise3(global short* perm, global double* permGrad3, global latticepoint3D_t* lookup3d, global float* input, global float* output, const uint numPoints) {
-// 	int index = get_global_id(0);
-// 	if(index < numPoints) {
-// 		double3 xyz = (double3)(input[index * 3 + 0], input[index * 3 + 1], input[index * 3 + 2]);
-// 		output[index] = noise3_base(perm, permGrad3, lookup3d, xyz);
-// 	}
-// }
+kernel void combinetex(read_only image2d_t heightMap1, read_only image2d_t heightMap2, write_only image2d_t heightMapOp) {
+	int2 coord = (int2)(get_global_id(0), get_global_id(1));
+	float h1 = read_imagef(heightMap1, coord).r;
+	float h2 = read_imagef(heightMap2, coord).r;
+	float t = (float)get_global_id(1) / (float)get_image_height(heightMapOp);
+	t = t * t * t;
+	write_imagef(heightMapOp, coord, (float4)(mix(h1, h2, t)));
+}
