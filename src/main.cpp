@@ -1,5 +1,4 @@
-#include <AL/alut.h>
-#include <cstdlib>
+#include<AL/alut.h>
 #include<iostream>
 #include<memory>
 #include<chrono>
@@ -8,10 +7,7 @@
 #include<GL/gl.h>
 
 #include<vmath.h>
-#include<glshaderloader.h>
 #include<scenecamera.h>
-#define CAMERA_RIG_SCALER 0.01
-#include<scenecamerarig.h>
 #include<debugcamera.h>
 #include<hdr.h>
 #include<windowing.h>
@@ -49,9 +45,9 @@ shaperenderer* programglobal::shapeRenderer;
 void setupProgram(void) {
 	try {
 		hdr->setupProgram();
-		// titleScene->setupProgram();
+		titleScene->setupProgram();
 		labScene->setupProgram();
-		// dayScene->setupProgram();
+		dayScene->setupProgram();
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -60,9 +56,9 @@ void setupProgram(void) {
 void setupSceneCamera(void) {
 	try {
 		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
-		// scenecamera.push_back(titleScene->setupCamera());
+		titleScene->setupCamera();
 		labScene->setupCamera();
-		// scenecamera.push_back(dayScene->setupCamera());
+		dayScene->setupCamera();
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -75,21 +71,21 @@ void init(void) {
 		programglobal::oclContext = new clglcontext(1);
 		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
 		programglobal::shapeRenderer = new shaperenderer();
-		// titleScene = new titlescene();
+		titleScene = new titlescene();
 		labScene = new labscene();
-		// dayScene = new dayscene();
+		dayScene = new dayscene();
 
 		//Inititalize
 		alutInit(0, NULL);
 		initTextureLoader();
 		hdr->init();
 		hdr->toggleBloom(true);
-		// titleScene->init();
+		titleScene->init();
 		labScene->init();
-		// dayScene->init();
+		dayScene->init();
 
-		// currentScene = dynamic_cast<basescene*>(titleScene);
-		currentScene = dynamic_cast<basescene*>(labScene);
+		currentScene = dynamic_cast<basescene*>(titleScene);
+		// currentScene = dynamic_cast<basescene*>(labScene);
 		// currentScene = dynamic_cast<basescene*>(dayScene);
 
 		glDepthFunc(GL_LEQUAL);
@@ -103,8 +99,6 @@ void init(void) {
 
 void render(glwindow* window) {
 	try {
-		void checkIfDone(double);
-		// checkIfDone(33.0f);
 		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(currentScene->getCamera());
 
 		if(hdrEnabled) {
