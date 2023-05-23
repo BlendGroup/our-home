@@ -33,8 +33,7 @@ float noise(float p){
     return mix(rand(fl),rand(fl+1.0),fc);
 }
 
-void main(void){
-
+void main(void) {
     float val = gTime * BarSpeed + fs_in.P.y * BarDistance;
     float bars = step(val - floor(val),0.5) * 0.65;
     float flicker = clamp(noise(gTime * FlickerSpeed),0.65,1.0);

@@ -25,18 +25,22 @@ sceneCameraRig::sceneCameraRig(sceneCamera* scenecam)
 	  selectedPathPoint(0),
 	  selectedFrontPoint(0)
 {
-    program = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
+	if(scenecam) {
+		program = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
 
-    glCreateVertexArrays(1, &vaoPoint);
-    glCreateBuffers(1, &vboPoint);
-    glCreateVertexArrays(1, &vaoPathToFront);
-    glCreateBuffers(1, &vboPathToFront);
+		glCreateVertexArrays(1, &vaoPoint);
+		glCreateBuffers(1, &vboPoint);
+		glCreateVertexArrays(1, &vaoPathToFront);
+		glCreateBuffers(1, &vboPathToFront);
 
-	mountCamera = scenecam;
-    pathRenderer = new SplineRenderer(mountCamera->m_bspPositions);
-    frontRenderer = new SplineRenderer(mountCamera->m_bspFront);
+		mountCamera = scenecam;
+		pathRenderer = new SplineRenderer(mountCamera->m_bspPositions);
+		frontRenderer = new SplineRenderer(mountCamera->m_bspFront);
 
-    loadGeometry();
+		loadGeometry();
+	} else {
+		throwErr("NULL pointer passed to constructor");
+	}
 }
 
 sceneCameraRig::~sceneCameraRig()

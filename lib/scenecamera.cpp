@@ -80,7 +80,9 @@ ostream& operator<<(ostream &out, const sceneCamera &t) {
 }
 
 ostream& operator<<(ostream &out, const sceneCamera *t) {
-	out<<*t;
+	if(t) {
+		out<<*t;
+	}
 	return out;
 }
 

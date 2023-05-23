@@ -24,6 +24,7 @@
 #include<scenes/base.h>
 #include<scenes/lab.h>
 #include<scenes/day.h>
+#include<scenes/title.h>
 
 using namespace std;
 using namespace vmath;
@@ -38,6 +39,7 @@ static bool isDebugCameraOn = true;
 static bool isAnimating = false;
 static bool isSceneCameraEditing = false;
 static basescene* currentScene;
+static titlescene* titleScene;
 static labscene* labScene;
 static dayscene* dayScene;
 
@@ -51,8 +53,9 @@ shaperenderer* programglobal::shapeRenderer;
 void setupProgram(void) {
 	try {
 		hdr->setupProgram();
-		// labScene->setupProgram();
-		dayScene->setupProgram();
+		// titleScene->setupProgram();
+		labScene->setupProgram();
+		// dayScene->setupProgram();
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -60,18 +63,19 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 1.0f, 5.0f), -90.0f, 0.0f);
-		// scenecamera.push_back(labScene->setupCamera());
-		scenecamera.push_back(dayScene->setupCamera());
+		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
+		// scenecamera.push_back(titleScene->setupCamera());
+		scenecamera.push_back(labScene->setupCamera());
+		// scenecamera.push_back(dayScene->setupCamera());
 		
 #ifdef DEBUG
-		scenecamerarig = new sceneCameraRig(scenecamera[0]);
-		scenecamerarig->setRenderPath(true);
-		scenecamerarig->setRenderPathPoints(true);
-		scenecamerarig->setRenderFront(true);
-		scenecamerarig->setRenderFrontPoints(true);
-		scenecamerarig->setRenderPathToFront(true);
-		scenecamerarig->setScalingFactor(0.01f);
+		// scenecamerarig = new sceneCameraRig(scenecamera[0]);
+		// scenecamerarig->setRenderPath(true);
+		// scenecamerarig->setRenderPathPoints(true);
+		// scenecamerarig->setRenderFront(true);
+		// scenecamerarig->setRenderFrontPoints(true);
+		// scenecamerarig->setRenderPathToFront(true);
+		// scenecamerarig->setScalingFactor(0.01f);
 #endif
 		currentSceneCamera = scenecamera[0];
 	} catch(string errorString) {
@@ -86,6 +90,7 @@ void init(void) {
 		programglobal::oclContext = new clglcontext(1);
 		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
 		programglobal::shapeRenderer = new shaperenderer();
+		titleScene = new titlescene();
 		labScene = new labscene();
 		dayScene = new dayscene();
 
@@ -94,11 +99,13 @@ void init(void) {
 		initTextureLoader();
 		hdr->init();
 		hdr->toggleBloom(true);
-		// labScene->init();
-		dayScene->init();
+		// titleScene->init();
+		labScene->init();
+		// dayScene->init();
 
-		// currentScene = dynamic_cast<basescene*>(labScene);
-		currentScene = dynamic_cast<basescene*>(dayScene);
+		// currentScene = dynamic_cast<basescene*>(titleScene);
+		currentScene = dynamic_cast<basescene*>(labScene);
+		// currentScene = dynamic_cast<basescene*>(dayScene);
 
 		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);
@@ -129,7 +136,7 @@ void render(glwindow* window) {
 
 		currentScene->render();
 
-		scenecamerarig->render();
+		// scenecamerarig->render();
 
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
@@ -197,7 +204,7 @@ void keyboard(glwindow* window, int key) {
 	debugcamera->keyboardFunc(key);
 #ifdef DEBUG
 	if(isSceneCameraEditing) {
-		scenecamerarig->keyboardfunc(key);
+		// scenecamerarig->keyboardfunc(key);
 	} else {
 		currentScene->keyboardfunc(key);
 	}
