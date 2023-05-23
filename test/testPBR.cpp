@@ -15,7 +15,7 @@
 #include <testPBR.h>
 #include <global.h>
 
-#define DYNAMIC 1
+#define DYNAMIC 0
 
 using namespace std;
 using namespace vmath;
@@ -32,7 +32,7 @@ void setupProgramTestPbr(){
             program = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
         #else
             //program = new glshaderprogram({"src/shaders/pbr.vert", "src/shaders/pbr.frag"});
-            program = new glshaderprogram({"src/shaders/pbr.vert", "src/shaders/pbrMR.frag"});
+            program = new glshaderprogram({"shaders/pbr.vert", "shaders/pbrMain.frag"});
         #endif
         lightProgram = new glshaderprogram({"shaders/debug/lightSrc.vert", "shaders/debug/lightSrc.frag"});
         //program->printUniforms(cout);
@@ -46,7 +46,7 @@ void initTestPbr(){
         #if DYNAMIC  
         model = new glmodel("resources/models/astronaut/MCAnim.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
         #else
-        model = new glmodel("resources/models/spaceship/SpaceLab.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
+        model = new glmodel("resources/models/tree/pine.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
         
         //model = new glmodel("resources/models/door/door.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_RemoveRedundantMaterials | aiProcess_FlipUVs,true);
         #endif
@@ -78,7 +78,7 @@ void renderTestPbr(camera *cam,vec3 camPos){
         #endif
         glUniform3fv(program->getUniformLocation("viewPos"),1,camPos);
         // pbr data
-        glUniform1i(program->getUniformLocation("specularGloss"),true);
+        glUniform1i(program->getUniformLocation("specularGloss"),false);
         // Lights data
         sceneLights->setLightUniform(program);
         model->draw(program,1);

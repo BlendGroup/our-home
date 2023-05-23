@@ -40,12 +40,12 @@ static bool isAudioPlaying = true;
 #define SHOW_TEST_SCENE 		0
 #define SHOW_MODEL_SCENE 		0
 #define SHOW_CAMERA_SCENE 		0
-#define SHOW_PBR_SCENE			0
+#define SHOW_PBR_SCENE			1
 #define SHOW_LAB_SCENE			0
 #define SHOW_TERRAIN_SCENE 		0
 #define SHOW_CUBEMAP_SCENE		0
 #define SHOW_NOISE_SCENE 		0
-#define SHOW_AUDIO_SCENE		1
+#define SHOW_AUDIO_SCENE		0
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
