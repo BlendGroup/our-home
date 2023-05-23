@@ -21,8 +21,7 @@ void titlescene::setupProgram() {
 	programRender = new glshaderprogram({"shaders/title/render.vert", "shaders/title/render.frag"});
 }
 
-sceneCamera* titlescene::setupCamera() {
-	return NULL;
+void titlescene::setupCamera() {
 }
 
 void titlescene::init() {
@@ -40,7 +39,11 @@ void titlescene::render() {
 	modelTitle->draw(programRender, 1, false);
 }
 
-void titlescene::update(sceneCamera* cam) {
+void titlescene::update(void) {
+
+}
+
+void titlescene::reset(void) {
 
 }
 
@@ -54,4 +57,8 @@ void titlescene::keyboardfunc(int key) {
 	titlePlacer->keyboardfunc(key);
 	cout<<titlePlacer<<endl;
 #endif
+}
+
+camera* titlescene::getCamera() {
+	return NULL;
 }

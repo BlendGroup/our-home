@@ -31,13 +31,9 @@ using namespace vmath;
 
 static bool hdrEnabled = true;
 static HDR* hdr;
-static vector<sceneCamera*> scenecamera;
-static sceneCameraRig* scenecamerarig;
 static debugCamera* debugcamera;
-static sceneCamera* currentSceneCamera;
 static bool isDebugCameraOn = true;
 static bool isAnimating = false;
-static bool isSceneCameraEditing = false;
 static basescene* currentScene;
 static titlescene* titleScene;
 static labscene* labScene;
@@ -65,19 +61,8 @@ void setupSceneCamera(void) {
 	try {
 		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
 		// scenecamera.push_back(titleScene->setupCamera());
-		scenecamera.push_back(labScene->setupCamera());
+		labScene->setupCamera();
 		// scenecamera.push_back(dayScene->setupCamera());
-		
-#ifdef DEBUG
-		scenecamerarig = new sceneCameraRig(scenecamera[0]);
-		scenecamerarig->setRenderPath(true);
-		scenecamerarig->setRenderPathPoints(true);
-		scenecamerarig->setRenderFront(true);
-		scenecamerarig->setRenderFrontPoints(true);
-		scenecamerarig->setRenderPathToFront(true);
-		scenecamerarig->setScalingFactor(0.01f);
-#endif
-		currentSceneCamera = scenecamera[0];
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -90,9 +75,9 @@ void init(void) {
 		programglobal::oclContext = new clglcontext(1);
 		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
 		programglobal::shapeRenderer = new shaperenderer();
-		titleScene = new titlescene();
+		// titleScene = new titlescene();
 		labScene = new labscene();
-		dayScene = new dayscene();
+		// dayScene = new dayscene();
 
 		//Inititalize
 		alutInit(0, NULL);
@@ -120,7 +105,7 @@ void render(glwindow* window) {
 	try {
 		void checkIfDone(double);
 		// checkIfDone(33.0f);
-		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(currentSceneCamera);
+		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(currentScene->getCamera());
 
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
@@ -136,8 +121,6 @@ void render(glwindow* window) {
 
 		currentScene->render();
 
-		scenecamerarig->render();
-
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
 			glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.7f, 0.1f, 1.0f));
@@ -151,16 +134,13 @@ void render(glwindow* window) {
 }
 
 void update(void) {
-#define CAMERA_SPEED 0.025f
-
 	if(isAnimating) {
-		currentSceneCamera->updateT(programglobal::deltaTime * CAMERA_SPEED);
+		currentScene->update();
 	}
-	currentScene->update(currentSceneCamera);
 }
 
-void resetCamera(void) {
-		currentSceneCamera->resetT();
+void resetScene(void) {
+	currentScene->reset();
 }
 
 std::chrono::time_point<typename chrono::steady_clock> start;
@@ -168,7 +148,6 @@ std::chrono::time_point<typename chrono::steady_clock> start;
 void keyboard(glwindow* window, int key) {
 	switch(key) {
 	case XK_Escape:
-		// cout<<currentSceneCamera<<endl;
 		window->close();
 		break;
 	case XK_F1:
@@ -177,54 +156,22 @@ void keyboard(glwindow* window, int key) {
 	case XK_F2:
 		isDebugCameraOn = !isDebugCameraOn;
 		break;
-	case XK_F3:
-		hdrEnabled = !hdrEnabled;
-		break;
 	case XK_F4:
-		resetCamera();
-		break;
-	case XK_F5:
-		isSceneCameraEditing = !isSceneCameraEditing;
+		resetScene();
 		break;
 	case XK_space:
 		isAnimating = !isAnimating;
 		start = chrono::steady_clock::now();
 		break;
-	case XK_Tab:
-		cout<<currentSceneCamera<<endl;
-		break;
-	case XK_Left:
-		currentSceneCamera->updateT(-0.001f);
-		break;
-	case XK_Right:
-		currentSceneCamera->updateT(0.001f);
-		break;
 	}
-	// hdr->keyboardfunc(key);
 	debugcamera->keyboardFunc(key);
-#ifdef DEBUG
-	if(isSceneCameraEditing) {
-		scenecamerarig->keyboardfunc(key);
-	} else {
-		currentScene->keyboardfunc(key);
-	}
-#endif
-}
-
-void checkIfDone(double c) {
-	auto end = chrono::steady_clock::now();
-	chrono::duration<double> diff = end - start;
-	if(diff.count() >= c && isAnimating) {
-		cout<<"Camera Spline Pos:"<<currentSceneCamera->getDistanceOnSpline()<<endl;
-		exit(0);
-	}
+	currentScene->keyboardfunc(key);
 }
 
 void callMeToExit() {
 	auto end = chrono::steady_clock::now();
 	chrono::duration<double> diff = end - start;
 	cout<<"Time taken to render "<<diff.count()<<" sec"<<endl;
-	exit(0);
 }
 
 void mouse(glwindow* window, int button, int action, int x, int y) {

@@ -32,6 +32,8 @@ enum EVENTS {
 
 static bool eventManager[NUM_EVENTS];
 
+static sceneCamera* camera1;
+
 static glmodel* modelLab;
 static glmodel* modelDoor;
 static glmodel* modelMug;
@@ -82,7 +84,7 @@ void labscene::setupProgram() {
 	}
 }
 
-sceneCamera* labscene::setupCamera() {
+void labscene::setupCamera() {
 	vector<vec3> positionKeyFrames = {
 		vec3(-1.96f, -0.27f, -1.13f),
 		vec3(-1.94f, -0.32f, -0.97f),
@@ -107,7 +109,7 @@ sceneCamera* labscene::setupCamera() {
 		vec3(-3.49f, -0.27f, 2.02f)
 	};
 
-	return new sceneCamera(positionKeyFrames, frontKeyFrames);
+	camera1 = new sceneCamera(positionKeyFrames, frontKeyFrames);
 }
 
 void labscene::init() {
@@ -347,8 +349,13 @@ void labscene::render() {
 	blendT += 0.5f;
 }
 
-void labscene::update(sceneCamera* cam) {
-	float t = cam->getDistanceOnSpline();
+void labscene::reset() {
+	
+}
+
+void labscene::update() {
+	camera1->updateT(0.025f * programglobal::deltaTime);
+	float t = camera1->getDistanceOnSpline();
 	if(t >= 6.2f) {
 		eventManager[BKGND_MUSIC_PLAY] = true;
 	}
@@ -453,4 +460,8 @@ void labscene::keyboardfunc(int key) {
 		break;
 	}
 #endif
+}
+
+camera* labscene::getCamera() {
+	return camera1;
 }
