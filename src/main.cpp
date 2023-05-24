@@ -38,7 +38,7 @@ static dayscene* dayScene;
 vmath::mat4 programglobal::perspective;
 camera* programglobal::currentCamera;
 double programglobal::deltaTime;
-
+debugMode_t programglobal::debugMode;
 clglcontext* programglobal::oclContext;
 shaperenderer* programglobal::shapeRenderer;
 
@@ -152,6 +152,18 @@ void keyboard(glwindow* window, int key) {
 		break;
 	case XK_F4:
 		resetScene();
+		break;
+	case XK_F5:
+		programglobal::debugMode = CAMERA;
+		break;
+	case XK_F6:
+		programglobal::debugMode = MODEL;
+		break;
+	case XK_F7:
+		programglobal::debugMode = SPLINE;
+		break;
+	case XK_F8:
+		programglobal::debugMode = LIGHT;
 		break;
 	case XK_space:
 		isAnimating = !isAnimating;
