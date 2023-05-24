@@ -4,6 +4,8 @@
 #include<camera.h>
 
 class basescene {
+protected:
+	float t;
 public:
 	virtual void setupProgram() = 0;
 	virtual void setupCamera() = 0;
@@ -15,5 +17,7 @@ public:
 	virtual void keyboardfunc(int key) = 0;
 	virtual camera* getCamera() = 0;
 };
+
+void playNextScene();
 
 #endif

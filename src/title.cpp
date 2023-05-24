@@ -43,16 +43,22 @@ void titlescene::render() {
 }
 
 void titlescene::update(void) {
-
+	this->t += programglobal::deltaTime;
+	if(t >= 5.0f) {
+		
+	}
 }
 
 void titlescene::reset(void) {
-
+	this->t = 0.0f;
 }
 
 void titlescene::uninit() {
 	delete programRender;
 	delete modelTitle;
+#ifdef DEBUG
+	delete titlePlacer;
+#endif
 }
 
 void titlescene::keyboardfunc(int key) {
