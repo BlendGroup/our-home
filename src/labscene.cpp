@@ -61,8 +61,6 @@ static audioplayer *playerRobotThump;
 
 #ifdef DEBUG
 static modelplacer* doorPlacer;
-static SplineRenderer* splineRender;
-int selectedPoint = 0;
 #endif
 
 void labscene::setupProgram() {
@@ -116,14 +114,13 @@ void labscene::init() {
 	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelBLEND = new glmodel("resources/models/blendlogo/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
 
-	vector<vec3> robotSpline = {
+	bspRobot = new BsplineInterpolator({
 		vec3(1.6f, -1.067f, -1.28f),
 		vec3(1.1f, -1.067f, -0.21f),
 		vec3(0.2f, -1.067f, 0.6f),
 		vec3(-2.0f, -1.067f, 0.6f),
 		vec3(-2.5f, -1.067f, 1.8f)
-	};
-	bspRobot = new BsplineInterpolator(robotSpline);
+	});
 
 	envMapper = new CubeMapRenderTarget(CUBEMAP_SIZE, CUBEMAP_SIZE, false);
 	envMapper->setPosition(vec3(0.0f, 0.0f, 0.0f));
@@ -189,8 +186,6 @@ void labscene::init() {
 	glEnableVertexAttribArray(0);
 
 #ifdef DEBUG
-	splineRender = new SplineRenderer(bspRobot);
-	splineRender->setRenderPoints(true);
 	doorPlacer = new modelplacer(vec3(-1.38f, -0.41f, -1.45f), vec3(0.0f, 0.0f, 0.0f), 0.08f);
 #endif
 	
@@ -313,11 +308,6 @@ void labscene::render() {
 		glBindVertexArray(skybox_vao);
 		glBindTextureUnit(0,envMapper->cubemap_texture);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-
-#ifdef DEBUG
-	splineRender->render(vec4(0.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f, 1.0f, 0.0f, 1.0f), vec4(0.0f, 1.0f, 1.0f, 1.0f), selectedPoint, 0.01f);
-#endif
-
 	} catch(string errString) {
 		throwErr(errString);
 	}

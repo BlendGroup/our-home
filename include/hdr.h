@@ -3,6 +3,7 @@
 
 #include<glbase.h>
 #include<GL/glew.h>
+#include<glshaderloader.h>
 
 class HDR : public glbase {
 private:
