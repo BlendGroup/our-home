@@ -30,10 +30,8 @@ static HDR* hdr;
 static debugCamera* debugcamera;
 static bool isDebugCameraOn = true;
 static bool isAnimating = false;
+static vector<basescene*> sceneList;
 static basescene* currentScene;
-static titlescene* titleScene;
-static labscene* labScene;
-static dayscene* dayScene;
 
 vmath::mat4 programglobal::perspective;
 camera* programglobal::currentCamera;
@@ -45,9 +43,9 @@ shaperenderer* programglobal::shapeRenderer;
 void setupProgram(void) {
 	try {
 		hdr->setupProgram();
-		titleScene->setupProgram();
-		labScene->setupProgram();
-		dayScene->setupProgram();
+		for(basescene* b : sceneList) {
+			b->setupProgram();
+		}
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -56,9 +54,9 @@ void setupProgram(void) {
 void setupSceneCamera(void) {
 	try {
 		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
-		titleScene->setupCamera();
-		labScene->setupCamera();
-		dayScene->setupCamera();
+		for(basescene* b : sceneList) {
+			b->setupCamera();
+		}
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -71,22 +69,22 @@ void init(void) {
 		programglobal::oclContext = new clglcontext(1);
 		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
 		programglobal::shapeRenderer = new shaperenderer();
-		titleScene = new titlescene();
-		labScene = new labscene();
-		dayScene = new dayscene();
+		sceneList.insert(sceneList.begin(), {
+			new titlescene(),
+			new labscene(),
+			new dayscene()
+		});
 
 		//Inititalize
 		alutInit(0, NULL);
 		initTextureLoader();
 		hdr->init();
 		hdr->toggleBloom(true);
-		titleScene->init();
-		labScene->init();
-		dayScene->init();
+		for(basescene* b : sceneList) {
+			b->init();
+		}
 
-		currentScene = dynamic_cast<basescene*>(titleScene);
-		// currentScene = dynamic_cast<basescene*>(labScene);
-		// currentScene = dynamic_cast<basescene*>(dayScene);
+		playNextScene();
 
 		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);
@@ -174,10 +172,12 @@ void keyboard(glwindow* window, int key) {
 	currentScene->keyboardfunc(key);
 }
 
-void callMeToExit() {
-	auto end = chrono::steady_clock::now();
-	chrono::duration<double> diff = end - start;
-	cout<<"Time taken to render "<<diff.count()<<" sec"<<endl;
+void playNextScene(void) {
+	static int current = -1;
+	current++;
+	if(current < sceneList.size()) {
+		currentScene = sceneList[current];
+	}
 }
 
 void mouse(glwindow* window, int button, int action, int x, int y) {
@@ -188,8 +188,10 @@ void mouse(glwindow* window, int button, int action, int x, int y) {
 
 void uninit(void) {
 	hdr->uninit();
-	labScene->uninit();
-
+	for(basescene* b : sceneList) {
+		b->uninit();
+		delete b;
+	}
 	delete programglobal::oclContext;
 	delete hdr;
 	delete debugcamera;

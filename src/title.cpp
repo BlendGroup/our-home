@@ -44,9 +44,10 @@ void titlescene::render() {
 
 void titlescene::update(void) {
 	this->t += programglobal::deltaTime;
-	if(t >= 5.0f) {
-		
+	if(this->t >= 5.0f) {
+		playNextScene();	
 	}
+	cout<<this->t<<endl;
 }
 
 void titlescene::reset(void) {

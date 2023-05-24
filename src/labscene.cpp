@@ -319,8 +319,7 @@ void labscene::render() {
 	if(eventManager[DOOR_ANIM]) {
 		doorT += DOOR_OPEN_SPEED * programglobal::deltaTime;
 		if(doorT >= 1.0f) {
-			void callMeToExit(void);
-			callMeToExit();
+		
 		}
 	}
 	if(eventManager[ROBOT_ANIM]) {
