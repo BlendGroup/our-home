@@ -69,7 +69,7 @@ void titlescene::update(void) {
 	if(this->t >= 5.0f) {
 		glBindFramebuffer(GL_FRAMEBUFFER, fboTitleSceneFinal);
 		glViewport(0, 0, tex_1k);
-		glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.3f, 0.2f, 1.0f));
+		glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 		this->render();
 		playNextScene();

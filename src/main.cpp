@@ -107,7 +107,7 @@ void render(glwindow* window) {
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 		}
 
-		glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.3f, 0.2f, 1.0f));
+		glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().height, 0.1f, 1000.0f);
 
@@ -115,7 +115,7 @@ void render(glwindow* window) {
 
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
-			glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.7f, 0.1f, 1.0f));
+			glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 			glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 			hdr->render();
@@ -134,8 +134,6 @@ void update(void) {
 void resetScene(void) {
 	currentScene->reset();
 }
-
-std::chrono::time_point<typename chrono::steady_clock> start;
 
 void keyboard(glwindow* window, int key) {
 	switch(key) {
@@ -165,7 +163,6 @@ void keyboard(glwindow* window, int key) {
 		break;
 	case XK_space:
 		isAnimating = !isAnimating;
-		start = chrono::steady_clock::now();
 		break;
 	}
 	debugcamera->keyboardFunc(key);

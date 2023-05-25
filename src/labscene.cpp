@@ -336,12 +336,16 @@ void labscene::reset() {
 
 void labscene::update() {
 	t += programglobal::deltaTime;
+	
+	float syncT;
+
 	if(crossT >= 1.0f) {
 		eventManager[CAMERA_MOVE] = true;
 		eventManager[CROSSFADE] = false;
 	}
 	if(doorT >= 1.0f) {
 		cout<<t<<endl;
+		playNextScene();
 	}
 	if(robotT >= 1.0f) {
 		eventManager[ROBOT_ANIM] = false;
