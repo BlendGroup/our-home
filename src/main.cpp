@@ -28,7 +28,7 @@ using namespace vmath;
 static bool hdrEnabled = true;
 static HDR* hdr;
 static debugCamera* debugcamera;
-static bool isDebugCameraOn = true;
+static bool isDebugCameraOn = false;
 static bool isAnimating = false;
 static vector<basescene*> sceneList;
 static basescene* currentScene;
@@ -210,15 +210,15 @@ int main(int argc, char **argv) {
 	try {
 		glwindow* window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
 		auto initstart = chrono::steady_clock::now();
+		window->setKeyboardFunc(keyboard);
+		window->setMouseFunc(mouse);
+		window->setFullscreen(true);
 		init();
 		auto initend = chrono::steady_clock::now();
 		chrono::duration<double> diff = initend - initstart;
 		cout<<"Time taken to initialize "<<diff.count()<<" sec"<<endl;
 		setupProgram();
 		setupSceneCamera();
-		window->setKeyboardFunc(keyboard);
-		window->setMouseFunc(mouse);
-		window->setFullscreen(true);
 		while(!window->isClosed()) {
 			window->processEvents();
 			render(window);

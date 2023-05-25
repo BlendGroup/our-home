@@ -15,9 +15,13 @@ using namespace vmath;
 #ifdef DEBUG
 static modelplacer* titlePlacer;
 #endif
+static GLuint fboTitleSceneFinal;
+GLuint texTitleSceneFinal;
 static debugCamera* staticcamera;
 static glshaderprogram* programRender;
 static glmodel* modelTitle;
+
+#define tex_1k 1920, 1080
 
 void titlescene::setupProgram() {
 	programRender = new glshaderprogram({"shaders/title/render.vert", "shaders/title/render.frag"});
@@ -29,6 +33,18 @@ void titlescene::setupCamera() {
 
 void titlescene::init() {
 	modelTitle = new glmodel("resources/models/blendlogo/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
+	glGenTextures(1, &texTitleSceneFinal);
+	glBindTexture(GL_TEXTURE_2D, texTitleSceneFinal);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, tex_1k);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	
+	glGenFramebuffers(1, &fboTitleSceneFinal);
+	glBindFramebuffer(GL_FRAMEBUFFER, fboTitleSceneFinal);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texTitleSceneFinal, 0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 #ifdef DEBUG
 	titlePlacer = new modelplacer();
 #endif
@@ -47,7 +63,6 @@ void titlescene::update(void) {
 	if(this->t >= 5.0f) {
 		playNextScene();	
 	}
-	cout<<this->t<<endl;
 }
 
 void titlescene::reset(void) {
