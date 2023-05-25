@@ -65,6 +65,13 @@ static audioplayer *playerRobotThump;
 static modelplacer* doorPlacer;
 #endif
 
+static GLfloat robotT;
+static GLfloat astonautT;
+static GLfloat cameraT;
+static GLfloat doorT;
+static GLfloat hologramT;
+static GLfloat crossT;
+
 extern GLuint texTitleSceneFinal;
 
 void labscene::setupProgram() {
@@ -224,11 +231,6 @@ void labscene::render() {
 	static const float ROBOT_ANIM_SPEED = 0.99f;
 	static const float ASTRO_ANIM_SPEED = 0.1f;
 
-	static float robotT = 0.01f;
-	static float doorT = 0.0f;
-	static float blendT = 0.0f;
-	static float crossT = 0.0f;
-
 	try {
 		programStaticPBR->use();
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"),1,GL_FALSE, programglobal::perspective);
@@ -282,7 +284,7 @@ void labscene::render() {
         glUniformMatrix4fv(programHologram->getUniformLocation("mMat"),1,GL_FALSE, translate(-1.96013f, -0.266205f, -1.682f) * scale(0.11f));
 		glUniform4fv(programHologram->getUniformLocation("MainColor"),1,vec4(0.0f,0.0f,1.0f,1.0f));
 		glUniform4fv(programHologram->getUniformLocation("RimColor"),1,vec4(0.0f,1.0f,1.0f,1.0f));
-		glUniform1f(programHologram->getUniformLocation("gTime"),blendT * 0.01f);
+		glUniform1f(programHologram->getUniformLocation("gTime"), hologramT);
 		glUniform1f(programHologram->getUniformLocation("GlitchIntensity"), 1.0f);
 		glUniform1f(programHologram->getUniformLocation("GlitchSpeed"), 1.0f);
 		glUniform1f(programHologram->getUniformLocation("BarSpeed"),7.0f);
@@ -354,9 +356,7 @@ void labscene::render() {
 	if(eventManager[CAMERA_START]) {
 		camera1->updateT(0.025f * programglobal::deltaTime);
 	}
-	if(blendT >= 360.0f)
-		blendT = 0.0f;
-	blendT += 0.5f;
+	hologramT += 0.5f * programglobal::deltaTime;
 
 	crossT += 0.01f;
 	if(crossT >= 1.0f) {
@@ -365,10 +365,11 @@ void labscene::render() {
 }
 
 void labscene::reset() {
-	
+	t = 0.0f;
 }
 
 void labscene::update() {
+	t += programglobal::deltaTime;
 	if(t >= 6.2f) {
 		eventManager[BKGND_MUSIC_PLAY] = true;
 	}
