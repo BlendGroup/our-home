@@ -25,7 +25,8 @@ enum EVENTS {
 	DOOR_ANIM = 0,
 	ROBOT_ANIM,
 	BKGND_MUSIC_PLAY,
-	CAMERA_START,
+	CAMERA_MOVE,
+	CROSSFADE,
 
 //Dont Add	
 	NUM_EVENTS
@@ -65,12 +66,12 @@ static audioplayer *playerRobotThump;
 static modelplacer* doorPlacer;
 #endif
 
-static GLfloat robotT;
-static GLfloat astonautT;
-static GLfloat cameraT;
-static GLfloat doorT;
-static GLfloat hologramT;
-static GLfloat crossT;
+static GLfloat robotT		= 0.0f;
+static GLfloat astonautT	= 0.0f;
+static GLfloat cameraT		= 0.0f;
+static GLfloat doorT		= 0.0f;
+static GLfloat hologramT	= 0.0f;
+static GLfloat crossT		= 0.0f;
 
 extern GLuint texTitleSceneFinal;
 
@@ -116,6 +117,11 @@ void labscene::setupCamera() {
 }
 
 void labscene::init() {
+	for(int i = 0; i < NUM_EVENTS; i++) {
+		eventManager[i] = false;
+	}
+	eventManager[CROSSFADE] = true;
+	
 	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKai.wav");
 	playerRobotThump = new audioplayer("resources/audio/MetallicThumps.wav");
 
@@ -226,11 +232,6 @@ void labscene::init() {
 }
 
 void labscene::render() {
-	static const float DOOR_OPEN_SPEED = 0.075f;
-	static const float ROBOT_MOVE_SPEED = 0.06f;
-	static const float ROBOT_ANIM_SPEED = 0.99f;
-	static const float ASTRO_ANIM_SPEED = 0.1f;
-
 	try {
 		programStaticPBR->use();
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"),1,GL_FALSE, programglobal::perspective);
@@ -256,9 +257,6 @@ void labscene::render() {
 		// Lights data
 		glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"), true);
 		sceneLightManager->setLightUniform(programDynamicPBR);
-		if(eventManager[ROBOT_ANIM]) {
-			modelRobot->update(ROBOT_ANIM_SPEED * programglobal::deltaTime, 0);
-		}
 		modelRobot->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
 		modelRobot->draw(programDynamicPBR,1); 
 
@@ -270,7 +268,6 @@ void labscene::render() {
 		// Lights data
 		glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
 		sceneLightManager->setLightUniform(programDynamicPBR);
-		modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 0);
 		modelAstro->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
 		modelAstro->draw(programDynamicPBR);
 
@@ -317,7 +314,7 @@ void labscene::render() {
 		glBindTextureUnit(0,envMapper->cubemap_texture);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		if(!eventManager[CAMERA_START]) {
+		if(!eventManager[CAMERA_MOVE]) {
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			programCrossfade->use();
@@ -331,37 +328,6 @@ void labscene::render() {
 	} catch(string errString) {
 		throwErr(errString);
 	}
-
-	if(eventManager[BKGND_MUSIC_PLAY]) {
-		playerBkgnd->play();
-		eventManager[BKGND_MUSIC_PLAY] = false;
-	}
-	if(eventManager[DOOR_ANIM]) {
-		doorT += DOOR_OPEN_SPEED * programglobal::deltaTime;
-		if(doorT >= 1.0f) {
-		
-		}
-	}
-	if(eventManager[ROBOT_ANIM]) {
-
-		if(fmod(robotT, 0.04f) <= 0.001f) {
-			playerRobotThump->play();
-		}
-		robotT += ROBOT_MOVE_SPEED * programglobal::deltaTime;
-		robotT = std::min(robotT, 1.0f);
-		if(robotT >= 0.99f) {
-			eventManager[ROBOT_ANIM] = false;
-		}
-	}
-	if(eventManager[CAMERA_START]) {
-		camera1->updateT(0.025f * programglobal::deltaTime);
-	}
-	hologramT += 0.5f * programglobal::deltaTime;
-
-	crossT += 0.01f;
-	if(crossT >= 1.0f) {
-		eventManager[CAMERA_START] = true;
-	}
 }
 
 void labscene::reset() {
@@ -370,8 +336,19 @@ void labscene::reset() {
 
 void labscene::update() {
 	t += programglobal::deltaTime;
+	if(crossT >= 1.0f) {
+		eventManager[CAMERA_MOVE] = true;
+		eventManager[CROSSFADE] = false;
+	}
+	if(doorT >= 1.0f) {
+		cout<<t<<endl;
+	}
+	if(robotT >= 1.0f) {
+		eventManager[ROBOT_ANIM] = false;
+	}
 	if(t >= 6.2f) {
 		eventManager[BKGND_MUSIC_PLAY] = true;
+		playerBkgnd->play();
 	}
 	if(t >= 7.3f) {
 		eventManager[DOOR_ANIM] = true;
@@ -379,6 +356,35 @@ void labscene::update() {
 	if(t >= 3.6f && t <= 3.7f) {
 		eventManager[ROBOT_ANIM] = true;
 	}
+	
+	static const float DOOR_OPEN_SPEED = 0.075f;
+	static const float ROBOT_MOVE_SPEED = 0.06f;
+	static const float ROBOT_ANIM_SPEED = 0.99f;
+	static const float ASTRO_ANIM_SPEED = 0.1f;
+	static const float HOLOGRAM_UPDATE_SPEED = 0.5f;
+	static const float CAMERA_SPEED = 0.025f;
+	static const float CROSSFADE_SPEED = 0.3f;
+
+	if(eventManager[CROSSFADE]) {
+		crossT += CROSSFADE_SPEED * programglobal::deltaTime;
+	}
+	if(eventManager[DOOR_ANIM]) {
+		doorT += DOOR_OPEN_SPEED * programglobal::deltaTime;
+	}
+	if(eventManager[ROBOT_ANIM]) {
+		modelRobot->update(ROBOT_ANIM_SPEED * programglobal::deltaTime, 0);
+		if(fmod(robotT, 0.04f) <= 0.001f) {
+			playerRobotThump->play();
+		}
+		robotT += ROBOT_MOVE_SPEED * programglobal::deltaTime;
+		robotT = std::min(robotT, 1.0f);
+	}
+	if(eventManager[CAMERA_MOVE]) {
+		camera1->updateT(CAMERA_SPEED * programglobal::deltaTime);
+	}
+	
+	hologramT += HOLOGRAM_UPDATE_SPEED * programglobal::deltaTime;
+	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 0);
 }
 
 void labscene::uninit() {
