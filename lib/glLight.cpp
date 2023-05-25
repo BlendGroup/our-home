@@ -128,7 +128,7 @@ SceneLight::SceneLight(bool envLight){
             envProgram = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
             irradianceProgram = new glshaderprogram({"shaders/debug/rendercubemap.vert","shaders/debug/irradiance_convolution.frag"});
             prefilterProgram = new glshaderprogram({"shaders/debug/rendercubemap.vert","shaders/debug/prefilter_cubemap.frag"});
-            precomputeBRDF = new glshaderprogram({"shaders/hdr.vert","shaders/debug/precompute_brdf.frag"});
+            precomputeBRDF = new glshaderprogram({"shaders/fsquad.vert","shaders/debug/precompute_brdf.frag"});
 
             //envirounmentMap = new CubeMapRenderTarget(2048,2048,false);
             irradianceMap = new CubeMapRenderTarget(32,32,false);

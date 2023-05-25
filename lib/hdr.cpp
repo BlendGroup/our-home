@@ -33,7 +33,7 @@ HDR::HDR(GLfloat exposure, GLfloat fade, GLsizei size) : threshhold(1.5f) ,knee(
 
 void HDR::setupProgram(void) {
 	try {
-		this->hdrprogram = new glshaderprogram({"shaders/hdr.vert", "shaders/hdr.frag"});
+		this->hdrprogram = new glshaderprogram({"shaders/fsquad.vert", "shaders/hdr.frag"});
 		this->downscaleprogram = new glshaderprogram({"shaders/downscale.comp"});
 		this->upscaleprogram = new glshaderprogram({"shaders/upscale.comp"}); 
 	} catch (string errorString) {

@@ -36,10 +36,10 @@ void dayscene::setupCamera() {
 
 void dayscene::init() {
 	ivec2 dim = ivec2(2048, 2048);
-	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 1000.0f, 3, 1234);
-	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1500.0f, 5, 0.11f, 543);
-	GLuint finalTerrain = opensimplexnoise::combineTwoNoiseTextures(mountainHeightMap, valleyHeightMap, dim);
-	land = new terrain(finalTerrain);
+	// GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 1000.0f, 3, 1234);
+	// GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1500.0f, 5, 0.11f, 543);
+	// GLuint finalTerrain = opensimplexnoise::combineTwoNoiseTextures(mountainHeightMap, valleyHeightMap, dim);
+	// land = new terrain(finalTerrain);
 }
 
 void dayscene::render() {

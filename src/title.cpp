@@ -17,6 +17,7 @@ static modelplacer* titlePlacer;
 #endif
 static GLuint fboTitleSceneFinal;
 GLuint texTitleSceneFinal;
+static GLuint rboTitleSceneFinal;
 static debugCamera* staticcamera;
 static glshaderprogram* programRender;
 static glmodel* modelTitle;
@@ -39,9 +40,14 @@ void titlescene::init() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	
+	glGenRenderbuffers(1, &rboTitleSceneFinal);
+	glBindRenderbuffer(GL_RENDERBUFFER, rboTitleSceneFinal);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, tex_1k);
+
 	glGenFramebuffers(1, &fboTitleSceneFinal);
 	glBindFramebuffer(GL_FRAMEBUFFER, fboTitleSceneFinal);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texTitleSceneFinal, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboTitleSceneFinal);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -61,7 +67,12 @@ void titlescene::render() {
 void titlescene::update(void) {
 	this->t += programglobal::deltaTime;
 	if(this->t >= 5.0f) {
-		playNextScene();	
+		glBindFramebuffer(GL_FRAMEBUFFER, fboTitleSceneFinal);
+		glViewport(0, 0, tex_1k);
+		glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.3f, 0.2f, 1.0f));
+		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
+		this->render();
+		playNextScene();
 	}
 }
 

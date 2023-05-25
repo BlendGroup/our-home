@@ -25,6 +25,7 @@ enum EVENTS {
 	DOOR_ANIM = 0,
 	ROBOT_ANIM,
 	BKGND_MUSIC_PLAY,
+	CAMERA_START,
 
 //Dont Add	
 	NUM_EVENTS
@@ -53,6 +54,7 @@ static glshaderprogram* programLight;
 static glshaderprogram* programSkybox;
 static glshaderprogram* programColor;
 static glshaderprogram* programHologram;
+static glshaderprogram* programCrossfade;
 
 static GLuint skybox_vao,vbo;
 
@@ -63,6 +65,8 @@ static audioplayer *playerRobotThump;
 static modelplacer* doorPlacer;
 #endif
 
+extern GLuint texTitleSceneFinal;
+
 void labscene::setupProgram() {
 	try {
 		programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
@@ -70,6 +74,7 @@ void labscene::setupProgram() {
 		programSkybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
 		programColor = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
 		programHologram = new glshaderprogram({"shaders/hologram/hologram.vert","shaders/hologram/hologram.frag"});
+		programCrossfade = new glshaderprogram({"shaders/fsquad.vert", "shaders/crossfade.frag"});
 	} catch(string errorString)  {
 		throwErr(errorString);
 	}
@@ -222,6 +227,7 @@ void labscene::render() {
 	static float robotT = 0.01f;
 	static float doorT = 0.0f;
 	static float blendT = 0.0f;
+	static float crossT = 0.0f;
 
 	try {
 		programStaticPBR->use();
@@ -308,6 +314,18 @@ void labscene::render() {
 		glBindVertexArray(skybox_vao);
 		glBindTextureUnit(0,envMapper->cubemap_texture);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		if(!eventManager[CAMERA_START]) {
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			programCrossfade->use();
+			glUniform1f(programCrossfade->getUniformLocation("alpha"), 1.0f - crossT);
+			glUniform1i(programCrossfade->getUniformLocation("texSampler"), 0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, texTitleSceneFinal);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+			glDisable(GL_BLEND);
+		}
 	} catch(string errString) {
 		throwErr(errString);
 	}
@@ -333,9 +351,17 @@ void labscene::render() {
 			eventManager[ROBOT_ANIM] = false;
 		}
 	}
+	if(eventManager[CAMERA_START]) {
+		camera1->updateT(0.025f * programglobal::deltaTime);
+	}
 	if(blendT >= 360.0f)
 		blendT = 0.0f;
 	blendT += 0.5f;
+
+	crossT += 0.01f;
+	if(crossT >= 1.0f) {
+		eventManager[CAMERA_START] = true;
+	}
 }
 
 void labscene::reset() {
@@ -343,8 +369,6 @@ void labscene::reset() {
 }
 
 void labscene::update() {
-	camera1->updateT(0.025f * programglobal::deltaTime);
-	float t = camera1->getDistanceOnSpline();
 	if(t >= 6.2f) {
 		eventManager[BKGND_MUSIC_PLAY] = true;
 	}
