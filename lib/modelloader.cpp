@@ -363,10 +363,8 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 				if(aiReturn_SUCCESS == mat->Get(AI_MATKEY_METALLIC_FACTOR,value))
 				{
 					temp.metallic = value;
-					//cout<<"M :"<<value<<endl;
 					if(aiReturn_SUCCESS == mat->Get(AI_MATKEY_ROUGHNESS_FACTOR,value))
 						temp.roughness = value;
-					//cout<<"R :"<<value<<endl;
 				}
 				// Means Specular and glossiness factor
 				else {

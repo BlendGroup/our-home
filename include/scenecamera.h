@@ -14,9 +14,7 @@ private:
     BsplineInterpolator *m_bspPositions;
     BsplineInterpolator *m_bspFront;
     float t;
-	std::vector<vmath::vec3> frontKeyFrames;
-	std::vector<vmath::vec3> positionKeyFrames;
-    friend class sceneCameraRig;
+	friend class sceneCameraRig;
 
 public:
     sceneCamera(const std::vector<vmath::vec3> &positionKeyFrames, const std::vector<vmath::vec3> &frontKeyFrames);

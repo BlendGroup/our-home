@@ -27,8 +27,6 @@ HDR::HDR(GLfloat exposure, GLfloat fade, GLsizei size) : threshhold(1.5f) ,knee(
 			break;
 		++this->mipLevels;
 	}
-	//this->mipLevels += 1;
-	//cout<<"Final Mip Level "<<this->mipLevels<<" w : "<<width<<"h : "<<height<<endl;
 }
 
 void HDR::setupProgram(void) {

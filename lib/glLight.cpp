@@ -473,7 +473,7 @@ void SceneLight::SceneLightKeyBoardFunc(int key){
         break;
         case XK_P:
         case XK_p:
-            std::cout<<this;
+            // std::cout<<this;
         break;
 	}
 }

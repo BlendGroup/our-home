@@ -35,7 +35,6 @@ void setupProgramTestPbr(){
             program = new glshaderprogram({"src/shaders/pbr.vert", "src/shaders/pbrMR.frag"});
         #endif
         lightProgram = new glshaderprogram({"shaders/debug/lightSrc.vert", "shaders/debug/lightSrc.frag"});
-        //program->printUniforms(cout);
     } catch (string errorString) {
         throwErr(errorString);
     }

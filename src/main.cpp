@@ -85,6 +85,7 @@ void init(void) {
 		}
 
 		playNextScene();
+		playNextScene();
 
 		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);

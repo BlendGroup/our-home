@@ -7,6 +7,7 @@
 #include<global.h>
 #include<vmath.h>
 #include<scenecamera.h>
+#include<scenecamerarig.h>
 #include<modelplacer.h>
 #include<X11/keysym.h>
 #include<interpolators.h>
@@ -64,9 +65,10 @@ static audioplayer *playerRobotThump;
 
 #ifdef DEBUG
 static modelplacer* doorPlacer;
+static sceneCameraRig* cameraRig;
 #endif
 
-static GLfloat robotT		= 0.0f;
+static GLfloat robotT		= 0.01f;
 static GLfloat astonautT	= 0.0f;
 static GLfloat cameraT		= 0.0f;
 static GLfloat doorT		= 0.0f;
@@ -94,7 +96,7 @@ void labscene::setupCamera() {
 		vec3(-1.94f, -0.32f, -0.97f),
 		vec3(-1.89f, -0.37f, -1.22f),
 		vec3(-1.84f, -0.33f, -1.65f),
-		vec3(-1.47f, -0.25f, -1.82f),
+		vec3(-1.47f, -0.15f, -1.82f),
 		vec3(-0.82f, 0.28f, -1.85f),
 		vec3(-1.17f, 0.06f, -1.1f),
 		vec3(-2.9f, -0.2f, -0.51f),
@@ -106,7 +108,7 @@ void labscene::setupCamera() {
 		vec3(-1.84f, -0.4f, -1.42f),
 		vec3(-1.51f, -0.4f, -1.37f),
 		vec3(-1.36f, -0.38f, -1.43f),
-		vec3(-0.81f, -0.28f, -0.98f),
+		vec3(-0.51f, -0.28f, -0.98f),
 		vec3(-0.21f, -0.26f, -0.37f),
 		vec3(-1.67f, -0.42f, 0.45f),
 		vec3(-3.19f, -0.36f, 0.96f),
@@ -114,6 +116,14 @@ void labscene::setupCamera() {
 	};
 
 	camera1 = new sceneCamera(positionKeyFrames, frontKeyFrames);
+
+	cameraRig = new sceneCameraRig(camera1);
+	cameraRig->setRenderFront(true);
+	cameraRig->setRenderFrontPoints(true);
+	cameraRig->setRenderPath(true);
+	cameraRig->setRenderPathPoints(true);
+	cameraRig->setRenderPathToFront(true);
+	cameraRig->setScalingFactor(0.01f);
 }
 
 void labscene::init() {
@@ -325,6 +335,10 @@ void labscene::render() {
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 			glDisable(GL_BLEND);
 		}
+
+		if(programglobal::debugMode == CAMERA) {
+			cameraRig->render();
+		}
 	} catch(string errString) {
 		throwErr(errString);
 	}
@@ -336,8 +350,6 @@ void labscene::reset() {
 
 void labscene::update() {
 	t += programglobal::deltaTime;
-	
-	float syncT;
 
 	if(crossT >= 1.0f) {
 		eventManager[CAMERA_MOVE] = true;
@@ -350,14 +362,14 @@ void labscene::update() {
 	if(robotT >= 1.0f) {
 		eventManager[ROBOT_ANIM] = false;
 	}
-	if(t >= 6.2f) {
-		eventManager[BKGND_MUSIC_PLAY] = true;
-		playerBkgnd->play();
-	}
-	if(t >= 7.3f) {
+	// if(t >= 6.2f) {
+	// 	eventManager[BKGND_MUSIC_PLAY] = true;
+	// 	playerBkgnd->play();
+	// }
+	if(t >= 41.0f) {
 		eventManager[DOOR_ANIM] = true;
 	}
-	if(t >= 3.6f && t <= 3.7f) {
+	if(t >= 25.7f && t <= 25.8f) {
 		eventManager[ROBOT_ANIM] = true;
 	}
 	
@@ -400,6 +412,17 @@ void labscene::uninit() {
 }
 
 void labscene::keyboardfunc(int key) {
+	if(programglobal::debugMode == CAMERA) {
+		cameraRig->keyboardfunc(key);
+	}
+	switch(key) {
+	case XK_Tab:
+		if(programglobal::debugMode == CAMERA) {
+			cout<<cameraRig->getCamera()<<endl;
+		}	
+		cout<<"Current T = "<<t<<endl;
+		break;
+	}
 }
 
 camera* labscene::getCamera() {

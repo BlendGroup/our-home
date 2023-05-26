@@ -12,7 +12,6 @@ using namespace std;
 
 GLuint opensimplexnoise::createNoiseTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, float amplitude, long seed) {
 	cl_kernel noiseKernel = programglobal::oclContext->getKernel("noise2");
-	// programglobal::oclContext->printKernelList(cout);
 	cl_mem inputGrid;
 	const float freq = 1.0f / timeInterval; 
 	size_t num_points = dim[0] * dim[1];
@@ -46,7 +45,6 @@ GLuint opensimplexnoise::createNoiseTexture2D(vmath::ivec2 dim, vmath::ivec2 off
 
 GLuint opensimplexnoise::createFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, int octaves, long seed) {
 	cl_kernel noiseKernel = programglobal::oclContext->getKernel("fbm2");
-	// programglobal::oclContext->printKernelList(cout);
 	cl_mem inputGrid;
 	const float freq = 1.0f / timeInterval; 
 	size_t num_points = dim[0] * dim[1];
@@ -80,7 +78,6 @@ GLuint opensimplexnoise::createFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offse
 
 GLuint opensimplexnoise::createTurbulenceFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, int octaves, float noiseoffset, long seed) {
 	cl_kernel noiseKernel = programglobal::oclContext->getKernel("turbulencefbm2");
-	// programglobal::oclContext->printKernelList(cout);
 	cl_mem inputGrid;
 	const float freq = 1.0f / timeInterval; 
 	size_t num_points = dim[0] * dim[1];

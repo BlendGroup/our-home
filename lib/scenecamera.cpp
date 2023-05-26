@@ -19,9 +19,7 @@ sceneCamera::sceneCamera(const vector<vec3> &positionKeyFrames, const vector<vec
         return;
     }
 
-	this->frontKeyFrames = frontKeyFrames;
-	this->positionKeyFrames = positionKeyFrames;
-    m_bspPositions = new BsplineInterpolator(positionKeyFrames);
+	m_bspPositions = new BsplineInterpolator(positionKeyFrames);
     m_bspFront = new BsplineInterpolator(frontKeyFrames);
 	this->t = 0.0f;
 }
@@ -67,13 +65,13 @@ sceneCamera::~sceneCamera()
 
 ostream& operator<<(ostream &out, const sceneCamera &t) {
 	out<<"Position: {\n";
-	for(vec3 pos : t.positionKeyFrames) {
-		out<<"\t"<<pos<<"\n";
+	for(vec3 pos : t.m_bspPositions->getPoints()) {
+		out<<"\t"<<pos<<",\n";
 	}
 	out<<"}\n";
 	out<<"Front: {\n";
-	for(vec3 front : t.frontKeyFrames) {
-		out<<"\t"<<front<<"\n";
+	for(vec3 front : t.m_bspFront->getPoints()) {
+		out<<"\t"<<front<<",\n";
 	}
 	out<<"}";
 	return out;

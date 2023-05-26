@@ -91,7 +91,6 @@ void titlescene::uninit() {
 void titlescene::keyboardfunc(int key) {
 #ifdef DEBUG
 	titlePlacer->keyboardfunc(key);
-	cout<<titlePlacer<<endl;
 #endif
 }
 
