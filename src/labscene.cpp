@@ -145,7 +145,7 @@ void labscene::init() {
 
 	bspRobot = new BsplineInterpolator({
 		vec3(2.14f, -1.067f, 1.7f),
-		vec3(1.83f, -1.067f, 0.589999f),
+		vec3(1.83f, -1.067f, 0.59f),
 		vec3(0.2f, -1.067f, 1.12f),
 		vec3(-2.07f, -1.067f, 1.35f),
 		vec3(-2.73f, -1.067f, 1.72f)
