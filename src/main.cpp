@@ -139,7 +139,7 @@ void update(void) {
 	if(isAnimating) {
 		currentSceneCamera->updateT(programglobal::deltaTime * CAMERA_SPEED);
 	}
-	currentScene->update();
+	currentScene->update(currentSceneCamera);
 }
 
 void resetCamera(void) {

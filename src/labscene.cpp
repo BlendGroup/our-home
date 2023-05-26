@@ -4,6 +4,7 @@
 #include<scenes/lab.h>
 #include<glmodelloader.h>
 #include<glshaderloader.h>
+#include<gltextureloader.h>
 #include<iostream>
 #include<unordered_map>
 #include<global.h>
@@ -53,6 +54,8 @@ static glshaderprogram* programSkybox;
 static glshaderprogram* programColor;
 
 static GLuint skybox_vao,vbo;
+
+static GLuint skyboxdemo;
 
 static audioplayer *playerBkgnd;
 static audioplayer *playerRobotThump;
@@ -122,6 +125,8 @@ void labscene::init() {
 	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	
 	bspRobot = new BsplineInterpolator(robotSpline);
+
+	skyboxdemo = createTextureCubemap("resources/textures/skybox.jpg");
 
 	envMapper = new CubeMapRenderTarget(CUBEMAP_SIZE, CUBEMAP_SIZE, false);
 	envMapper->setPosition(vec3(0.0f, 0.0f, 0.0f));
@@ -198,6 +203,7 @@ void labscene::render() {
 	static const float DOOR_OPEN_SPEED = 0.075f;
 	static const float ROBOT_MOVE_SPEED = 0.06f;
 	static const float ROBOT_ANIM_SPEED = 0.99f;
+	static const float ASTRO_ANIM_SPEED = 0.1f;
 
 	static float robotT = 0.01f;
 	static float doorT = 0.0f;
@@ -208,7 +214,6 @@ void labscene::render() {
 			glViewport(0, 0, envMapper->width, envMapper->height);
 
             for(int side = 0; side < 6; side++){
-                //std::cout<<"i "<<side<<std::endl;
                 glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_CUBE_MAP_POSITIVE_X + side,envMapper->cubemap_texture,0); 
                 glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
                 glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
@@ -224,7 +229,8 @@ void labscene::render() {
                 modelLab->draw(programStaticPBR,1);
             }
             glBindFramebuffer(GL_FRAMEBUFFER,0);
-            sceneLightManager->setEnvmap(envMapper->cubemap_texture);
+            // sceneLightManager->setEnvmap(envMapper->cubemap_texture);
+            sceneLightManager->setEnvmap(skyboxdemo);
             sceneLightManager->PrecomputeIndirectLighting();
             crt = false;
         }
@@ -267,9 +273,9 @@ void labscene::render() {
         // Lights data
         glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
         sceneLightManager->setLightUniform(programDynamicPBR);
-        modelAstro->update(0.005f, 0);
+        modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 0);
         modelAstro->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
-        modelAstro->draw(programDynamicPBR,1);
+        modelAstro->draw(programDynamicPBR);
 
 		programColor->use();
 		glUniformMatrix4fv(programColor->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * programglobal::currentCamera->matrix() * translate(-3.45f, -0.3f, 2.828f));
@@ -287,7 +293,8 @@ void labscene::render() {
         glUniformMatrix4fv(programSkybox->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
         glUniformMatrix4fv(programSkybox->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
         glBindVertexArray(skybox_vao);
-        glBindTextureUnit(0,envMapper->cubemap_texture);
+        glBindTextureUnit(0,skyboxdemo);
+        // glBindTextureUnit(0,envMapper->cubemap_texture);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
 #ifdef DEBUG
@@ -322,9 +329,9 @@ void labscene::render() {
 	}
 }
 
-void labscene::update() {
-	float t = dynamic_cast<sceneCamera *>(programglobal::currentCamera)->getDistanceOnSpline();
-	if(t >= 6.6f) {
+void labscene::update(sceneCamera* cam) {
+	float t = cam->getDistanceOnSpline();
+	if(t >= 6.2f) {
 		eventManager[BKGND_MUSIC_PLAY] = true;
 	}
 	if(t >= 7.3f) {
