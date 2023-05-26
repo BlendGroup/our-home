@@ -11,6 +11,7 @@
 void setupProgramTestGodrays(void);
 void initTestGodrays(void);
 void renderTestGodrays(camera *cam, int winWidth, int winHeight);
+void keyboardFuncTestGodrays(int key);
 void uninitTestGodrays(void);
 
 #endif // __TEST_GODRAYS__

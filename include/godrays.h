@@ -13,8 +13,6 @@ private:
     GLuint occlusionFbo;
     GLuint rboDepth;
     GLuint texOcclusion;
-    GLuint vaoScreenQuad;
-    GLuint vboScreenQuad;
 
     static vmath::vec4 transform(const vmath::mat4 &m, const vmath::vec4 &v);
 

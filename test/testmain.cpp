@@ -246,7 +246,9 @@ void keyboard(glwindow* window, int key) {
 #if SHOW_CUBEMAP_SCENE
 	keyboardFuncTestRenderToCubemap(key);
 #endif
-
+#ifdef SHOW_GODRAYS_SCENE
+	keyboardFuncTestGodrays(key);
+#endif
 }
 
 void mouse(glwindow* window, int button, int action, int x, int y) {

@@ -19,10 +19,8 @@ all: run
 
 
 run: build main.run
-	./main.run
 
 test: build main.test
-	./main.test
 
 build:
 	mkdir build

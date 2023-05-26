@@ -1,25 +1,26 @@
 #include<godrays.h>
 #include<testgodrays.h>
+#include<windowing.h>
 
 using namespace std;
 using namespace vmath;
 
-#define GODRAYS_RENDERPASS_WIDTH  960
-#define GODRAYS_RENDERPASS_HEIGHT 540
+#define GODRAYS_RENDERPASS_WIDTH  512
+#define GODRAYS_RENDERPASS_HEIGHT 512
 
 static godrays* godRays;
 static glshaderprogram* colorProgram = NULL;
 static GLuint vaoCube, vboCube;
 static GLuint vaoPlane, vboPlane;
-static const vmath::mat4 godraysPerspective = vmath::perspective(
-	45.0f,
-	(float)GODRAYS_RENDERPASS_WIDTH / (float)GODRAYS_RENDERPASS_HEIGHT,
-	0.1f,
-	1000.0f
-);
 static const vec4 posPlane = vec4(0.0f, 0.0f, -5.0f, 1.0f);
 static const mat4 mMatCube = scale(0.25f, 0.25f, 0.25f);
 static const mat4 mMatPlane = translate(posPlane[0], posPlane[1], posPlane[2]);
+
+static float density = 1.0f;
+static float weight = 0.01f;
+static float dcay = 1.0f;
+static float exposure = 1.0f;
+static int samples = 100;
 
 void setupProgramTestGodrays(void) {
 	try {
@@ -116,12 +117,12 @@ static void renderTestGodraysScene(camera *cam, bool isOcclusionPass) {
 	try {
 		if(isOcclusionPass) {
 			// all occluding objects
-			godRays->occlusionPass(godraysPerspective * cam->matrix() * mMatCube, false);
+			godRays->occlusionPass(programglobal::perspective * cam->matrix() * mMatCube, false);
 			glBindVertexArray(vaoCube);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 
 			// all emissive objects
-			godRays->occlusionPass(godraysPerspective * cam->matrix() * mMatPlane, true);
+			godRays->occlusionPass(programglobal::perspective * cam->matrix() * mMatPlane, true);
 			glBindVertexArray(vaoPlane);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
@@ -150,26 +151,64 @@ void renderTestGodrays(camera *cam, int winWidth, int winHeight) {
 
 		// occlusion pass
 	    glBindFramebuffer(GL_FRAMEBUFFER, godRays->getFbo());
+		glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 		glViewport(0, 0, GODRAYS_RENDERPASS_WIDTH, GODRAYS_RENDERPASS_WIDTH);
 		renderTestGodraysScene(cam, true);
 
 		// regular pass
 	    glBindFramebuffer(GL_FRAMEBUFFER, renderingFbo);
 		glViewport(0, 0, winWidth, winHeight);
+		glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		renderTestGodraysScene(cam, false);
 
 		// additive blending pass
 		godRays->render(
 			programglobal::perspective * cam->matrix() * mMatPlane,
 			posPlane,
-			1.0f,
-			0.01f,
-			1.0f,
-			1.0f,
-			100
+			density,
+			weight,
+			dcay,
+			exposure,
+			samples
 		);
 	} catch(string errorString) {
 		throwErr(errorString);
+	}
+}
+
+void keyboardFuncTestGodrays(int key) {
+	switch(key) {
+		case XK_1:
+			density += 0.01f;
+			break;
+		case XK_2:
+			density -= 0.01f;
+			break;
+		case XK_3:
+			weight += 0.01f;
+			break;
+		case XK_4:
+			weight -= 0.01f;
+			break;
+		case XK_5:
+			dcay += 0.01f;
+			break;
+		case XK_6:
+			dcay -= 0.01f;
+			break;
+		case XK_7:
+			exposure += 0.01f;
+			break;
+		case XK_8:
+			exposure -= 0.01f;
+			break;
+		case XK_9:
+			samples += 1;
+			break;
+		case XK_0:
+			samples -= 1;
+			break;
 	}
 }
 

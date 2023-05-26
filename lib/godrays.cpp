@@ -32,20 +32,6 @@ godrays::godrays(int passWidth, int passHeight)
         throwErr("occlusion framebuffer is incomplete\n");
     }
 
-    float screenQuadCoords[] = {
-        1.0f, 1.0f,
-        0.0f, 1.0f,
-        0.0f, 0.0f,
-        1.0f, 0.0f
-    };
-    glCreateVertexArrays(1, &this->vaoScreenQuad);
-    glBindVertexArray(this->vaoScreenQuad);
-    glCreateBuffers(1, &this->vboScreenQuad);
-    glBindBuffer(GL_ARRAY_BUFFER, this->vboScreenQuad);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(screenQuadCoords), screenQuadCoords, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-    glEnableVertexAttribArray(0);
-
     try {
         this->godraysProgram = new glshaderprogram({{"shaders/godrays.vert"}, {"shaders/godrays.frag"}});
         this->colorProgram = new glshaderprogram({{"shaders/color.vert"}, {"shaders/color.frag"}});
@@ -62,14 +48,6 @@ godrays::~godrays() {
     if(colorProgram) {
         delete colorProgram;
         colorProgram = NULL;
-    }
-    if(this->vboScreenQuad) {
-        glDeleteBuffers(1, &this->vboScreenQuad);
-        this->vboScreenQuad = 0;
-    }
-    if(this->vaoScreenQuad) {
-        glDeleteBuffers(1, &this->vaoScreenQuad);
-        this->vaoScreenQuad = 0;
     }
     if(this->texOcclusion) {
         glDeleteTextures(1, &this->texOcclusion);
@@ -108,7 +86,7 @@ void godrays::occlusionPass(const mat4 &mvpMatrix, bool isEmissive) {
 }
 
 void godrays::render(const mat4 &mvpMatrixEmissiveObj, const vec4 &posEmissiveObj, float density, float weight, float decay, float exposure, int samples) {
-    // enable additive blending
+    // enable blending and set blend func to perform additive blending
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
@@ -134,9 +112,9 @@ void godrays::render(const mat4 &mvpMatrixEmissiveObj, const vec4 &posEmissiveOb
     glUniform1f(5, exposure);
     glUniform1i(6, samples);
 
-    glBindVertexArray(this->vaoScreenQuad);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
+    // reset blend func to default and disable blending to prevent further BT of life
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_BLEND);
 }
