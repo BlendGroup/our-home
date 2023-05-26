@@ -106,8 +106,8 @@ void labscene::setupCamera() {
     
 	vector<vec3> frontKeyFrames = {
 		vec3(-1.96f, -0.27f, -1.65f),
-		vec3(-1.84f, -0.4f, -1.42f),
-		vec3(-1.51f, -0.4f, -1.37f),
+		vec3(-1.84f, -0.4f, -1.53f),
+		vec3(-1.5f, -0.4f, -1.48f),
 		vec3(-1.36f, -0.38f, -1.43f),
 		vec3(-0.51f, -0.28f, -0.98f),
 		vec3(-0.21f, -0.26f, -0.37f),
@@ -144,11 +144,11 @@ void labscene::init() {
 	modelBLEND = new glmodel("resources/models/blendlogo/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
 
 	bspRobot = new BsplineInterpolator({
-		vec3(1.6f, -1.067f, -1.28f),
-		vec3(1.1f, -1.067f, -0.21f),
-		vec3(0.2f, -1.067f, 0.6f),
-		vec3(-2.0f, -1.067f, 0.6f),
-		vec3(-2.5f, -1.067f, 1.8f)
+		vec3(2.14f, -1.067f, 1.7f),
+		vec3(1.83f, -1.067f, 0.589999f),
+		vec3(0.2f, -1.067f, 1.12f),
+		vec3(-2.07f, -1.067f, 1.35f),
+		vec3(-2.73f, -1.067f, 1.72f)
 	});
 #ifdef DEBUG
 	robotSpline = new SplineAdjuster(bspRobot);
@@ -378,7 +378,7 @@ void labscene::update() {
 	if(t >= 41.0f) {
 		eventManager[DOOR_ANIM] = true;
 	}
-	if(t >= 25.7f && t <= 25.8f) {
+	if(t >= 20.5f && t <= 20.6f) {
 		eventManager[ROBOT_ANIM] = true;
 	}
 	
