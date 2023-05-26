@@ -13,22 +13,21 @@
 #define MIN_PATCH_TESS_LEVEL 5
 #define MESH_SIZE 64
 
-class terrain : public glbase {
+class terrain {
 private:
 	GLuint vao;
+	GLuint vbo;
 	clglmem heightMap;
 	clglmem normalMap;
-
-	glshaderprogram* renderHeightMap;
-	cl_kernel normalKernel;
-
-	vmath::mat4 modelMatrix;
 public:
-	terrain(vmath::mat4 modelMatrix, GLuint heightMap);
-	void setupProgram(void) override;
-	void init(void) override;
-	void render(void) override;
-	void uninit(void) override;
+	terrain(GLuint heightMap);
+	void render(void);
+	inline GLuint getHeightMap() {
+		return this->heightMap.gl;
+	}
+	inline GLuint getNormalMap() {
+		return this->normalMap.gl;
+	}
 	~terrain();
 };
 

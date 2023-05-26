@@ -2,18 +2,17 @@
 
 Scene 1:
 
-Blend logo
 SFX (Fix Robot Thumping and add more)
-Bloom
-God rays 
+God rays (If kai desires)
 Lighting Setup
-Texture / Normals On table
+Texture / Normals On table (Later)
 Hologram
+Smoke on Mug
 
 Scene 2:
 
 Tree and Lab, Car/Rover Model
-Terrain Mountain to Terrain Valley
+Terrain Mountain to Terrain Valley ( make better )
 Vegetation
 Lake
 Atmospheric Scettering

@@ -1,10 +1,10 @@
-#ifndef __LAB_SCENE__
-#define __LAB_SCENE__
+#ifndef __TITLE_SCENE__
+#define __TITLE_SCENE__
 
 #include<scenes/base.h>
 #include<scenecamera.h>
 
-class labscene : public basescene {
+class titlescene : public basescene {
 public:
 	void setupProgram() override;
 	void setupCamera() override;
