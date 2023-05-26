@@ -11,7 +11,7 @@
 #include<modelplacer.h>
 #include<X11/keysym.h>
 #include<interpolators.h>
-#include<splinerenderer.h>
+#include<splineadjuster.h>
 #include<CubeMapRenderTarget.h>
 #include<glLight.h>
 #include<assimp/postprocess.h>
@@ -66,6 +66,7 @@ static audioplayer *playerRobotThump;
 #ifdef DEBUG
 static modelplacer* doorPlacer;
 static sceneCameraRig* cameraRig;
+static SplineAdjuster* robotSpline;
 #endif
 
 static GLfloat robotT		= 0.01f;
@@ -149,6 +150,12 @@ void labscene::init() {
 		vec3(-2.0f, -1.067f, 0.6f),
 		vec3(-2.5f, -1.067f, 1.8f)
 	});
+#ifdef DEBUG
+	robotSpline = new SplineAdjuster(bspRobot);
+	robotSpline->setRenderPath(true);
+	robotSpline->setRenderPoints(true);
+	robotSpline->setScalingFactor(0.01f);
+#endif
 
 	envMapper = new CubeMapRenderTarget(CUBEMAP_SIZE, CUBEMAP_SIZE, false);
 	envMapper->setPosition(vec3(0.0f, 0.0f, 0.0f));
@@ -338,6 +345,8 @@ void labscene::render() {
 
 		if(programglobal::debugMode == CAMERA) {
 			cameraRig->render();
+		} else if(programglobal::debugMode == SPLINE) {
+			robotSpline->render(RED_PINK_COLOR);
 		}
 	} catch(string errString) {
 		throwErr(errString);
@@ -414,12 +423,17 @@ void labscene::uninit() {
 void labscene::keyboardfunc(int key) {
 	if(programglobal::debugMode == CAMERA) {
 		cameraRig->keyboardfunc(key);
+	} else if(programglobal::debugMode == SPLINE) {
+		robotSpline->keyboardfunc(key);
 	}
 	switch(key) {
 	case XK_Tab:
 		if(programglobal::debugMode == CAMERA) {
 			cout<<cameraRig->getCamera()<<endl;
 		}	
+		if(programglobal::debugMode == SPLINE) {
+			cout<<robotSpline->getSpline()<<endl;
+		}
 		cout<<"Current T = "<<t<<endl;
 		break;
 	}

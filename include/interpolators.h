@@ -41,6 +41,7 @@ private:
     std::vector<vmath::vec3> m_pointsVec;
     CubicBezierInterpolator *m_cubicBezierInterpolator;
 	friend class sceneCameraRig;
+	friend class SplineAdjuster;
 public:
     BsplineInterpolator(const std::vector<vmath::vec3> &points);
     ~BsplineInterpolator();
@@ -48,6 +49,8 @@ public:
 	void recalculateSpline(void);
     vmath::vec3 interpolate(const float t) override;
     const std::vector<vmath::vec3> &getPoints(void) override;
+	friend std::ostream& operator<< (std::ostream &out, const BsplineInterpolator *t);
+	friend std::ostream& operator<< (std::ostream &out, const BsplineInterpolator &t);
 };
 
 #endif // __INTERPOLATORS_H__

@@ -183,14 +183,14 @@ void sceneCameraRig::render() const
     }
 }
 
-// void sceneCameraRig::updateT(float speed)
-// {
-//     mountCamera->t = std::min(mountCamera->t + speed, 1.0f);
-// }
+void sceneCameraRig::updateT(float speed)
+{
+    mountCamera->t = std::min(mountCamera->t + speed, 1.0f);
+}
 
-// void sceneCameraRig::resetT(void) {
-// 	mountCamera->t = 0.0f;
-// }
+void sceneCameraRig::resetT(void) {
+	mountCamera->t = 0.0f;
+}
 
 void sceneCameraRig::setRenderPath(bool setting)
 {

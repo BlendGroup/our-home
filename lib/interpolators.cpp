@@ -142,6 +142,20 @@ void BsplineInterpolator::recalculateSpline(void) {
     m_cubicBezierInterpolator = new CubicBezierInterpolator(outCtrlps);
 }
 
+ostream& operator<< (ostream &out, const BsplineInterpolator &t) {
+	out<<"Spline = {\n";
+	for(int i = 0; i < t.m_pointsVec.size(); i++) {
+		out<<"\t"<<t.m_pointsVec[i]<<",\n";
+	}
+	out<<"}";
+	return out;
+}
+
+ostream& operator<< (ostream &out, const BsplineInterpolator *t) {
+	out<<*t;
+	return out;
+}
+
 BsplineInterpolator::~BsplineInterpolator()
 {	
     if (m_cubicBezierInterpolator)
