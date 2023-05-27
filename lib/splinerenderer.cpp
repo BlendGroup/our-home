@@ -96,6 +96,8 @@ void SplineRenderer::render(const vec4 linecolor, const vec4 pointcolor, const v
 	m_program->use();
 	glUniformMatrix4fv(m_program->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * programglobal::currentCamera->matrix());
 	glUniform4fv(m_program->getUniformLocation("color"), 1, linecolor);
+	glUniform4fv(m_program->getUniformLocation("emissive"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
+	glUniform4fv(m_program->getUniformLocation("occlusion"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
 	glBindVertexArray(m_vaoSpline);
 	glDrawArrays(GL_LINE_STRIP, 0, m_nAllPositions);
 

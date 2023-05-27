@@ -9,19 +9,26 @@
 class godrays {
 private:
     glshaderprogram *godraysProgram;
-    glshaderprogram *colorProgram;
-    GLuint occlusionFbo;
-    GLuint rboDepth;
-    GLuint texOcclusion;
-
-    static vmath::vec4 transform(const vmath::mat4 &m, const vmath::vec4 &v);
-
+	vmath::mat4 mvpMatrix;
+	vmath::vec4 pos;
+	GLfloat density;
+	GLfloat weight;
+	GLfloat decay;
+	GLfloat exposure;
+	int samples;
+	GLuint occlusionTex;
+	vec2 sscoord;
 public:
-    godrays(int passWidth, int passHeight);
-    ~godrays();
-    GLuint getFbo(void);
-    void occlusionPass(const vmath::mat4 &mvpMatrix, bool isEmissive);
-    void render(const vmath::mat4 &mvpMatrixEmissiveObj, const vmath::vec4 &posEmissiveObj, float density, float weight, float decay, float exposure, int samples);
+	godrays();
+	~godrays();
+	void setDensity(GLfloat density);
+	void setWeight(GLfloat weight);
+	void setDecay(GLfloat decay);
+	void setExposure(GLfloat exposure);
+	void setSamples(int samples);
+	void setOcclusionTex(GLuint occlusionTex);
+	void setScreenSpaceCoords(const vmath::mat4& mvp, const vmath::vec4& pos);
+	void renderRays();
 };
 
 #endif // __GODRAYS__

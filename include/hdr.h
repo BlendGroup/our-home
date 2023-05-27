@@ -9,8 +9,9 @@ class HDR : public glbase {
 private:
     GLuint FBO;
     GLuint RBO;
-    GLuint CTex;
-	GLuint ETex;
+    GLuint colorTex;
+	GLuint emisionTex;
+	GLuint occlusionTex;
     GLfloat exposure;
     GLfloat fade;
 	GLfloat threshhold;

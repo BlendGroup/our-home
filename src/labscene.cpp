@@ -315,6 +315,8 @@ void labscene::render() {
 		programColor->use();
 		glUniformMatrix4fv(programColor->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * programglobal::currentCamera->matrix() * translate(-3.45f, -0.3f, 2.828f));
 		glUniform4f(programColor->getUniformLocation("color"), 1.0f, 1.0f, 1.0f, 1.0f);
+		glUniform4fv(programColor->getUniformLocation("emissive"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
+		glUniform4fv(programColor->getUniformLocation("occlusion"), 1, vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		programglobal::shapeRenderer->renderQuad();
 
 		// render light src

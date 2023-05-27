@@ -16,6 +16,7 @@
 #include<clhelper.h>
 #include<gltextureloader.h>
 #include<shapes.h>
+#include<godrays.h>
 
 #include<scenes/base.h>
 #include<scenes/lab.h>
@@ -69,6 +70,7 @@ void init(void) {
 		programglobal::oclContext = new clglcontext(1);
 		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
 		programglobal::shapeRenderer = new shaperenderer();
+		godrays::init();
 		sceneList.insert(sceneList.begin(), {
 			new titlescene(),
 			new labscene(),
@@ -84,7 +86,6 @@ void init(void) {
 			b->init();
 		}
 
-		playNextScene();
 		playNextScene();
 		playNextScene();
 
@@ -105,6 +106,7 @@ void render(glwindow* window) {
 			glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
 			glViewport(0, 0, hdr->getSize(), hdr->getSize());
 			glClearBufferfv(GL_COLOR, 1, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+			glClearBufferfv(GL_COLOR, 2, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		} else {
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 		}
@@ -116,12 +118,12 @@ void render(glwindow* window) {
 		currentScene->render();
 
 		if(hdrEnabled) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
 			glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 1.0f, 0.0f, 1.0f));
 			glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 			hdr->render();
+			// godrays::renderRays();
 		}
 	} catch(string errorString) {
 		throwErr(errorString);

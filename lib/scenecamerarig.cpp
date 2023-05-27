@@ -165,6 +165,8 @@ void sceneCameraRig::render() const
 
         program->use();
 		glUniform4fv(program->getUniformLocation("color"), 1, CAMERA_RIG_COLOR);
+		glUniform4fv(program->getUniformLocation("emissive"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
+		glUniform4fv(program->getUniformLocation("occlusion"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
 		mat4 vpMat = programglobal::perspective * programglobal::currentCamera->matrix();
 
         // draw a line connecting the 2 points
