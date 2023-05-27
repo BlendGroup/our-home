@@ -77,7 +77,7 @@ void init(void) {
 		sceneList.insert(sceneList.begin(), {
 			new titlescene(),
 			new labscene(),
-			// new dayscene()
+			new dayscene()
 		});
 
 		//Inititalize
@@ -89,6 +89,8 @@ void init(void) {
 			b->init();
 		}
 
+		playNextScene();
+		playNextScene();
 		playNextScene();
 
 		glDepthFunc(GL_LEQUAL);

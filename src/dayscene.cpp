@@ -20,11 +20,23 @@
 using namespace std;
 using namespace vmath;
 
+enum EVENTS {
+	CAMERA_MOVE = 0,
+	CROSSFADE,
+
+//Dont Add	
+	NUM_EVENTS
+};
+
+static bool eventManager[NUM_EVENTS];
+
 static glshaderprogram* terrainRenderer;
 
 static terrain* land;
 
 static debugCamera* tempCam;
+
+static GLfloat crossT		= 0.0f;
 
 void dayscene::setupProgram() {
 	try {
@@ -65,7 +77,12 @@ void dayscene::render() {
 }
 
 void dayscene::update() {
-	
+	t += programglobal::deltaTime;
+
+	if(crossT >= 1.0f) {
+		eventManager[CROSSFADE] = false;
+		eventManager[CAMERA_MOVE] = true;
+	}
 }
 
 void dayscene::reset() {
