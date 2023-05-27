@@ -148,11 +148,11 @@ void labscene::init() {
 	modelBLEND = new glmodel("resources/models/blendlogo/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
 
 	godraysDoor = new godrays();
-	godraysDoor->setDecay(1.0f);
-	godraysDoor->setDensity(1.0f);
-	godraysDoor->setExposure(1.0f);
-	godraysDoor->setSamples(100);
-	godraysDoor->setWeight(0.01f);
+	godraysDoor->setDecay(0.5f);
+	godraysDoor->setDensity(2.1f);
+	godraysDoor->setExposure(1.5f);
+	godraysDoor->setSamples(150);
+	godraysDoor->setWeight(0.06f);
 
 	bspRobot = new BsplineInterpolator({
 		vec3(2.14f, -1.067f, 1.7f),

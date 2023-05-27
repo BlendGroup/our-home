@@ -57,8 +57,15 @@ vec4 transform(const mat4 &m, const vec4 &v) {
 }
 
 void godrays::setScreenSpaceCoords(const vmath::mat4& mvp, const vmath::vec4& pos) {
-	vec4 ssPos = transform(mvp, pos);
-	this->sscoord = vec2(ssPos[0] / ssPos[2] * 0.5f + 0.5f, ssPos[1] / ssPos[2] * 0.5f + 0.5f);
+ 	vec4 ssPos = transform(mvp, pos);
+    float ssX = ssPos[0]/ssPos[2];
+    float ssY = ssPos[1]/ssPos[2];
+
+    // map ssX and ssY from [-1, 1] to [0, 1]
+    ssX = ssX*0.5f + 0.5f;
+    ssY = ssY*0.5f + 0.5f;
+	this->sscoord = vec2(ssX, ssY);
+	cout<<this->sscoord<<endl;
 }
 
 void godrays::renderRays(HDR* hdr) {
