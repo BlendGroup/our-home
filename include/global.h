@@ -24,4 +24,6 @@ namespace programglobal {
 	extern godrays* godrayObject;
 } // namespace programglobal
 
+void resetFBO();
+
 #endif

@@ -17,6 +17,7 @@
 #include<assimp/postprocess.h>
 #include<audio.h>
 #include<godrays.h>
+#include<crossfade.h>
 
 using namespace std;
 using namespace vmath;
@@ -89,7 +90,6 @@ void labscene::setupProgram() {
 		programSkybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
 		programColor = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
 		programHologram = new glshaderprogram({"shaders/hologram/hologram.vert","shaders/hologram/hologram.frag"});
-		programCrossfade = new glshaderprogram({"shaders/fsquad.vert", "shaders/crossfade.frag"});
 	} catch(string errorString)  {
 		throwErr(errorString);
 	}
@@ -310,7 +310,7 @@ void labscene::render() {
 		glUniformMatrix4fv(programHologram->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
         glUniformMatrix4fv(programHologram->getUniformLocation("vMat"),1,GL_FALSE, programglobal::currentCamera->matrix());
 		//translate(-1.96f, -0.27f, -1.682f) * rotate(13f, 1.0f, 0.0f, 0.0f) * rotate(-50f, 0.0f, 1.0f, 0.0f) * rotate(-1f, 0.0f, 0.0f, 1.0f) * scale(0.11f)
-        glUniformMatrix4fv(programHologram->getUniformLocation("mMat"),1,GL_FALSE, translate(-1.96013f, -0.266205f, -1.682f) * scale(0.11f));
+        glUniformMatrix4fv(programHologram->getUniformLocation("mMat"),1,GL_FALSE, translate(-1.96f, -0.27f, -1.68f) * scale(0.11f));
 		glUniform4fv(programHologram->getUniformLocation("MainColor"),1,vec4(0.0f,0.0f,1.0f,1.0f));
 		glUniform4fv(programHologram->getUniformLocation("RimColor"),1,vec4(0.0f,1.0f,1.0f,1.0f));
 		glUniform1f(programHologram->getUniformLocation("gTime"), hologramT);
@@ -321,6 +321,7 @@ void labscene::render() {
 		glUniform1f(programHologram->getUniformLocation("alpha"), 0.5f);
 		glUniform1f(programHologram->getUniformLocation("FlickerSpeed"),5.0f);
 		glUniform1f(programHologram->getUniformLocation("RimPower"),5.0f);
+		glUniform1f(programHologram->getUniformLocation("EmissionPower"), crossT);
 		// glUniform1f(programHologram->getUniformLocation("GlowSpeed"),1.0f);
 		// glUniform1f(programHologram->getUniformLocation("GlowDistance"),1.0f);
 		modelBLEND->draw(programHologram,1,false);
@@ -349,24 +350,14 @@ void labscene::render() {
 		// glBindTextureUnit(0,envMapper->cubemap_texture);
 		// glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		if(!eventManager[CAMERA_MOVE]) {
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			programCrossfade->use();
-			glUniform1f(programCrossfade->getUniformLocation("alpha"), 1.0f - crossT);
-			glUniform1i(programCrossfade->getUniformLocation("texSampler"), 0);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, texTitleSceneFinal);
-			glBindVertexArray(emptyvao);
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-			glBindVertexArray(0);
-			glDisable(GL_BLEND);
-		}
-
 		if(programglobal::debugMode == CAMERA) {
 			cameraRig->render();
 		} else if(programglobal::debugMode == SPLINE) {
 			robotSpline->render(RED_PINK_COLOR);
+		}
+	
+		if(!eventManager[CAMERA_MOVE]) {
+			crossfader::render(texTitleSceneFinal, crossT);
 		}
 	} catch(string errString) {
 		throwErr(errString);

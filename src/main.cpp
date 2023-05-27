@@ -17,6 +17,7 @@
 #include<gltextureloader.h>
 #include<shapes.h>
 #include<godrays.h>
+#include<crossfade.h>
 
 #include<scenes/base.h>
 #include<scenes/lab.h>
@@ -33,6 +34,7 @@ static bool isDebugCameraOn = false;
 static bool isAnimating = false;
 static vector<basescene*> sceneList;
 static basescene* currentScene;
+static glwindow* window;
 
 vmath::mat4 programglobal::perspective;
 camera* programglobal::currentCamera;
@@ -71,6 +73,7 @@ void init(void) {
 		programglobal::oclContext = new clglcontext(1);
 		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
 		programglobal::shapeRenderer = new shaperenderer();
+		crossfader::init();
 		sceneList.insert(sceneList.begin(), {
 			new titlescene(),
 			new labscene(),
@@ -81,12 +84,11 @@ void init(void) {
 		alutInit(0, NULL);
 		initTextureLoader();
 		hdr->init();
-		hdr->toggleBloom(true);
+		hdr->setBloom(true);
 		for(basescene* b : sceneList) {
 			b->init();
 		}
 
-		playNextScene();
 		playNextScene();
 
 		glDepthFunc(GL_LEQUAL);
@@ -111,7 +113,7 @@ void render(glwindow* window) {
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 		}
 
-		glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 1.0f, 0.0f, 1.0f));
+		glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().height, 0.1f, 1000.0f);
 
@@ -119,7 +121,7 @@ void render(glwindow* window) {
 
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
-			glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 1.0f, 0.0f, 1.0f));
+			glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 			glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 			hdr->render();
@@ -129,6 +131,16 @@ void render(glwindow* window) {
 		}
 	} catch(string errorString) {
 		throwErr(errorString);
+	}
+}
+
+void resetFBO() {
+	if(hdrEnabled) {
+		glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
+		glViewport(0, 0, hdr->getSize(), hdr->getSize());
+	} else {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, window->getSize().width, window->getSize().height);
 	}
 }
 
@@ -196,6 +208,7 @@ void uninit(void) {
 		b->uninit();
 		delete b;
 	}
+	crossfader::uninit();
 	delete programglobal::oclContext;
 	delete hdr;
 	delete debugcamera;
@@ -212,7 +225,7 @@ double getDeltaTime(glwindow *win) {
 int main(int argc, char **argv) {
 #define SPEED_MULTIPLIER 1
 	try {
-		glwindow* window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
+		window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
 		auto initstart = chrono::steady_clock::now();
 		window->setKeyboardFunc(keyboard);
 		window->setMouseFunc(mouse);

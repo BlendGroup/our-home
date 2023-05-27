@@ -144,7 +144,7 @@ void HDR::render(void) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void HDR::toggleBloom(bool value){
+void HDR::setBloom(bool value){
 	this->bloomEnabled = value;
 }
 
