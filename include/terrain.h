@@ -8,25 +8,28 @@
 #include<camera.h>
 #include<clhelper.h>
 
-#define TEXTURE_SIZE 512
-#define MAX_PATCH_TESS_LEVEL 32
-#define MIN_PATCH_TESS_LEVEL 5
-#define MESH_SIZE 64
-
 class terrain {
 private:
 	GLuint vao;
 	GLuint vbo;
 	clglmem heightMap;
 	clglmem normalMap;
+	GLfloat minTess;
+	GLfloat maxTess;
 public:
-	terrain(GLuint heightMap);
+	terrain(GLuint heightMap, bool calcNormal, GLfloat minTess, GLfloat maxTess);
 	void render(void);
 	inline GLuint getHeightMap() {
 		return this->heightMap.gl;
 	}
 	inline GLuint getNormalMap() {
 		return this->normalMap.gl;
+	}
+	inline GLfloat getMinTess(){
+		return this->minTess;
+	}
+	inline GLfloat getMaxTess(){
+		return this->maxTess;
 	}
 	~terrain();
 };

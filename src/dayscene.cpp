@@ -15,13 +15,16 @@
 #include<assimp/postprocess.h>
 #include<global.h>
 #include<opensimplexnoise.h>
+#include<debugcamera.h>
 
 using namespace std;
 using namespace vmath;
 
-glshaderprogram* terrainRenderer;
+static glshaderprogram* terrainRenderer;
 
 static terrain* land;
+
+static debugCamera* tempCam;
 
 void dayscene::setupProgram() {
 	try {
@@ -32,14 +35,16 @@ void dayscene::setupProgram() {
 }
 
 void dayscene::setupCamera() {
+	tempCam = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
 }
 
 void dayscene::init() {
 	ivec2 dim = ivec2(2048, 2048);
 	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 1000.0f, 3, 1234);
 	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1500.0f, 5, 0.11f, 543);
-	GLuint finalTerrain = opensimplexnoise::combineTwoNoiseTextures(mountainHeightMap, valleyHeightMap, dim);
-	land = new terrain(finalTerrain);
+	GLuint finalTerrain = opensimplexnoise::combineTwoNoiseTextures(mountainHeightMap, valleyHeightMap, dim, 0.0f);
+	// GLuint finalTerrain = createTexture2D("resources/textures/heightmap2.png");
+	land = new terrain(finalTerrain, true, 5.0f, 32.0f);
 }
 
 void dayscene::render() {
@@ -47,9 +52,8 @@ void dayscene::render() {
 	glUniformMatrix4fv(terrainRenderer->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(terrainRenderer->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
 	glUniformMatrix4fv(terrainRenderer->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, -30.0f));
-	glUniform1i(terrainRenderer->getUniformLocation("numMeshes"), MESH_SIZE);
-	glUniform1f(terrainRenderer->getUniformLocation("maxTess"), MAX_PATCH_TESS_LEVEL);
-	glUniform1f(terrainRenderer->getUniformLocation("minTess"), MIN_PATCH_TESS_LEVEL);
+	glUniform1f(terrainRenderer->getUniformLocation("maxTess"), land->getMaxTess());
+	glUniform1f(terrainRenderer->getUniformLocation("minTess"), land->getMinTess());
 	glUniform3fv(terrainRenderer->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
 	glUniform1i(terrainRenderer->getUniformLocation("texHeight"), 0);
 	glUniform1i(terrainRenderer->getUniformLocation("texNormal"), 1);
@@ -76,5 +80,5 @@ void dayscene::keyboardfunc(int key) {
 }
 
 camera* dayscene::getCamera() {
-	return NULL;
+	return tempCam;
 }

@@ -86,6 +86,7 @@ void init(void) {
 
 		playNextScene();
 		playNextScene();
+		playNextScene();
 
 		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);
@@ -108,15 +109,16 @@ void render(glwindow* window) {
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 		}
 
-		glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+		glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 1.0f, 0.0f, 1.0f));
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().height, 0.1f, 1000.0f);
 
 		currentScene->render();
 
 		if(hdrEnabled) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
-			glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+			glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 1.0f, 0.0f, 1.0f));
 			glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 			hdr->render();

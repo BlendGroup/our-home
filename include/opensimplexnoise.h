@@ -10,5 +10,5 @@ public:
 	static GLuint createNoiseTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, float amplitude, long seed);
 	static GLuint createFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, int octave, long seed);
 	static GLuint createTurbulenceFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, int octave, float noiseoffset, long seed);
-	static GLuint combineTwoNoiseTextures(GLuint inputImage1, GLuint inputImage2, vmath::ivec2 dim);
+	static GLuint combineTwoNoiseTextures(GLuint inputImage1, GLuint inputImage2, vmath::ivec2 dim, float offset);
 };
