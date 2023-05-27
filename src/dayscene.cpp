@@ -16,13 +16,14 @@
 #include<global.h>
 #include<opensimplexnoise.h>
 #include<debugcamera.h>
+#include<crossfade.h>
 
 using namespace std;
 using namespace vmath;
 
 enum EVENTS {
 	CAMERA_MOVE = 0,
-	CROSSFADE,
+	CROSSFADE_IN,
 
 //Dont Add	
 	NUM_EVENTS
@@ -36,7 +37,9 @@ static terrain* land;
 
 static debugCamera* tempCam;
 
-static GLfloat crossT		= 0.0f;
+static GLfloat crossinT		= 0.0f;
+
+extern GLuint texLabSceneFinal;
 
 void dayscene::setupProgram() {
 	try {
@@ -51,12 +54,17 @@ void dayscene::setupCamera() {
 }
 
 void dayscene::init() {
+	for(int i = 0; i < NUM_EVENTS; i++) {
+		eventManager[i] = false;
+	}
+	eventManager[CROSSFADE_IN] = true;
+
 	ivec2 dim = ivec2(2048, 2048);
-	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 1000.0f, 3, 1234);
-	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1500.0f, 5, 0.11f, 543);
-	GLuint finalTerrain = opensimplexnoise::combineTwoNoiseTextures(mountainHeightMap, valleyHeightMap, dim, 0.0f);
-	// GLuint finalTerrain = createTexture2D("resources/textures/heightmap2.png");
-	land = new terrain(finalTerrain, true, 5.0f, 32.0f);
+	// GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 1000.0f, 3, 1234);
+	// GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1500.0f, 5, 0.11f, 543);
+	// GLuint finalTerrain = opensimplexnoise::combineTwoNoiseTextures(mountainHeightMap, valleyHeightMap, dim, 0.0f);
+	GLuint finalTerrain = createTexture2D("resources/textures/heightmap2.png");
+	land = new terrain(finalTerrain, false, 5.0f, 32.0f);
 }
 
 void dayscene::render() {
@@ -74,19 +82,27 @@ void dayscene::render() {
 	glBindTextureUnit(0, land->getHeightMap());
 	glBindTextureUnit(1, land->getNormalMap());
 	land->render();
+
+	if(eventManager[CROSSFADE_IN]) {
+		crossfader::render(texLabSceneFinal, crossinT);
+	}
 }
 
 void dayscene::update() {
 	t += programglobal::deltaTime;
 
-	if(crossT >= 1.0f) {
-		eventManager[CROSSFADE] = false;
+	if(crossinT >= 1.0f) {
+		eventManager[CROSSFADE_IN] = false;
 		eventManager[CAMERA_MOVE] = true;
+	}
+
+	if(eventManager[CROSSFADE_IN]) {
+		crossinT += 0.3f * programglobal::deltaTime;
 	}
 }
 
 void dayscene::reset() {
-
+	t = 0.0f;
 }
 
 void dayscene::uninit() {

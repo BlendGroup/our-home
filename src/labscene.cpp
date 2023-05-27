@@ -29,7 +29,8 @@ enum EVENTS {
 	ROBOT_ANIM,
 	BKGND_MUSIC_PLAY,
 	CAMERA_MOVE,
-	CROSSFADE,
+	CROSSFADE_IN,
+	CROSSFADE_OUT,
 
 //Dont Add	
 	NUM_EVENTS
@@ -79,9 +80,11 @@ static GLfloat astonautT	= 0.0f;
 static GLfloat cameraT		= 0.0f;
 static GLfloat doorT		= 0.0f;
 static GLfloat hologramT	= 0.0f;
-static GLfloat crossT		= 0.0f;
+static GLfloat crossinT		= 0.0f;
+static GLfloat crossoutT	= 0.0f;
 
 extern GLuint texTitleSceneFinal;
+GLuint texLabSceneFinal;
 
 void labscene::setupProgram() {
 	try {
@@ -135,7 +138,7 @@ void labscene::init() {
 	for(int i = 0; i < NUM_EVENTS; i++) {
 		eventManager[i] = false;
 	}
-	eventManager[CROSSFADE] = true;
+	eventManager[CROSSFADE_IN] = true;
 	
 	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKai.wav");
 	playerRobotThump = new audioplayer("resources/audio/MetallicThumps.wav");
@@ -237,6 +240,12 @@ void labscene::init() {
 	doorPlacer = new modelplacer(vec3(-1.38f, -0.41f, -1.45f), vec3(0.0f, 0.0f, 0.0f), 0.08f);
 #endif
 	
+	unsigned char white[] = {255, 255, 255, 255};
+	glGenTextures(1, &texLabSceneFinal);
+	glBindTexture(GL_TEXTURE_2D, texLabSceneFinal);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, white);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
 	programStaticPBR = new glshaderprogram({"shaders/pbr.vert", "shaders/pbrMain.frag"});
 	glBindFramebuffer(GL_FRAMEBUFFER, envMapper->FBO);
 	glViewport(0, 0, envMapper->width, envMapper->height);
@@ -321,7 +330,7 @@ void labscene::render() {
 		glUniform1f(programHologram->getUniformLocation("alpha"), 0.5f);
 		glUniform1f(programHologram->getUniformLocation("FlickerSpeed"),5.0f);
 		glUniform1f(programHologram->getUniformLocation("RimPower"),5.0f);
-		glUniform1f(programHologram->getUniformLocation("EmissionPower"), crossT);
+		glUniform1f(programHologram->getUniformLocation("EmissionPower"), crossinT);
 		// glUniform1f(programHologram->getUniformLocation("GlowSpeed"),1.0f);
 		// glUniform1f(programHologram->getUniformLocation("GlowDistance"),1.0f);
 		modelBLEND->draw(programHologram,1,false);
@@ -356,8 +365,11 @@ void labscene::render() {
 			robotSpline->render(RED_PINK_COLOR);
 		}
 	
-		if(!eventManager[CAMERA_MOVE]) {
-			crossfader::render(texTitleSceneFinal, crossT);
+		if(eventManager[CROSSFADE_IN]) {
+			crossfader::render(texTitleSceneFinal, crossinT);
+		}
+		if(eventManager[CROSSFADE_OUT]) {
+			crossfader::render(texLabSceneFinal, 1.0f - crossoutT);
 		}
 	} catch(string errString) {
 		throwErr(errString);
@@ -371,13 +383,13 @@ void labscene::reset() {
 void labscene::update() {
 	t += programglobal::deltaTime;
 
-	if(crossT >= 1.0f) {
+	if(crossinT >= 1.0f) {
 		eventManager[CAMERA_MOVE] = true;
-		eventManager[CROSSFADE] = false;
+		eventManager[CROSSFADE_IN] = false;
 	}
 	if(doorT >= 1.0f) {
-		cout<<t<<endl;
-		playNextScene();
+		eventManager[DOOR_ANIM] = false;
+		eventManager[CROSSFADE_OUT] = true;
 	}
 	if(robotT >= 1.0f) {
 		eventManager[ROBOT_ANIM] = false;
@@ -392,6 +404,10 @@ void labscene::update() {
 	if(t >= 20.5f && t <= 20.6f) {
 		eventManager[ROBOT_ANIM] = true;
 	}
+	if(crossoutT > 1.0f) {
+		eventManager[CROSSFADE_OUT] = false;
+		playNextScene();
+	}
 	
 	static const float DOOR_OPEN_SPEED = 0.075f;
 	static const float ROBOT_MOVE_SPEED = 0.06f;
@@ -401,8 +417,8 @@ void labscene::update() {
 	static const float CAMERA_SPEED = 0.025f;
 	static const float CROSSFADE_SPEED = 0.3f;
 
-	if(eventManager[CROSSFADE]) {
-		crossT += CROSSFADE_SPEED * programglobal::deltaTime;
+	if(eventManager[CROSSFADE_IN]) {
+		crossinT += CROSSFADE_SPEED * programglobal::deltaTime;
 	}
 	if(eventManager[DOOR_ANIM]) {
 		doorT += DOOR_OPEN_SPEED * programglobal::deltaTime;
@@ -417,6 +433,9 @@ void labscene::update() {
 	}
 	if(eventManager[CAMERA_MOVE]) {
 		camera1->updateT(CAMERA_SPEED * programglobal::deltaTime);
+	}
+	if(eventManager[CROSSFADE_OUT]) {
+		crossoutT += CROSSFADE_SPEED * programglobal::deltaTime;
 	}
 	
 	hologramT += HOLOGRAM_UPDATE_SPEED * programglobal::deltaTime;

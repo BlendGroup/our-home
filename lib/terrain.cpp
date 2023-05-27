@@ -28,7 +28,9 @@ terrain::terrain(GLuint heightMap, bool calcNormal, GLfloat minTess, GLfloat max
 		programglobal::oclContext->setKernelParameters(normalKernel, {param(0, this->heightMap.cl), param(1, this->normalMap.cl)});
 		size_t globalWorkSize[] = { TEXTURE_SIZE, TEXTURE_SIZE };
 		size_t localWorkSize[] = { 16, 16 };
-		programglobal::oclContext->runCLKernel(normalKernel, 2, globalWorkSize, localWorkSize, {this->heightMap, this->normalMap});
+		if(calcNormal) {
+			programglobal::oclContext->runCLKernel(normalKernel, 2, globalWorkSize, localWorkSize, {this->heightMap, this->normalMap});
+		}
 		CLErr(clhelpererr = clFinish(programglobal::oclContext->getCommandQueue()));
 
 		struct vertex_t {

@@ -228,7 +228,7 @@ public:
     }
 
 	inline friend std::ostream& operator<<(std::ostream& out, const vecN &that) {
-		out<<"vec3(";
+		out<<"vec"<<len<<"(";
 		for(int n = 0; n < len; n++) {
 			out<<that[n]<<"f, ";
 		}

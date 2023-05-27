@@ -22,8 +22,6 @@ static debugCamera* staticcamera;
 static glshaderprogram* programRender;
 static glmodel* modelTitle;
 
-#define tex_1k 1920, 1080
-
 void titlescene::setupProgram() {
 	programRender = new glshaderprogram({"shaders/title/render.vert", "shaders/title/render.frag"});
 }
