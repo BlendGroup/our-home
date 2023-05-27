@@ -21,7 +21,7 @@ uniform float GlowDistance;
 
 layout(location = 0)out vec4 FragColor;
 layout(location = 1)out vec4 EmmisiveColor;
-
+layout(location = 2)out vec4 OclusionColor;
 
 float rand(float n){
     return fract(sin(n) * 43758.5453123);
@@ -44,6 +44,7 @@ void main(void) {
     FragColor = MainColor + rimColor + (0.35 * MainColor);
     FragColor.a = alpha * (bars + rim) * flicker;
     EmmisiveColor = vec4(FragColor.rgb, 1.0) *  0.2;
+	OclusionColor = vec4(0.0);
 }
 
 

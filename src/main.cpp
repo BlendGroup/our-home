@@ -40,6 +40,7 @@ double programglobal::deltaTime;
 debugMode_t programglobal::debugMode;
 clglcontext* programglobal::oclContext;
 shaperenderer* programglobal::shapeRenderer;
+godrays* programglobal::godrayObject;
 
 void setupProgram(void) {
 	try {
@@ -70,11 +71,10 @@ void init(void) {
 		programglobal::oclContext = new clglcontext(1);
 		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
 		programglobal::shapeRenderer = new shaperenderer();
-		godrays::init();
 		sceneList.insert(sceneList.begin(), {
 			new titlescene(),
 			new labscene(),
-			new dayscene()
+			// new dayscene()
 		});
 
 		//Inititalize
@@ -123,7 +123,9 @@ void render(glwindow* window) {
 			glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 			hdr->render();
-			// godrays::renderRays();
+			if(programglobal::godrayObject) {
+				programglobal::godrayObject->renderRays(hdr);
+			}
 		}
 	} catch(string errorString) {
 		throwErr(errorString);

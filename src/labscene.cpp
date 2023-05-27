@@ -16,6 +16,7 @@
 #include<glLight.h>
 #include<assimp/postprocess.h>
 #include<audio.h>
+#include<godrays.h>
 
 using namespace std;
 using namespace vmath;
@@ -59,9 +60,12 @@ static glshaderprogram* programHologram;
 static glshaderprogram* programCrossfade;
 
 static GLuint skybox_vao,vbo;
+static GLuint emptyvao;
 
 static audioplayer *playerBkgnd;
 static audioplayer *playerRobotThump;
+
+static godrays* godraysDoor;
 
 #ifdef DEBUG
 static modelplacer* doorPlacer;
@@ -143,6 +147,13 @@ void labscene::init() {
 	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelBLEND = new glmodel("resources/models/blendlogo/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
 
+	godraysDoor = new godrays();
+	godraysDoor->setDecay(1.0f);
+	godraysDoor->setDensity(1.0f);
+	godraysDoor->setExposure(1.0f);
+	godraysDoor->setSamples(100);
+	godraysDoor->setWeight(0.01f);
+
 	bspRobot = new BsplineInterpolator({
 		vec3(2.14f, -1.067f, 1.7f),
 		vec3(1.83f, -1.067f, 0.59f),
@@ -220,6 +231,8 @@ void labscene::init() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), NULL);
 	glEnableVertexAttribArray(0);
 
+	glGenVertexArrays(1, &emptyvao);
+
 #ifdef DEBUG
 	doorPlacer = new modelplacer(vec3(-1.38f, -0.41f, -1.45f), vec3(0.0f, 0.0f, 0.0f), 0.08f);
 #endif
@@ -250,6 +263,8 @@ void labscene::init() {
 
 void labscene::render() {
 	try {
+		programglobal::godrayObject = godraysDoor;
+
 		programStaticPBR->use();
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"),1,GL_FALSE, programglobal::perspective);
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"),1,GL_FALSE, programglobal::currentCamera->matrix());
@@ -318,20 +333,21 @@ void labscene::render() {
 		glUniform4fv(programColor->getUniformLocation("emissive"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
 		glUniform4fv(programColor->getUniformLocation("occlusion"), 1, vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		programglobal::shapeRenderer->renderQuad();
+		godraysDoor->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix() * translate(-3.45f, -0.3f, 2.828f), vec4(-3.45f, -0.3f, 2.828f, 1.0f));
 
 		// render light src
-		programLight->use();
-		glUniformMatrix4fv(programLight->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
-		glUniformMatrix4fv(programLight->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix()); 
-		sceneLightManager->renderSceneLights(programLight);
+		// programLight->use();
+		// glUniformMatrix4fv(programLight->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
+		// glUniformMatrix4fv(programLight->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix()); 
+		// sceneLightManager->renderSceneLights(programLight);
 
 		// render to cubemap test
-		programSkybox->use();
-		glUniformMatrix4fv(programSkybox->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
-		glUniformMatrix4fv(programSkybox->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
-		glBindVertexArray(skybox_vao);
-		glBindTextureUnit(0,envMapper->cubemap_texture);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		// programSkybox->use();
+		// glUniformMatrix4fv(programSkybox->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
+		// glUniformMatrix4fv(programSkybox->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
+		// glBindVertexArray(skybox_vao);
+		// glBindTextureUnit(0,envMapper->cubemap_texture);
+		// glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		if(!eventManager[CAMERA_MOVE]) {
 			glEnable(GL_BLEND);
@@ -341,7 +357,9 @@ void labscene::render() {
 			glUniform1i(programCrossfade->getUniformLocation("texSampler"), 0);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, texTitleSceneFinal);
+			glBindVertexArray(emptyvao);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+			glBindVertexArray(0);
 			glDisable(GL_BLEND);
 		}
 

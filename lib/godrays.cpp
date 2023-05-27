@@ -11,8 +11,8 @@ godrays::godrays():
 	weight(0.0f),
 	decay(0.0f),
 	exposure(0.0f),
-	samples(0),
-	occlusionTex(0) {
+	samples(0) {
+	glGenVertexArrays(1, &emptyvao);
 	try {
 		godraysProgram = new glshaderprogram({{"shaders/godrays.vert"}, {"shaders/godrays.frag"}});
 	} catch(string errorString) {
@@ -27,6 +27,26 @@ godrays::~godrays() {
 	}
 }
 
+void godrays::setDensity(GLfloat density) {
+	this->density = density;
+}
+
+void godrays::setWeight(GLfloat weight) {
+	this->weight = weight;
+}
+
+void godrays::setDecay(GLfloat decay) {
+	this->decay = decay;
+}
+
+void godrays::setExposure(GLfloat exposure) {
+	this->exposure = exposure;
+}
+
+void godrays::setSamples(int samples) {
+	this->samples = samples;
+}
+
 vec4 transform(const mat4 &m, const vec4 &v) {
 	vec4 out;
 	out[0] = m[0][0]*v[0] + m[1][0]*v[1] + m[2][0]*v[2] + m[3][0]*v[3];
@@ -36,32 +56,30 @@ vec4 transform(const mat4 &m, const vec4 &v) {
 	return out;
 }
 
-void godrays::renderRays() {
+void godrays::setScreenSpaceCoords(const vmath::mat4& mvp, const vmath::vec4& pos) {
+	vec4 ssPos = transform(mvp, pos);
+	this->sscoord = vec2(ssPos[0] / ssPos[2] * 0.5f + 0.5f, ssPos[1] / ssPos[2] * 0.5f + 0.5f);
+}
+
+void godrays::renderRays(HDR* hdr) {
 	// enable blending and set blend func to perform additive blending
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-	// get screen-space emission source coordinates (perspective divide)
-	vec4 ssPos = transform(this->mvpMatrix, this->pos);
-	float ssX = ssPos[0]/ssPos[2];
-	float ssY = ssPos[1]/ssPos[2];
-
-	// map ssX and ssY from [-1, 1] to [0, 1]
-	ssX = ssX * 0.5f + 0.5f;
-	ssY = ssY * 0.5f + 0.5f;
-
 	godraysProgram->use();
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, occlusionTex);
+	glBindTexture(GL_TEXTURE_2D, hdr->occlusionTex);
 
 	glUniform1i(godraysProgram->getUniformLocation("texOcclusion"), 0);
-	glUniform2fv(godraysProgram->getUniformLocation("screenSpaceEmissiveObjectPos"), 1, sscoord);
+	glUniform2fv(godraysProgram->getUniformLocation("screenSpaceEmissiveObjectPos"), 1, vec2(0.5f, 0.5f));
 	glUniform1f(godraysProgram->getUniformLocation("density"), density);
 	glUniform1f(godraysProgram->getUniformLocation("weight"), weight);
 	glUniform1f(godraysProgram->getUniformLocation("decay"), decay);
 	glUniform1f(godraysProgram->getUniformLocation("exposure"), exposure);
 	glUniform1i(godraysProgram->getUniformLocation("samples"), samples);
+
+	glBindVertexArray(this->emptyvao);
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 

@@ -23,6 +23,7 @@ private:
 	glshaderprogram* hdrprogram;
 	glshaderprogram* downscaleprogram;
 	glshaderprogram* upscaleprogram;
+	friend class godrays;
 public:
 	HDR(GLfloat exposure, GLfloat fade, GLsizei size);
 	void setupProgram(void) override;

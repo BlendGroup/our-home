@@ -5,6 +5,7 @@
 #include<clhelper.h>
 #include<camera.h>
 #include<shapes.h>
+#include<godrays.h>
 
 enum debugMode_t {
 	CAMERA,
@@ -20,6 +21,7 @@ namespace programglobal {
 	extern double deltaTime;
 	extern shaperenderer* shapeRenderer;
 	extern debugMode_t debugMode;
+	extern godrays* godrayObject;
 } // namespace programglobal
 
 #endif
