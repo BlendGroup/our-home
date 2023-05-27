@@ -148,10 +148,10 @@ void labscene::init() {
 	modelBLEND = new glmodel("resources/models/blendlogo/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
 
 	godraysDoor = new godrays();
-	godraysDoor->setDecay(0.5f);
-	godraysDoor->setDensity(2.1f);
-	godraysDoor->setExposure(1.5f);
-	godraysDoor->setSamples(150);
+	godraysDoor->setDecay(0.98f);
+	godraysDoor->setDensity(1.2f);
+	godraysDoor->setExposure(1.0f);
+	godraysDoor->setSamples(125);
 	godraysDoor->setWeight(0.06f);
 
 	bspRobot = new BsplineInterpolator({
@@ -333,7 +333,7 @@ void labscene::render() {
 		glUniform4fv(programColor->getUniformLocation("emissive"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
 		glUniform4fv(programColor->getUniformLocation("occlusion"), 1, vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		programglobal::shapeRenderer->renderQuad();
-		godraysDoor->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix() * translate(-3.45f, -0.3f, 2.828f), vec4(-3.45f, -0.3f, 2.828f, 1.0f));
+		godraysDoor->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix(), vec4(-3.45f, -0.3f, 2.828f, 1.0f));
 
 		// render light src
 		// programLight->use();
