@@ -47,25 +47,23 @@ void godrays::setSamples(int samples) {
 	this->samples = samples;
 }
 
-vec4 transform(const mat4 &m, const vec4 &v) {
-	vec4 out;
-	out[0] = m[0][0]*v[0] + m[1][0]*v[1] + m[2][0]*v[2] + m[3][0]*v[3];
-	out[1] = m[0][1]*v[0] + m[1][1]*v[1] + m[2][1]*v[2] + m[3][1]*v[3];
-	out[2] = m[0][2]*v[0] + m[1][2]*v[1] + m[2][2]*v[2] + m[3][2]*v[3];
-	out[3] = m[0][3]*v[0] + m[1][3]*v[1] + m[2][3]*v[2] + m[3][3]*v[3];
-	return out;
-}
+void godrays::setScreenSpaceCoords(const mat4& vp, const vec4& pos) {
+	auto transform = [] (const mat4& m, const vec4& v) -> vec4 {
+		vec4 out;
+		out[0] = m[0][0]*v[0] + m[1][0]*v[1] + m[2][0]*v[2] + m[3][0]*v[3];
+		out[1] = m[0][1]*v[0] + m[1][1]*v[1] + m[2][1]*v[2] + m[3][1]*v[3];
+		out[2] = m[0][2]*v[0] + m[1][2]*v[1] + m[2][2]*v[2] + m[3][2]*v[3];
+		out[3] = m[0][3]*v[0] + m[1][3]*v[1] + m[2][3]*v[2] + m[3][3]*v[3];
+		return out;
+    	};
+	vec4 ssPos = transform(vp, pos);
+	float ssX = ssPos[0]/ssPos[3];
+	float ssY = ssPos[1]/ssPos[3];
 
-void godrays::setScreenSpaceCoords(const vmath::mat4& mvp, const vmath::vec4& pos) {
- 	vec4 ssPos = transform(mvp, pos);
-    float ssX = ssPos[0]/ssPos[2];
-    float ssY = ssPos[1]/ssPos[2];
-
-    // map ssX and ssY from [-1, 1] to [0, 1]
-    ssX = ssX*0.5f + 0.5f;
-    ssY = ssY*0.5f + 0.5f;
+	// map ssX and ssY from [-1, 1] to [0, 1]
+	ssX = ssX*0.5f + 0.5f;
+	ssY = ssY*0.5f + 0.5f;
 	this->sscoord = vec2(ssX, ssY);
-	// cout<<this->sscoord<<endl;
 }
 
 void godrays::renderRays(HDR* hdr) {
@@ -79,7 +77,7 @@ void godrays::renderRays(HDR* hdr) {
 	glBindTexture(GL_TEXTURE_2D, hdr->occlusionTex);
 
 	glUniform1i(godraysProgram->getUniformLocation("texOcclusion"), 0);
-	glUniform2fv(godraysProgram->getUniformLocation("screenSpaceEmissiveObjectPos"), 1, vec2(0.5f, 0.5f));
+	glUniform2fv(godraysProgram->getUniformLocation("screenSpaceEmissiveObjectPos"), 1, this->sscoord);
 	glUniform1f(godraysProgram->getUniformLocation("density"), density);
 	glUniform1f(godraysProgram->getUniformLocation("weight"), weight);
 	glUniform1f(godraysProgram->getUniformLocation("decay"), decay);
