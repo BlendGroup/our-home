@@ -17,12 +17,10 @@ private:
     glshaderprogram *m_program;
     GLuint m_vaoSpline, m_vboSpline;
     GLuint m_vaoPoint, m_vboPoint;
-    GLuint m_vaoCtrlPoly, m_vboCtrlPoly;
     const std::vector<vmath::vec3> &m_points;
-	const std::vector<vmath::vec3> &m_ctrlps;
     int m_nAllPositions;
     float m_linspace;
-    bool m_isRenderPoints, m_isRenderCtrlps, m_isRenderCtrlPoly;
+    bool m_isRenderPoints;
 
     void loadGeometry(void);
 
@@ -31,8 +29,6 @@ public:
     ~SplineRenderer();
     void render(const vmath::vec4 linecolor, const vmath::vec4 pointcolor, const vmath::vec4 selectedpointcolor, int selected, float scale) const;
     void setRenderPoints(bool setting);
-    void setRenderControlPoints(bool setting);
-    void setRenderControlPolygon(bool setting);
 };
 
 #endif // __SPLINE_RENDERER_H__

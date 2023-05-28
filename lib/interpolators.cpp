@@ -62,11 +62,6 @@ const std::vector<vmath::vec3> &CubicBezierInterpolator::getPoints(void)
     return m_ctrlps;
 }
 
-const std::vector<vmath::vec3> &CubicBezierInterpolator::getControlPoints(void)
-{
-    return m_ctrlps;
-}
-
 CubicBezierInterpolator::~CubicBezierInterpolator() {}
 
 /*********************************************************************/
@@ -74,72 +69,9 @@ CubicBezierInterpolator::~CubicBezierInterpolator() {}
 /*********************************************************************/
 BsplineInterpolator::BsplineInterpolator(const vector<vec3> &points)
 {
-    /* get points in Eigen matrix form */
-    int row = 0;
-    MatrixX3f m_points(points.size(), 3);
-    for (auto point : points)
-    {
-        m_points.row(row)(0) = point[0];
-        m_points.row(row)(1) = point[1];
-        m_points.row(row)(2) = point[2];
-        ++row;
-    }
-    m_nPoints = m_points.rows();
-
-    /* copy also the vector form for later submissions to a SplineRenderer
-     * (debug-only feature in future)
-     */
-    m_pointsVec = points;
-
-    /* construct the 1-4-1 matrix and get its inverse */
-    int nNonEnds = m_nPoints - 2;
-    MatrixXf cubicBsplineKernel(nNonEnds, nNonEnds);
-    cubicBsplineKernel = MatrixXf::Identity(nNonEnds, nNonEnds) * 4.0f;
-    cubicBsplineKernel.block(0, 1, nNonEnds - 1, nNonEnds - 1).triangularView<Upper>().fill(1.0f);
-    cubicBsplineKernel.block(0, 2, nNonEnds - 2, nNonEnds - 2).triangularView<Upper>().fill(0.0f);
-    cubicBsplineKernel.block(1, 0, nNonEnds - 1, nNonEnds - 1).triangularView<Lower>().fill(1.0f);
-    cubicBsplineKernel.block(2, 0, nNonEnds - 2, nNonEnds - 2).triangularView<Lower>().fill(0.0f);
-    cubicBsplineKernel = cubicBsplineKernel.inverse();
-
-    /* modify points to use in the 1-4-1 inverse transform equation */
-    MatrixX3f tempModifiedPoints(nNonEnds, 3);
-    tempModifiedPoints.row(0) = 6.0f * m_points.row(1) - m_points.row(0);
-    for (int i = 2; i < nNonEnds; i++)
-    {
-        tempModifiedPoints.row(i - 1) = 6.0f * m_points.row(i);
-    }
-    tempModifiedPoints.row(nNonEnds - 1) = 6.0f * m_points.row(m_nPoints - 2) - m_points.row(m_nPoints - 1);
-
-    /* apply inverse transform equation to compute bspline control points */
-    MatrixX3f m_bspCtrlps(m_nPoints, 3);
-    m_bspCtrlps.row(0) = m_points.row(0);
-    m_bspCtrlps.block(1, 0, nNonEnds, 3) = cubicBsplineKernel * tempModifiedPoints;
-    m_bspCtrlps.row(m_nPoints - 1) = m_points.row(m_nPoints - 1);
-
-    /* copy bspline ctrlps to a vector form for later submissions to a SplineRenderer
-     * (debug-only feature in future)
-     */
-    for(auto ctrlp: m_bspCtrlps.rowwise())
-    {
-        m_bspCtrlpsVec.push_back(vec3(ctrlp(0), ctrlp(1), ctrlp(2)));
-    }
-
-    /* get subdivided cubic bezier control points from bspline control points */
-	int nCubicCPs = 2 * (m_bspCtrlps.rows() - 1) + m_points.rows();
-    MatrixX3f outCtrlps(nCubicCPs, 3);
-
-    int count = 0;
-    int i = 0;
-    for (; i < m_bspCtrlps.rows() - 1; i++)
-    {
-        outCtrlps.row(count++) = m_points.row(i); // starts with a knot
-        outCtrlps.row(count++) = (2.0f * m_bspCtrlps.row(i) / 3.0f) + (m_bspCtrlps.row(i + 1) / 3.0f);
-        outCtrlps.row(count++) = (m_bspCtrlps.row(i) / 3.0f) + (2.0f * m_bspCtrlps.row(i + 1) / 3.0f);
-    }
-    outCtrlps.row(count++) = m_points.row(i); // ends with a knot
-
-    /* optain a cubic interpolator from subdivided bezier control points */
-    m_cubicBezierInterpolator = new CubicBezierInterpolator(outCtrlps);
+	this->m_pointsVec = points;
+	this->m_cubicBezierInterpolator = nullptr;
+	recalculateSpline();
 }
 
 float BsplineInterpolator::getDistanceOnSpline(const float t)
@@ -157,9 +89,71 @@ const std::vector<vmath::vec3> &BsplineInterpolator::getPoints(void)
     return m_pointsVec;
 }
 
-const std::vector<vmath::vec3> &BsplineInterpolator::getControlPoints(void)
-{
-    return m_bspCtrlpsVec;
+void BsplineInterpolator::recalculateSpline(void) {
+    int row = 0;
+	int pointVecSize = this->m_pointsVec.size();
+    MatrixX3f m_points(pointVecSize, 3);
+    for (auto point : this->m_pointsVec) {
+        m_points.row(row)(0) = point[0];
+        m_points.row(row)(1) = point[1];
+        m_points.row(row)(2) = point[2];
+        ++row;
+    }
+    /* construct the 1-4-1 matrix and get its inverse */
+    int nNonEnds = pointVecSize - 2;
+    MatrixXf cubicBsplineKernel(nNonEnds, nNonEnds);
+    cubicBsplineKernel = MatrixXf::Identity(nNonEnds, nNonEnds) * 4.0f;
+    cubicBsplineKernel.block(0, 1, nNonEnds - 1, nNonEnds - 1).triangularView<Upper>().fill(1.0f);
+    cubicBsplineKernel.block(0, 2, nNonEnds - 2, nNonEnds - 2).triangularView<Upper>().fill(0.0f);
+    cubicBsplineKernel.block(1, 0, nNonEnds - 1, nNonEnds - 1).triangularView<Lower>().fill(1.0f);
+    cubicBsplineKernel.block(2, 0, nNonEnds - 2, nNonEnds - 2).triangularView<Lower>().fill(0.0f);
+    cubicBsplineKernel = cubicBsplineKernel.inverse();
+
+    /* modify points to use in the 1-4-1 inverse transform equation */
+    MatrixX3f tempModifiedPoints(nNonEnds, 3);
+    tempModifiedPoints.row(0) = 6.0f * m_points.row(1) - m_points.row(0);
+    for (int i = 2; i < nNonEnds; i++)
+    {
+        tempModifiedPoints.row(i - 1) = 6.0f * m_points.row(i);
+    }
+    tempModifiedPoints.row(nNonEnds - 1) = 6.0f * m_points.row(pointVecSize - 2) - m_points.row(pointVecSize - 1);
+
+    MatrixX3f m_bspCtrlps(pointVecSize, 3);
+    m_bspCtrlps.row(0) = m_points.row(0);
+    m_bspCtrlps.block(1, 0, nNonEnds, 3) = cubicBsplineKernel * tempModifiedPoints;
+    m_bspCtrlps.row(pointVecSize - 1) = m_points.row(pointVecSize - 1);
+
+	int nCubicCPs = 2 * (m_bspCtrlps.rows() - 1) + m_points.rows();
+    MatrixX3f outCtrlps(nCubicCPs, 3);
+
+    int count = 0;
+    int i = 0;
+    for (; i < m_bspCtrlps.rows() - 1; i++)
+    {
+        outCtrlps.row(count++) = m_points.row(i); // starts with a knot
+        outCtrlps.row(count++) = (2.0f * m_bspCtrlps.row(i) / 3.0f) + (m_bspCtrlps.row(i + 1) / 3.0f);
+        outCtrlps.row(count++) = (m_bspCtrlps.row(i) / 3.0f) + (2.0f * m_bspCtrlps.row(i + 1) / 3.0f);
+    }
+    outCtrlps.row(count++) = m_points.row(i); // ends with a knot
+
+	if(m_cubicBezierInterpolator) {
+		delete m_cubicBezierInterpolator;
+	}
+    m_cubicBezierInterpolator = new CubicBezierInterpolator(outCtrlps);
+}
+
+ostream& operator<< (ostream &out, const BsplineInterpolator &t) {
+	out<<"Spline = {\n";
+	for(int i = 0; i < t.m_pointsVec.size(); i++) {
+		out<<"\t"<<t.m_pointsVec[i]<<",\n";
+	}
+	out<<"}";
+	return out;
+}
+
+ostream& operator<< (ostream &out, const BsplineInterpolator *t) {
+	out<<*t;
+	return out;
 }
 
 BsplineInterpolator::~BsplineInterpolator()

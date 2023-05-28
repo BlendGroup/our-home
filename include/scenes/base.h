@@ -1,17 +1,23 @@
 #ifndef __BASE_SCENE__
 #define __BASE_SCENE__
 
-#include<scenecamera.h>
+#include<camera.h>
 
 class basescene {
+protected:
+	float t;
 public:
 	virtual void setupProgram() = 0;
-	virtual sceneCamera* setupCamera() = 0;
+	virtual void setupCamera() = 0;
 	virtual void init() = 0;
 	virtual void render() = 0;
-	virtual void update(sceneCamera* cam) = 0;
+	virtual void update() = 0;
+	virtual void reset() = 0;
 	virtual void uninit() = 0;
 	virtual void keyboardfunc(int key) = 0;
+	virtual camera* getCamera() = 0;
 };
+
+void playNextScene();
 
 #endif

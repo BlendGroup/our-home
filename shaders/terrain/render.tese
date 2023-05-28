@@ -19,6 +19,7 @@ uniform sampler2D texHeight;
 uniform sampler2D texNormal;
 uniform float amplitudeMin;
 uniform float amplitudeMax;
+uniform float numMeshes;
 
 void main(void) {
 	vec2 tc1 = mix(tes_in[0].tc, tes_in[1].tc, gl_TessCoord.x);
@@ -29,10 +30,10 @@ void main(void) {
 	vec4 p2 = mix(gl_in[2].gl_Position, gl_in[3].gl_Position, gl_TessCoord.x);
 	vec4 p = mix(p2, p1, gl_TessCoord.y);
 
-	float mixvalue = 1.0 - (p.z / 32.0 * 0.5 + 0.5);
-	mixvalue = mixvalue * mixvalue * mixvalue;
+	float t = clamp(tc.y, 0.0, 1.0);
+	t = t * t * t;
 
-	p.y += texture(texHeight, tc).r * mix(amplitudeMin, amplitudeMax, mixvalue);
+	p.y += texture(texHeight, tc).r * mix(amplitudeMin, amplitudeMax, 1.0 - t);
 
 	tes_out.tc = tc;
 	tes_out.nor = mat3(mMat) * texture(texNormal, tc).rgb;

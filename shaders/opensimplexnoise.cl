@@ -92,11 +92,12 @@ kernel void turbulencefbm2(global float2* input, global float* output, const uin
 	}
 }
 
-kernel void combinetex(read_only image2d_t heightMap1, read_only image2d_t heightMap2, write_only image2d_t heightMapOp) {
+kernel void combinetex(read_only image2d_t heightMap1, read_only image2d_t heightMap2, write_only image2d_t heightMapOp, float offset) {
 	int2 coord = (int2)(get_global_id(0), get_global_id(1));
 	float h1 = read_imagef(heightMap1, coord).r;
 	float h2 = read_imagef(heightMap2, coord).r;
 	float t = (float)get_global_id(1) / (float)get_image_height(heightMapOp);
-	t = t * t * t;
+	t += offset;
+	t = clamp(t, 0.0f, 1.0f);
 	write_imagef(heightMapOp, coord, (float4)(mix(h1, h2, t)));
 }
