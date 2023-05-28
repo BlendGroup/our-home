@@ -31,7 +31,6 @@ static bool hdrEnabled = true;
 static HDR* hdr;
 static debugCamera* debugcamera;
 static bool isDebugCameraOn = false;
-static bool isAnimating = false;
 static vector<basescene*> sceneList;
 static basescene* currentScene;
 static glwindow* window;
@@ -39,10 +38,11 @@ static glwindow* window;
 vmath::mat4 programglobal::perspective;
 camera* programglobal::currentCamera;
 double programglobal::deltaTime;
-debugMode_t programglobal::debugMode;
+debugMode_t programglobal::debugMode = NONE;
 clglcontext* programglobal::oclContext;
 shaperenderer* programglobal::shapeRenderer;
 godrays* programglobal::godrayObject;
+bool programglobal::isAnimating = false;
 
 void setupProgram(void) {
 	try {
@@ -147,9 +147,7 @@ void resetFBO() {
 }
 
 void update(void) {
-	if(isAnimating) {
-		currentScene->update();
-	}
+	currentScene->update();
 }
 
 void resetScene(void) {
@@ -167,6 +165,9 @@ void keyboard(glwindow* window, int key) {
 	case XK_F2:
 		isDebugCameraOn = !isDebugCameraOn;
 		break;
+	case XK_F3:
+		programglobal::debugMode = NONE;
+		break;
 	case XK_F4:
 		resetScene();
 		break;
@@ -183,7 +184,7 @@ void keyboard(glwindow* window, int key) {
 		programglobal::debugMode = LIGHT;
 		break;
 	case XK_space:
-		isAnimating = !isAnimating;
+		programglobal::isAnimating = !programglobal::isAnimating;
 		break;
 	}
 	debugcamera->keyboardFunc(key);
@@ -231,8 +232,8 @@ int main(int argc, char **argv) {
 		auto initstart = chrono::steady_clock::now();
 		window->setKeyboardFunc(keyboard);
 		window->setMouseFunc(mouse);
-		window->setFullscreen(true);
 		init();
+		window->setFullscreen(true);
 		auto initend = chrono::steady_clock::now();
 		chrono::duration<double> diff = initend - initstart;
 		cout<<"Time taken to initialize "<<diff.count()<<" sec"<<endl;
@@ -245,9 +246,7 @@ int main(int argc, char **argv) {
 			#ifdef DEBUG
 			programglobal::deltaTime *= SPEED_MULTIPLIER;
 			#endif
-			if(isAnimating) {
-				update();
-			}
+			update();
 			window->swapBuffers();
 		}
 		uninit();

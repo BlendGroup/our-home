@@ -24,20 +24,6 @@ using namespace vmath;
 
 #define CUBEMAP_SIZE 2048
 
-enum EVENTS {
-	DOOR_ANIM = 0,
-	ROBOT_ANIM,
-	BKGND_MUSIC_PLAY,
-	CAMERA_MOVE,
-	CROSSFADE_IN,
-	CROSSFADE_OUT,
-
-//Dont Add	
-	NUM_EVENTS
-};
-
-static bool eventManager[NUM_EVENTS];
-
 static sceneCamera* camera1;
 
 static glmodel* modelLab;
@@ -135,11 +121,6 @@ void labscene::setupCamera() {
 }
 
 void labscene::init() {
-	for(int i = 0; i < NUM_EVENTS; i++) {
-		eventManager[i] = false;
-	}
-	eventManager[CROSSFADE_IN] = true;
-	
 	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKai.wav");
 	playerRobotThump = new audioplayer("resources/audio/MetallicThumps.wav");
 
@@ -365,10 +346,10 @@ void labscene::render() {
 			robotSpline->render(RED_PINK_COLOR);
 		}
 	
-		if(eventManager[CROSSFADE_IN]) {
+		if(crossinT < 1.0f) {
 			crossfader::render(texTitleSceneFinal, crossinT);
 		}
-		if(eventManager[CROSSFADE_OUT]) {
+		if(crossoutT < 1.0f) {
 			crossfader::render(texLabSceneFinal, 1.0f - crossoutT);
 		}
 	} catch(string errString) {
@@ -381,65 +362,27 @@ void labscene::reset() {
 }
 
 void labscene::update() {
-	t += programglobal::deltaTime;
-
-	if(crossinT >= 1.0f) {
-		eventManager[CAMERA_MOVE] = true;
-		eventManager[CROSSFADE_IN] = false;
+	if(programglobal::isAnimating) {
+		t += programglobal::deltaTime;
 	}
-	if(doorT >= 1.0f) {
-		eventManager[DOOR_ANIM] = false;
-		eventManager[CROSSFADE_OUT] = true;
-	}
-	if(robotT >= 1.0f) {
-		eventManager[ROBOT_ANIM] = false;
-	}
-	// if(t >= 6.2f) {
-	// 	eventManager[BKGND_MUSIC_PLAY] = true;
-	// 	playerBkgnd->play();
-	// }
-	if(t >= 41.0f) {
-		eventManager[DOOR_ANIM] = true;
-	}
-	if(t >= 20.5f && t <= 20.6f) {
-		eventManager[ROBOT_ANIM] = true;
-	}
-	if(crossoutT > 1.0f) {
-		eventManager[CROSSFADE_OUT] = false;
-		playNextScene();
-	}
-	
-	static const float DOOR_OPEN_SPEED = 0.075f;
-	static const float ROBOT_MOVE_SPEED = 0.06f;
 	static const float ROBOT_ANIM_SPEED = 0.99f;
 	static const float ASTRO_ANIM_SPEED = 0.1f;
 	static const float HOLOGRAM_UPDATE_SPEED = 0.5f;
-	static const float CAMERA_SPEED = 0.025f;
-	static const float CROSSFADE_SPEED = 0.3f;
-
-	if(eventManager[CROSSFADE_IN]) {
-		crossinT += CROSSFADE_SPEED * programglobal::deltaTime;
-	}
-	if(eventManager[DOOR_ANIM]) {
-		doorT += DOOR_OPEN_SPEED * programglobal::deltaTime;
-	}
-	if(eventManager[ROBOT_ANIM]) {
-		modelRobot->update(ROBOT_ANIM_SPEED * programglobal::deltaTime, 0);
-		if(fmod(robotT, 0.04f) <= 0.001f) {
-			playerRobotThump->play();
-		}
-		robotT += ROBOT_MOVE_SPEED * programglobal::deltaTime;
-		robotT = std::min(robotT, 1.0f);
-	}
-	if(eventManager[CAMERA_MOVE]) {
-		camera1->updateT(CAMERA_SPEED * programglobal::deltaTime);
-	}
-	if(eventManager[CROSSFADE_OUT]) {
-		crossoutT += CROSSFADE_SPEED * programglobal::deltaTime;
-	}
 	
+	crossinT = clamp((t - 0.0f) / 3.36f, 0.0f, 1.0f);
+	doorT = clamp((t - 41.0f) / 13.5f, 0.0f, 1.0f);
+	crossoutT = clamp((t - 53.8f) / 4.0f, 0.0f, 1.0f);
+	robotT = clamp((t - 20.5f) / 16.5f, 0.0f, 1.0f);
+	if(robotT >= 0.00001f && robotT <= 0.99999f) {
+		modelRobot->update(ROBOT_ANIM_SPEED * programglobal::deltaTime, 0);
+	}
+	camera1->setT((t - 3.36f) / 40.0f);
 	hologramT += HOLOGRAM_UPDATE_SPEED * programglobal::deltaTime;
 	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 0);
+
+	if(crossoutT >= 1.0f) {
+		playNextScene();
+	}
 }
 
 void labscene::uninit() {
@@ -455,6 +398,15 @@ void labscene::keyboardfunc(int key) {
 		cameraRig->keyboardfunc(key);
 	} else if(programglobal::debugMode == SPLINE) {
 		robotSpline->keyboardfunc(key);
+	} else {
+		switch(key) {
+		case XK_Up:
+			t += 0.4f;
+			break;
+		case XK_Down:
+			t -= 0.4f;
+			break;
+		}
 	}
 	switch(key) {
 	case XK_Tab:

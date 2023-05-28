@@ -1316,6 +1316,10 @@ static inline vecN<T,N> max(const vecN<T,N>& x, const vecN<T,N>& y)
     return t;
 }
 
+static inline float clamp(const float& x, const float& minVal, const float& maxVal) {
+	return std::min(std::max(x, minVal), maxVal);
+}
+
 template <typename T, const int N>
 static inline vecN<T,N> clamp(const vecN<T,N>& x, const vecN<T,N>& minVal, const vecN<T,N>& maxVal)
 {

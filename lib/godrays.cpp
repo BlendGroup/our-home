@@ -65,7 +65,7 @@ void godrays::setScreenSpaceCoords(const vmath::mat4& mvp, const vmath::vec4& po
     ssX = ssX*0.5f + 0.5f;
     ssY = ssY*0.5f + 0.5f;
 	this->sscoord = vec2(ssX, ssY);
-	cout<<this->sscoord<<endl;
+	// cout<<this->sscoord<<endl;
 }
 
 void godrays::renderRays(HDR* hdr) {

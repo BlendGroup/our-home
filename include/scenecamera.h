@@ -21,6 +21,8 @@ public:
     ~sceneCamera();
 	float getDistanceOnSpline() const;
     void updateT(float speed);
+	void setT(float t);
+	float getT();
 	void resetT();
 	vmath::mat4 matrix() const override;
 	vmath::vec3 position() const override;

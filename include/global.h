@@ -8,6 +8,7 @@
 #include<godrays.h>
 
 enum debugMode_t {
+	NONE,
 	CAMERA,
 	MODEL,
 	SPLINE,
@@ -22,6 +23,7 @@ namespace programglobal {
 	extern shaperenderer* shapeRenderer;
 	extern debugMode_t debugMode;
 	extern godrays* godrayObject;
+	extern bool isAnimating;
 } // namespace programglobal
 
 void resetFBO();

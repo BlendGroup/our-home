@@ -63,7 +63,9 @@ void titlescene::render() {
 }
 
 void titlescene::update(void) {
-	this->t += programglobal::deltaTime;
+	if(programglobal::isAnimating) {
+		this->t += programglobal::deltaTime;
+	}
 	if(this->t >= 2.0f) {
 		glBindFramebuffer(GL_FRAMEBUFFER, fboTitleSceneFinal);
 		glViewport(0, 0, tex_1k);
