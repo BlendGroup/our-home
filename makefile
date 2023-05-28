@@ -20,9 +20,7 @@ all: run
 
 run: build main.run
 
-
 test: build main.test
-
 
 build:
 	mkdir build

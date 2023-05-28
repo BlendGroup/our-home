@@ -3,6 +3,7 @@
 //output
 layout(location = 0)out vec4 fragColor;
 layout(location = 1)out vec4 emmitColor;
+layout(location = 2)out vec4 occlusionColor;
 
 //input
 in VS_OUT {
@@ -145,4 +146,5 @@ void main(void) {
 
     fragColor = vec4(directional + point + spot,material.opacity);
     emmitColor = vec4(texture(texture_emissive,fs_in.Tex).rgb + material.emissive,material.opacity);
+	occlusionColor = vec4(0.0);
 }

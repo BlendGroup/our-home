@@ -12,7 +12,6 @@ using namespace std;
 
 GLuint opensimplexnoise::createNoiseTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, float amplitude, long seed) {
 	cl_kernel noiseKernel = programglobal::oclContext->getKernel("noise2");
-	// programglobal::oclContext->printKernelList(cout);
 	cl_mem inputGrid;
 	const float freq = 1.0f / timeInterval; 
 	size_t num_points = dim[0] * dim[1];
@@ -46,7 +45,6 @@ GLuint opensimplexnoise::createNoiseTexture2D(vmath::ivec2 dim, vmath::ivec2 off
 
 GLuint opensimplexnoise::createFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, int octaves, long seed) {
 	cl_kernel noiseKernel = programglobal::oclContext->getKernel("fbm2");
-	// programglobal::oclContext->printKernelList(cout);
 	cl_mem inputGrid;
 	const float freq = 1.0f / timeInterval; 
 	size_t num_points = dim[0] * dim[1];
@@ -80,7 +78,6 @@ GLuint opensimplexnoise::createFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offse
 
 GLuint opensimplexnoise::createTurbulenceFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, int octaves, float noiseoffset, long seed) {
 	cl_kernel noiseKernel = programglobal::oclContext->getKernel("turbulencefbm2");
-	// programglobal::oclContext->printKernelList(cout);
 	cl_mem inputGrid;
 	const float freq = 1.0f / timeInterval; 
 	size_t num_points = dim[0] * dim[1];
@@ -112,13 +109,13 @@ GLuint opensimplexnoise::createTurbulenceFBMTexture2D(vmath::ivec2 dim, vmath::i
 	return outputNoise;
 }
 
-GLuint opensimplexnoise::combineTwoNoiseTextures(GLuint inputTex1, GLuint inputTex2, ivec2 dim) {
+GLuint opensimplexnoise::combineTwoNoiseTextures(GLuint inputTex1, GLuint inputTex2, ivec2 dim, float offset) {
 	cl_kernel combineKernel = programglobal::oclContext->getKernel("combinetex");
 	clglmem inputImage1 = programglobal::oclContext->createCLfromGLTexture(CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, inputTex1);
 	clglmem inputImage2 = programglobal::oclContext->createCLfromGLTexture(CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, inputTex2);
 	clglmem outputImage = programglobal::oclContext->createCLGLTexture(GL_TEXTURE_2D, GL_R32F, dim[0], dim[1], CL_MEM_WRITE_ONLY);
 
-	programglobal::oclContext->setKernelParameters(combineKernel, {param(0, inputImage1.cl), param(1, inputImage2.cl), param(2, outputImage.cl)});
+	programglobal::oclContext->setKernelParameters(combineKernel, {param(0, inputImage1.cl), param(1, inputImage2.cl), param(2, outputImage.cl), param(3, offset)});
 	size_t globalWorkSize[] = { (size_t)dim[0], (size_t)dim[1] };
 	size_t localWorkSize[] = { 16, 16 };
 	programglobal::oclContext->runCLKernel(combineKernel, 2, globalWorkSize, localWorkSize, {inputImage1, inputImage2, outputImage});

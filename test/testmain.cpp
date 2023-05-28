@@ -24,6 +24,7 @@
 #include<testLab.h>
 #include<testnoise.h>
 #include<testaudio.h>
+#include<testgodrays.h>
 
 using namespace std;
 using namespace vmath;
@@ -42,10 +43,12 @@ static bool isAudioPlaying = true;
 #define SHOW_CAMERA_SCENE 		0
 #define SHOW_PBR_SCENE			1
 #define SHOW_LAB_SCENE			0
+#define SHOW_CAMERA_RIG			0
 #define SHOW_TERRAIN_SCENE 		0
 #define SHOW_CUBEMAP_SCENE		0
 #define SHOW_NOISE_SCENE 		0
 #define SHOW_AUDIO_SCENE		0
+#define SHOW_GODRAYS_SCENE		1
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
@@ -76,6 +79,9 @@ void setupProgram(void) {
 #endif
 #if SHOW_NOISE_SCENE
 		setupProgramTestNoise();
+#endif
+#if SHOW_GODRAYS_SCENE
+	setupProgramTestGodrays();
 #endif
 
 		hdr->setupProgram();
@@ -127,6 +133,9 @@ void init(void) {
 		alutInit(0, NULL);
 		initTestAudio();
 #endif
+#if SHOW_GODRAYS_SCENE
+	initTestGodrays();
+#endif
 		hdr->init();
 
 		glDepthFunc(GL_LEQUAL);
@@ -176,6 +185,14 @@ void render(glwindow* window) {
 #endif
 #if SHOW_AUDIO_SCENE
 		renderTestAudio(isAudioPlaying);
+#endif
+#if SHOW_GODRAYS_SCENE
+		if(hdrEnabled) {
+			renderTestGodrays(dynamic_cast<camera*>(debugcamera), hdr->getSize(), hdr->getSize());
+		}
+		else {
+			renderTestGodrays(dynamic_cast<camera*>(debugcamera), window->getSize().width, window->getSize().height);
+		}
 #endif
 
 		if(hdrEnabled) {
@@ -229,7 +246,9 @@ void keyboard(glwindow* window, int key) {
 #if SHOW_CUBEMAP_SCENE
 	keyboardFuncTestRenderToCubemap(key);
 #endif
-
+#ifdef SHOW_GODRAYS_SCENE
+	keyboardFuncTestGodrays(key);
+#endif
 }
 
 void mouse(glwindow* window, int button, int action, int x, int y) {
@@ -265,6 +284,9 @@ void uninit(void) {
 #endif
 #if SHOW_AUDIO_SCENE
 	uninitTestAudio();
+#endif
+#if SHOW_GODRAYS_SCENE
+	uninitTestGodrays();
 #endif
 	hdr->uninit();
 

@@ -11,20 +11,14 @@ SplineRenderer::SplineRenderer(SplineInterpolator *interpolator, const float lin
 	  m_nAllPositions(0),
 	  m_linspace(linspace),
 	  m_isRenderPoints(false),
-	  m_isRenderCtrlps(false),
-	  m_isRenderCtrlPoly(false),
-	  m_points(interpolator->getPoints()),
-	  m_ctrlps(interpolator->getControlPoints())
-{
+	  m_points(interpolator->getPoints()) {
 	/* create vaos for spline data */
 	glCreateVertexArrays(1, &m_vaoSpline);
 	glCreateVertexArrays(1, &m_vaoPoint);
-	glCreateVertexArrays(1, &m_vaoCtrlPoly);
 
 	/* create vbos for spline data */
 	glCreateBuffers(1, &m_vboSpline);
 	glCreateBuffers(1, &m_vboPoint);
-	glCreateBuffers(1, &m_vboCtrlPoly);
 
 	/* create program for rendering a spline */
 	m_program = new glshaderprogram({"shaders/color.vert",
@@ -50,15 +44,6 @@ void SplineRenderer::loadGeometry(void)
 
 	/** !!! BE CAREFUL WHILE REFACTORING FOR vec3 !!! **/
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * allPositions.size(), allPositions.data(), GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-	glEnableVertexAttribArray(0);
-
-	/* load control points into pipeline */
-	glBindVertexArray(m_vaoCtrlPoly);
-	glBindBuffer(GL_ARRAY_BUFFER, m_vboCtrlPoly);
-
-	/** !!! BE CAREFUL WHILE REFACTORING FOR vec3 !!! **/
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * m_ctrlps.size(), m_ctrlps.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 	glEnableVertexAttribArray(0);
 
@@ -111,6 +96,8 @@ void SplineRenderer::render(const vec4 linecolor, const vec4 pointcolor, const v
 	m_program->use();
 	glUniformMatrix4fv(m_program->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * programglobal::currentCamera->matrix());
 	glUniform4fv(m_program->getUniformLocation("color"), 1, linecolor);
+	glUniform4fv(m_program->getUniformLocation("emissive"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
+	glUniform4fv(m_program->getUniformLocation("occlusion"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
 	glBindVertexArray(m_vaoSpline);
 	glDrawArrays(GL_LINE_STRIP, 0, m_nAllPositions);
 
@@ -129,31 +116,6 @@ void SplineRenderer::render(const vec4 linecolor, const vec4 pointcolor, const v
 			glDrawArrays(GL_TRIANGLES, 0, 24);
 		}
 	}
-
-	if(m_isRenderCtrlps)
-	{
-		glBindVertexArray(m_vaoPoint);
-
-		/** !!! BE CAREFUL WHILE REFACTORING FOR vec3 !!! **/
-		for (vec3 ctrlp : m_ctrlps)
-		{
-			glUniformMatrix4fv(m_program->getUniformLocation("mvpMatrix"), 1, GL_FALSE,
-							programglobal::perspective * programglobal::currentCamera->matrix() *
-								translate(ctrlp[0], ctrlp[1], ctrlp[2]) *
-								scale(scalingFactor));
-			glDrawArrays(GL_TRIANGLES, 0, 24);
-		}
-	}
-
-	if(m_isRenderCtrlPoly)
-	{
-		/* TODO: this feature has a bug, find and fix it */
-	
-		// glUniformMatrix4fv(m_program->getUniformLocation("mvpMatrix"), 1, GL_FALSE, viewMatrix * projMatrix);
-		// glUniform4fv(m_program->getUniformLocation("color"), 1, vec4(0.8f, 0.2f, 0.0f, 1.0f));
-		// glBindVertexArray(m_vaoCtrlPoly);
-		// glDrawArrays(GL_LINES, 0, m_ctrlps->size());
-	}
 }
 
 void SplineRenderer::setRenderPoints(bool setting)
@@ -161,28 +123,8 @@ void SplineRenderer::setRenderPoints(bool setting)
 	m_isRenderPoints = setting;
 }
 
-void SplineRenderer::setRenderControlPoints(bool setting)
-{
-	m_isRenderCtrlps = setting;
-}
-
-void SplineRenderer::setRenderControlPolygon(bool setting)
-{
-	m_isRenderCtrlPoly = setting;
-}
-
 SplineRenderer::~SplineRenderer()
 {
-	if (m_vboCtrlPoly)
-	{
-		glDeleteBuffers(1, &m_vboCtrlPoly);
-		m_vboCtrlPoly = 0;
-	}
-	if (m_vaoCtrlPoly)
-	{
-		glDeleteVertexArrays(1, &m_vaoCtrlPoly);
-		m_vaoCtrlPoly = 0;
-	}
 	if (m_vboPoint)
 	{
 		glDeleteBuffers(1, &m_vboPoint);
