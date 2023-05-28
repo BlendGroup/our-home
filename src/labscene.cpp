@@ -276,7 +276,7 @@ void labscene::render() {
 		modelLab->draw(programStaticPBR);
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(mix(vec3(-3.3, -0.4f, 2.8f), vec3(-4.62f, -0.4f, 2.8f), doorT)));
 		modelDoor->draw(programStaticPBR);
-		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, doorPlacer->getModelMatrix());
+		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-1.38f, -0.41f, -1.45f) * scale(0.08f));
 		modelMug->draw(programStaticPBR);
 
 		programDynamicPBR->use();
@@ -314,12 +314,12 @@ void labscene::render() {
 		glUniform4fv(programHologram->getUniformLocation("MainColor"),1,vec4(0.0f,0.0f,1.0f,1.0f));
 		glUniform4fv(programHologram->getUniformLocation("RimColor"),1,vec4(0.0f,1.0f,1.0f,1.0f));
 		glUniform1f(programHologram->getUniformLocation("gTime"), hologramT);
-		glUniform1f(programHologram->getUniformLocation("GlitchIntensity"), 1.0f);
-		glUniform1f(programHologram->getUniformLocation("GlitchSpeed"), 1.0f);
-		glUniform1f(programHologram->getUniformLocation("BarSpeed"),7.0f);
-		glUniform1f(programHologram->getUniformLocation("BarDistance"),0.1f);
-		glUniform1f(programHologram->getUniformLocation("alpha"), 0.5f);
-		glUniform1f(programHologram->getUniformLocation("FlickerSpeed"),5.0f);
+		glUniform1f(programHologram->getUniformLocation("GlitchIntensity"), 5.0f);
+		glUniform1f(programHologram->getUniformLocation("GlitchSpeed"), 100.0f);
+		glUniform1f(programHologram->getUniformLocation("BarSpeed"),2.0f);
+		glUniform1f(programHologram->getUniformLocation("BarDistance"),100.0f);
+		glUniform1f(programHologram->getUniformLocation("alpha"), 1.0f);
+		glUniform1f(programHologram->getUniformLocation("FlickerSpeed"),10.0f);
 		glUniform1f(programHologram->getUniformLocation("RimPower"),5.0f);
 		// glUniform1f(programHologram->getUniformLocation("GlowSpeed"),1.0f);
 		// glUniform1f(programHologram->getUniformLocation("GlowDistance"),1.0f);
@@ -448,6 +448,7 @@ void labscene::keyboardfunc(int key) {
 	}
 	switch(key) {
 	case XK_Tab:
+		//cout << doorPlacer;
 		if(programglobal::debugMode == CAMERA) {
 			cout<<cameraRig->getCamera()<<endl;
 		}	
