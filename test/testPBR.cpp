@@ -46,16 +46,16 @@ void initTestPbr(){
         #if DYNAMIC  
         model = new glmodel("resources/models/astronaut/MCAnim.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
         #else
-        model = new glmodel("resources/models/tree/purpletree.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
+        model = new glmodel("resources/models/spaceship/LabOut.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
         
         //model = new glmodel("resources/models/door/door.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_RemoveRedundantMaterials | aiProcess_FlipUVs,true);
         #endif
         // Lighting setup
         sceneLights = new SceneLight();
         //sceneLights->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,0.0,-1.0f)));
-        sceneLights->addPointLight(PointLight(vec3(1.0f,0.0f,0.0f),100.0f,vec3(-5.0f,5.0f,-5.0f),15.0f));
-        sceneLights->addPointLight(PointLight(vec3(0.0f,1.0f,0.0f),100.0f,vec3(5.0f,5.0f,-5.0f),15.0f));
-        sceneLights->addPointLight(PointLight(vec3(0.0f,0.0f,1.0f),100.0f,vec3(5.0f,5.0f,5.0f),15.0f));
+        sceneLights->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(-5.0f,5.0f,-5.0f),15.0f));
+        sceneLights->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,-5.0f),15.0f));
+        sceneLights->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,5.0f),15.0f));
         sceneLights->addPointLight(PointLight(vec3(1.0f,0.0f,1.0f),100.0f,vec3(-5.0f,5.0f,5.0f),15.0f));
         //sceneLights->addSpotLight(SpotLight(vec3(0.0f,1.0f,0.0f),100.0f,vec3(-6.0f,8.0f,3.5f),35.0f,vec3(0.0f,0.0f,-1.0f),30.0f,45.0f));
     } catch (string errorString) {
@@ -74,7 +74,7 @@ void renderTestPbr(camera *cam,vec3 camPos){
         model->update(0.005f, 0);
         model->setBoneMatrixUniform(program->getUniformLocation("bMat[0]"), 0);
         #else
-        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) * scale(1.0f,1.0f,1.0f));
+        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) * scale(0.5f,0.5f,0.5f));
         #endif
         glUniform3fv(program->getUniformLocation("viewPos"),1,camPos);
         // pbr data
