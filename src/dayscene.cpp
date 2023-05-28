@@ -34,6 +34,7 @@ static bool eventManager[NUM_EVENTS];
 static glshaderprogram* terrainRenderer;
 
 static terrain* land;
+static terrain* land2;
 
 static debugCamera* tempCam;
 
@@ -52,7 +53,7 @@ void dayscene::setupProgram() {
 void dayscene::setupCamera() {
 	tempCam = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
 }
-
+GLuint mapMap;
 void dayscene::init() {
 	for(int i = 0; i < NUM_EVENTS; i++) {
 		eventManager[i] = false;
@@ -60,11 +61,14 @@ void dayscene::init() {
 	eventManager[CROSSFADE_IN] = true;
 
 	ivec2 dim = ivec2(2048, 2048);
-	// GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 1000.0f, 3, 1234);
-	// GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1500.0f, 5, 0.11f, 543);
-	// GLuint finalTerrain = opensimplexnoise::combineTwoNoiseTextures(mountainHeightMap, valleyHeightMap, dim, 0.0f);
-	GLuint finalTerrain = createTexture2D("resources/textures/heightmap2.png");
-	land = new terrain(finalTerrain, false, 5.0f, 32.0f);
+	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 1000.0f, 3, 1234);
+	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1500.0f, 7, 0.11f, 543);
+	GLuint finalTerrain = opensimplexnoise::combineTwoNoiseTextures(mountainHeightMap, valleyHeightMap, dim, 0.0f);
+	// GLuint finalTerrain = createTexture2D("resources/textures/heightmap2.png");
+	land = new terrain(valleyHeightMap, true, 5.0f, 32.0f);
+	land2 = new terrain(mountainHeightMap, true, 5.0f, 32.0f);
+
+	mapMap = createTexture2D("resources/textures/map.png");
 }
 
 void dayscene::render() {
@@ -75,12 +79,18 @@ void dayscene::render() {
 	glUniform1f(terrainRenderer->getUniformLocation("maxTess"), land->getMaxTess());
 	glUniform1f(terrainRenderer->getUniformLocation("minTess"), land->getMinTess());
 	glUniform3fv(terrainRenderer->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
-	glUniform1i(terrainRenderer->getUniformLocation("texHeight"), 0);
-	glUniform1i(terrainRenderer->getUniformLocation("texNormal"), 1);
-	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMin"), 3.0f);
-	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMax"), 60.0f);
+	glUniform1i(terrainRenderer->getUniformLocation("texHeight1"), 0);
+	glUniform1i(terrainRenderer->getUniformLocation("texNormal1"), 1);
+	glUniform1i(terrainRenderer->getUniformLocation("texHeight2"), 2);
+	glUniform1i(terrainRenderer->getUniformLocation("texNormal2"), 3);
+	glUniform1i(terrainRenderer->getUniformLocation("texMap"), 4);
+	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMin"), 15.0f);
+	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMax"), 100.0f);
 	glBindTextureUnit(0, land->getHeightMap());
 	glBindTextureUnit(1, land->getNormalMap());
+	glBindTextureUnit(2, land2->getHeightMap());
+	glBindTextureUnit(3, land2->getNormalMap());
+	glBindTextureUnit(4, mapMap);
 	land->render();
 
 	if(eventManager[CROSSFADE_IN]) {
