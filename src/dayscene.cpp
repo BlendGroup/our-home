@@ -51,6 +51,7 @@ static GLuint texTerrainMap;
 static GLuint texDiffuseGrass;
 static GLuint texDiffuseDirt;
 static GLuint texDiffuseMountain;
+static GLuint texLakeMap;
 extern GLuint texLabSceneFinal;
 
 void dayscene::setupProgram() {
@@ -82,6 +83,7 @@ void dayscene::init() {
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseDirt = createTexture2D("resources/textures/dirt.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseMountain = createTexture2D("resources/textures/rocks2.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
+	texLakeMap = createTexture2D("resources/textures/lake.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 
 	lake1 = new lake();
 
@@ -106,9 +108,11 @@ void dayscene::render() {
 	glUniform1i(terrainRenderer->getUniformLocation("texDiffuseGrass"), 5);
 	// glUniform1i(terrainRenderer->getUniformLocation("texDiffuseDirt"), 6);
 	glUniform1i(terrainRenderer->getUniformLocation("texDiffuseMountain"), 7);
+	glUniform1i(terrainRenderer->getUniformLocation("texLake"), 8);
 	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMin"), 10.0f);
 	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMax"), 100.0f);
 	glUniform1f(terrainRenderer->getUniformLocation("texScale"), 10.0f);
+	glUniform1f(terrainRenderer->getUniformLocation("lakeDepth"), 10.0f);
 	glBindTextureUnit(0, land->getHeightMap());
 	glBindTextureUnit(1, land->getNormalMap());
 	glBindTextureUnit(2, land2->getHeightMap());
@@ -117,12 +121,13 @@ void dayscene::render() {
 	glBindTextureUnit(5, texDiffuseGrass);
 	glBindTextureUnit(6, texDiffuseDirt);
 	glBindTextureUnit(7, texDiffuseMountain);
+	glBindTextureUnit(8, texLakeMap);
 	land->render();
 
 	lakeRenderer->use();
 	glUniformMatrix4fv(lakeRenderer->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(lakeRenderer->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(lakeRenderer->getUniformLocation("mMat"), 1, GL_FALSE, lakePlacer->getModelMatrix());
+	glUniformMatrix4fv(lakeRenderer->getUniformLocation("mMat"), 1, GL_FALSE, translate(-4.0f, -6.0f, -72.0f) * scale(29.0f));
 	lake1->render();
 
 	if(eventManager[CROSSFADE_IN]) {
@@ -156,6 +161,20 @@ void dayscene::uninit() {
 void dayscene::keyboardfunc(int key) {
 	if(programglobal::debugMode == MODEL) {
 		lakePlacer->keyboardfunc(key);
+	}
+	switch(key) {
+	case XK_Tab:
+		//cout << doorPlacer;
+		// if(programglobal::debugMode == CAMERA) {
+		// 	cout<<cameraRig->getCamera()<<endl;
+		// }	
+		// if(programglobal::debugMode == SPLINE) {
+		// 	cout<<robotSpline->getSpline()<<endl;
+		// }
+		if(programglobal::debugMode == MODEL) {
+			cout<<lakePlacer<<endl;
+		}
+		break;
 	}
 }
 

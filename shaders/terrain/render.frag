@@ -10,6 +10,7 @@ uniform sampler2D texMap;
 uniform sampler2D texDiffuseGrass;
 uniform sampler2D texDiffuseDirt;
 uniform sampler2D texDiffuseMountain;
+uniform sampler2D texLake;
 
 in TES_OUT {
 	vec2 tc;
