@@ -77,6 +77,7 @@ void terrain::render() {
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glBindVertexArray(this->vao);
 	glDrawArrays(GL_PATCHES, 0, 4 * this->meshSize * this->meshSize);
+	glBindVertexArray(0);
 }
 
 terrain::~terrain() {

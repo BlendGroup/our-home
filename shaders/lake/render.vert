@@ -1,11 +1,15 @@
 #version 460 core
 
-layout(location = 0)in vec4 vPos;
-
 uniform mat4 pMat;
 uniform mat4 vMat;
 uniform mat4 mMat;
 
 void main(void) {
-	gl_Position = pMat * vMat * mMat * vPos;
+	vec3 lakePos[] = vec3[4](
+		vec3(1.0, 0.0, 1.0),
+		vec3(-1.0, 0.0, 1.0),
+		vec3(1.0, 0.0, -1.0),
+		vec3(-1.0, 0.0, -1.0)
+	);
+	gl_Position = pMat * vMat * mMat * vec4(lakePos[gl_VertexID], 1.0);
 }

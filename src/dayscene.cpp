@@ -17,7 +17,7 @@
 #include<opensimplexnoise.h>
 #include<debugcamera.h>
 #include<crossfade.h>
-#include<shapes.h>
+#include<lake.h>
 
 using namespace std;
 using namespace vmath;
@@ -33,11 +33,17 @@ enum EVENTS {
 static bool eventManager[NUM_EVENTS];
 
 static glshaderprogram* terrainRenderer;
+static glshaderprogram* lakeRenderer;
 
 static terrain* land;
 static terrain* land2;
+static lake* lake1;
 
 static debugCamera* tempCam;
+
+#ifdef DEBUG
+static modelplacer* lakePlacer;
+#endif
 
 static GLfloat crossinT		= 0.0f;
 
@@ -50,6 +56,7 @@ extern GLuint texLabSceneFinal;
 void dayscene::setupProgram() {
 	try {
 		terrainRenderer = new glshaderprogram({"shaders/terrain/render.vert", "shaders/terrain/render.tesc", "shaders/terrain/render.tese", "shaders/terrain/render.frag"});
+		lakeRenderer = new glshaderprogram({"shaders/lake/render.vert", "shaders/lake/render.frag"});
 	} catch(string errorString)  {
 		throwErr(errorString);
 	}
@@ -66,8 +73,8 @@ void dayscene::init() {
 	eventManager[CROSSFADE_IN] = true;
 
 	ivec2 dim = ivec2(2048, 2048);
-	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 1000.0f, 3, 1234);
-	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1500.0f, 7, 0.11f, 543);
+	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 3, 1234);
+	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 7, 0.11f, 543);
 	land = new terrain(valleyHeightMap, 256, true, 5.0f, 32.0f);
 	land2 = new terrain(mountainHeightMap, 256, true, 5.0f, 32.0f);
 
@@ -75,6 +82,12 @@ void dayscene::init() {
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseDirt = createTexture2D("resources/textures/dirt.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseMountain = createTexture2D("resources/textures/rocks2.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
+
+	lake1 = new lake();
+
+#ifdef DEBUG
+	lakePlacer = new modelplacer(vec3(0.0f, 10.0f, 0.0f), vec3(0.0f, 0.0f, 0.0f), 10.0f);
+#endif
 }
 
 void dayscene::render() {
@@ -93,7 +106,7 @@ void dayscene::render() {
 	glUniform1i(terrainRenderer->getUniformLocation("texDiffuseGrass"), 5);
 	// glUniform1i(terrainRenderer->getUniformLocation("texDiffuseDirt"), 6);
 	glUniform1i(terrainRenderer->getUniformLocation("texDiffuseMountain"), 7);
-	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMin"), 15.0f);
+	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMin"), 10.0f);
 	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMax"), 100.0f);
 	glUniform1f(terrainRenderer->getUniformLocation("texScale"), 10.0f);
 	glBindTextureUnit(0, land->getHeightMap());
@@ -105,6 +118,12 @@ void dayscene::render() {
 	glBindTextureUnit(6, texDiffuseDirt);
 	glBindTextureUnit(7, texDiffuseMountain);
 	land->render();
+
+	lakeRenderer->use();
+	glUniformMatrix4fv(lakeRenderer->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(lakeRenderer->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(lakeRenderer->getUniformLocation("mMat"), 1, GL_FALSE, lakePlacer->getModelMatrix());
+	lake1->render();
 
 	if(eventManager[CROSSFADE_IN]) {
 		crossfader::render(texLabSceneFinal, crossinT);
@@ -135,6 +154,9 @@ void dayscene::uninit() {
 }
 
 void dayscene::keyboardfunc(int key) {
+	if(programglobal::debugMode == MODEL) {
+		lakePlacer->keyboardfunc(key);
+	}
 }
 
 camera* dayscene::getCamera() {
