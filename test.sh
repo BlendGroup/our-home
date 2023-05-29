@@ -6,7 +6,7 @@ if [[ $1 == "DEBUG" ]]; then
 	if [[ $2 == 1 ]]; then
 		qrenderdoc renderdocsettings.cap
 	elif [[ $2 == 2 ]]; then
-		gdb main.run
+		gdb main.test
 	else
 		./main.test
 	fi
