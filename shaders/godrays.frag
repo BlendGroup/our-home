@@ -19,12 +19,16 @@ void main(void) {
     vec2 deltaTexCoord = texCoord - screenSpaceEmissiveObjectPos;
     deltaTexCoord *= density / float(samples);
 
+	vec3 fcolor = vec3(0.0);
+
     float illuminationDecay = 1.0;
     for(int i = 0; i < samples; i++) {
         texCoord -= deltaTexCoord;
-        fragColor += texture(texOcclusion, texCoord) * illuminationDecay * weight;
+        fcolor += texture(texOcclusion, texCoord).rgb * illuminationDecay * weight;
         illuminationDecay *= decay;
     }
 
-    fragColor *= exposure;
+    fcolor *= exposure;
+
+	fragColor = vec4(fcolor, 1.0);
 }
