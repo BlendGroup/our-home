@@ -5,6 +5,15 @@
 #include<clhelper.h>
 #include<camera.h>
 #include<shapes.h>
+#include<godrays.h>
+
+enum debugMode_t {
+	NONE,
+	CAMERA,
+	MODEL,
+	SPLINE,
+	LIGHT
+};
 
 namespace programglobal {
 	extern vmath::mat4 perspective;
@@ -12,6 +21,11 @@ namespace programglobal {
 	extern camera* currentCamera;
 	extern double deltaTime;
 	extern shaperenderer* shapeRenderer;
+	extern debugMode_t debugMode;
+	extern godrays* godrayObject;
+	extern bool isAnimating;
 } // namespace programglobal
+
+void resetFBO();
 
 #endif

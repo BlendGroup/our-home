@@ -18,7 +18,7 @@ debugCamera::debugCamera(vmath::vec3 pos, float yaw, float pitch) {
 }
 
 void debugCamera::keyboardFunc(unsigned int key) {
-	float speed = 0.1f;
+	float speed = 0.5f;
 	switch(key) {
 	case XK_W: case XK_w:
 		this->pos += speed * this->front;

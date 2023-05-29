@@ -37,7 +37,6 @@ void setupProgramTestLab(){
         lightProgram = new glshaderprogram({"shaders/debug/lightSrc.vert", "shaders/debug/lightSrc.frag"});
         diffusePass = new glshaderprogram({"shaders/pbr.vert", "shaders/common.frag"});
         skybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
-        //program->printUniforms(cout);
     } catch (string errorString) {
         throwErr(errorString);
     }
@@ -131,7 +130,6 @@ void renderTestLab(camera *cam,vec3 camPos){
 			glViewport(0, 0, envMap->width, envMap->height);
 
             for(int side = 0; side < 6; side++){
-                //std::cout<<"i "<<side<<std::endl;
                 glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_CUBE_MAP_POSITIVE_X + side,envMap->cubemap_texture,0); 
                 glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
                 glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));

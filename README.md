@@ -2,22 +2,29 @@
 
 Scene 1:
 
-SFX (Fix Robot Thumping and add more)
-God rays (If kai desires)
+SFX (Still adding, Please add)
 Lighting Setup
-Texture / Normals On table (Later)
-Hologram
+See Table Pixelation (Later)
+Hologram (Change Param)
 Smoke on Mug
 
 Scene 2:
 
-Tree and Lab, Car/Rover Model
-Terrain Mountain to Terrain Valley ( make better )
-Vegetation
+Drone Model
+Create drone path
+Vegetation (On pause)
 Lake
 Atmospheric Scettering
 Lens flare
 Music and SFX
-End Transition Scene
 Camera Setup
 
+Scene 3:
+Integrate Boids
+Ocean render
+Create terrain
+create fireflies
+create camera path
+rocket model
+fire
+planet texture 

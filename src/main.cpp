@@ -1,5 +1,4 @@
-#include <AL/alut.h>
-#include <cstdlib>
+#include<AL/alut.h>
 #include<iostream>
 #include<memory>
 #include<chrono>
@@ -8,10 +7,7 @@
 #include<GL/gl.h>
 
 #include<vmath.h>
-#include<glshaderloader.h>
 #include<scenecamera.h>
-#define CAMERA_RIG_SCALER 0.01
-#include<scenecamerarig.h>
 #include<debugcamera.h>
 #include<hdr.h>
 #include<windowing.h>
@@ -20,39 +16,40 @@
 #include<clhelper.h>
 #include<gltextureloader.h>
 #include<shapes.h>
+#include<godrays.h>
+#include<crossfade.h>
 
 #include<scenes/base.h>
 #include<scenes/lab.h>
 #include<scenes/day.h>
+#include<scenes/title.h>
 
 using namespace std;
 using namespace vmath;
 
 static bool hdrEnabled = true;
 static HDR* hdr;
-static vector<sceneCamera*> scenecamera;
-static sceneCameraRig* scenecamerarig;
 static debugCamera* debugcamera;
-static sceneCamera* currentSceneCamera;
-static bool isDebugCameraOn = true;
-static bool isAnimating = false;
-static bool isSceneCameraEditing = false;
+static bool isDebugCameraOn = false;
+static vector<basescene*> sceneList;
 static basescene* currentScene;
-static labscene* labScene;
-static dayscene* dayScene;
+static glwindow* window;
 
 vmath::mat4 programglobal::perspective;
 camera* programglobal::currentCamera;
 double programglobal::deltaTime;
-
+debugMode_t programglobal::debugMode = NONE;
 clglcontext* programglobal::oclContext;
 shaperenderer* programglobal::shapeRenderer;
+godrays* programglobal::godrayObject;
+bool programglobal::isAnimating = false;
 
 void setupProgram(void) {
 	try {
 		hdr->setupProgram();
-		// labScene->setupProgram();
-		dayScene->setupProgram();
+		for(basescene* b : sceneList) {
+			b->setupProgram();
+		}
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -60,20 +57,10 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 1.0f, 5.0f), -90.0f, 0.0f);
-		// scenecamera.push_back(labScene->setupCamera());
-		scenecamera.push_back(dayScene->setupCamera());
-		
-#ifdef DEBUG
-		scenecamerarig = new sceneCameraRig(scenecamera[0]);
-		scenecamerarig->setRenderPath(true);
-		scenecamerarig->setRenderPathPoints(true);
-		scenecamerarig->setRenderFront(true);
-		scenecamerarig->setRenderFrontPoints(true);
-		scenecamerarig->setRenderPathToFront(true);
-		scenecamerarig->setScalingFactor(0.01f);
-#endif
-		currentSceneCamera = scenecamera[0];
+		debugcamera = new debugCamera(vec3(0.0f, 20.0f, 5.0f), -90.0f, 0.0f);
+		for(basescene* b : sceneList) {
+			b->setupCamera();
+		}
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -86,19 +73,25 @@ void init(void) {
 		programglobal::oclContext = new clglcontext(1);
 		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
 		programglobal::shapeRenderer = new shaperenderer();
-		labScene = new labscene();
-		dayScene = new dayscene();
+		crossfader::init();
+		sceneList.insert(sceneList.begin(), {
+			new titlescene(),
+			new labscene(),
+			new dayscene()
+		});
 
 		//Inititalize
 		alutInit(0, NULL);
 		initTextureLoader();
 		hdr->init();
-		hdr->toggleBloom(true);
-		// labScene->init();
-		dayScene->init();
+		hdr->setBloom(true);
+		for(basescene* b : sceneList) {
+			b->init();
+		}
 
-		// currentScene = dynamic_cast<basescene*>(labScene);
-		currentScene = dynamic_cast<basescene*>(dayScene);
+		playNextScene();
+		// playNextScene();
+		// playNextScene();
 
 		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);
@@ -111,57 +104,59 @@ void init(void) {
 
 void render(glwindow* window) {
 	try {
-		void checkIfDone(double);
-		// checkIfDone(33.0f);
-		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(currentSceneCamera);
+		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(currentScene->getCamera());
 
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
 			glViewport(0, 0, hdr->getSize(), hdr->getSize());
 			glClearBufferfv(GL_COLOR, 1, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+			glClearBufferfv(GL_COLOR, 2, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		} else {
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 		}
 
-		glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.3f, 0.2f, 1.0f));
+		glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().height, 0.1f, 1000.0f);
 
 		currentScene->render();
 
-		scenecamerarig->render();
-
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
-			glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.7f, 0.1f, 1.0f));
+			glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 			glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 			hdr->render();
+			if(programglobal::godrayObject) {
+				programglobal::godrayObject->renderRays(hdr);
+			}
 		}
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
 }
 
-void update(void) {
-#define CAMERA_SPEED 0.025f
-
-	if(isAnimating) {
-		currentSceneCamera->updateT(programglobal::deltaTime * CAMERA_SPEED);
+void resetFBO() {
+	if(hdrEnabled) {
+		glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
+		glViewport(0, 0, hdr->getSize(), hdr->getSize());
+	} else {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, window->getSize().width, window->getSize().height);
 	}
-	currentScene->update(currentSceneCamera);
 }
 
-void resetCamera(void) {
-		currentSceneCamera->resetT();
+void update(void) {
+	currentScene->update();
 }
 
-std::chrono::time_point<typename chrono::steady_clock> start;
+void resetScene(void) {
+	currentScene->reset();
+}
 
 void keyboard(glwindow* window, int key) {
 	switch(key) {
 	case XK_Escape:
-		// cout<<currentSceneCamera<<endl;
 		window->close();
 		break;
 	case XK_F1:
@@ -171,53 +166,37 @@ void keyboard(glwindow* window, int key) {
 		isDebugCameraOn = !isDebugCameraOn;
 		break;
 	case XK_F3:
-		hdrEnabled = !hdrEnabled;
+		programglobal::debugMode = NONE;
 		break;
 	case XK_F4:
-		resetCamera();
+		resetScene();
 		break;
 	case XK_F5:
-		isSceneCameraEditing = !isSceneCameraEditing;
+		programglobal::debugMode = CAMERA;
+		break;
+	case XK_F6:
+		programglobal::debugMode = MODEL;
+		break;
+	case XK_F7:
+		programglobal::debugMode = SPLINE;
+		break;
+	case XK_F8:
+		programglobal::debugMode = LIGHT;
 		break;
 	case XK_space:
-		isAnimating = !isAnimating;
-		start = chrono::steady_clock::now();
-		break;
-	case XK_Tab:
-		cout<<currentSceneCamera<<endl;
-		break;
-	case XK_Left:
-		currentSceneCamera->updateT(-0.001f);
-		break;
-	case XK_Right:
-		currentSceneCamera->updateT(0.001f);
+		programglobal::isAnimating = !programglobal::isAnimating;
 		break;
 	}
-	hdr->keyboardfunc(key);
 	debugcamera->keyboardFunc(key);
-#ifdef DEBUG
-	if(isSceneCameraEditing) {
-		scenecamerarig->keyboardfunc(key);
-	} else {
-		currentScene->keyboardfunc(key);
-	}
-#endif
+	currentScene->keyboardfunc(key);
 }
 
-void checkIfDone(double c) {
-	auto end = chrono::steady_clock::now();
-	chrono::duration<double> diff = end - start;
-	if(diff.count() >= c && isAnimating) {
-		cout<<"Camera Spline Pos:"<<currentSceneCamera->getDistanceOnSpline()<<endl;
-		exit(0);
+void playNextScene(void) {
+	static int current = -1;
+	current++;
+	if(current < sceneList.size()) {
+		currentScene = sceneList[current];
 	}
-}
-
-void callMeToExit() {
-	auto end = chrono::steady_clock::now();
-	chrono::duration<double> diff = end - start;
-	cout<<"Time taken to render "<<diff.count()<<" sec"<<endl;
-	exit(0);
 }
 
 void mouse(glwindow* window, int button, int action, int x, int y) {
@@ -228,8 +207,11 @@ void mouse(glwindow* window, int button, int action, int x, int y) {
 
 void uninit(void) {
 	hdr->uninit();
-	labScene->uninit();
-
+	for(basescene* b : sceneList) {
+		b->uninit();
+		delete b;
+	}
+	crossfader::uninit();
 	delete programglobal::oclContext;
 	delete hdr;
 	delete debugcamera;
@@ -246,17 +228,17 @@ double getDeltaTime(glwindow *win) {
 int main(int argc, char **argv) {
 #define SPEED_MULTIPLIER 1
 	try {
-		glwindow* window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
+		window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
 		auto initstart = chrono::steady_clock::now();
+		window->setKeyboardFunc(keyboard);
+		window->setMouseFunc(mouse);
 		init();
+		window->setFullscreen(true);
 		auto initend = chrono::steady_clock::now();
 		chrono::duration<double> diff = initend - initstart;
 		cout<<"Time taken to initialize "<<diff.count()<<" sec"<<endl;
 		setupProgram();
 		setupSceneCamera();
-		window->setKeyboardFunc(keyboard);
-		window->setMouseFunc(mouse);
-		window->setFullscreen(true);
 		while(!window->isClosed()) {
 			window->processEvents();
 			render(window);
@@ -264,9 +246,7 @@ int main(int argc, char **argv) {
 			#ifdef DEBUG
 			programglobal::deltaTime *= SPEED_MULTIPLIER;
 			#endif
-			if(isAnimating) {
-				update();
-			}
+			update();
 			window->swapBuffers();
 		}
 		uninit();

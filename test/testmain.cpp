@@ -18,7 +18,6 @@
 
 #include<testeffect.h>
 #include<testcamera.h>
-#include<testterrain.h>
 #include<testcubemap.h>
 #include<testPBR.h>
 #include<testLab.h>
@@ -40,12 +39,13 @@ static bool isAudioPlaying = true;
 #define SHOW_TEST_SCENE 		0
 #define SHOW_MODEL_SCENE 		0
 #define SHOW_CAMERA_SCENE 		0
-#define SHOW_PBR_SCENE			0
+#define SHOW_PBR_SCENE			1
 #define SHOW_LAB_SCENE			0
-#define SHOW_TERRAIN_SCENE 		0
+#define SHOW_CAMERA_RIG			0
+#define SHOW_TERRAIN_SCENE 		1
 #define SHOW_CUBEMAP_SCENE		0
 #define SHOW_NOISE_SCENE 		0
-#define SHOW_AUDIO_SCENE		1
+#define SHOW_AUDIO_SCENE		0
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
@@ -67,9 +67,6 @@ void setupProgram(void) {
 #endif
 #if SHOW_LAB_SCENE
 		setupProgramTestLab();
-#endif
-#if SHOW_TERRAIN_SCENE
-		setupProgramTestTerrain();
 #endif
 #if SHOW_CUBEMAP_SCENE
 		setupProgramTestRenderToCubemap();
@@ -113,9 +110,6 @@ void init(void) {
 #endif
 #if SHOW_LAB_SCENE
 	initTestLab();
-#endif
-#if SHOW_TERRAIN_SCENE
-		initTestTerrain();
 #endif
 #if SHOW_CUBEMAP_SCENE
 		initTestRenderToCubemap();
@@ -163,10 +157,6 @@ void render(glwindow* window) {
 #endif
 #if SHOW_LAB_SCENE
 	renderTestLab(dynamic_cast<camera*>(debugcamera), debugcamera->position());
-#endif
-		// renderTestEffect();
-#if SHOW_TERRAIN_SCENE
-		renderTestTerrain();
 #endif
 #if SHOW_CUBEMAP_SCENE
 		renderTestRenderToCubemap(dynamic_cast<camera*>(debugcamera));
@@ -223,13 +213,9 @@ void keyboard(glwindow* window, int key) {
 #if SHOW_CAMERA_RIG
 	scenecamerarig->keyboardfunc(key);
 #endif
-#if SHOW_TERRAIN_SCENE
-	keyboardFuncTestTerrain(key);
-#endif
 #if SHOW_CUBEMAP_SCENE
 	keyboardFuncTestRenderToCubemap(key);
 #endif
-
 }
 
 void mouse(glwindow* window, int button, int action, int x, int y) {
@@ -256,9 +242,6 @@ void uninit(void) {
 #endif
 #if SHOW_LAB_SCENE
 	uninitTestLab();
-#endif
-#if SHOW_TERRAIN_SCENE
-	uninitTestTerrain();
 #endif
 #if SHOW_CUBEMAP_SCENE
 	uninitTestRenderToCubemap();

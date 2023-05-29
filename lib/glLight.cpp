@@ -13,7 +13,13 @@ using namespace std;
 static int mode = 0;
 static int selectedLight = 0;
 
-SceneLight::SceneLight(bool envLight){
+SceneLight::SceneLight(bool envLight) :
+	envProgram(nullptr),
+	irradianceProgram(nullptr),
+	prefilterProgram(nullptr),
+	precomputeBRDF(nullptr),
+	irradianceMap(nullptr),
+	prefilterMap(nullptr) {
     const float cubeVerts[] = {
         -0.5f, -0.5f, -0.5f, 
         0.5f, -0.5f, -0.5f, 
@@ -128,7 +134,7 @@ SceneLight::SceneLight(bool envLight){
             envProgram = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
             irradianceProgram = new glshaderprogram({"shaders/debug/rendercubemap.vert","shaders/debug/irradiance_convolution.frag"});
             prefilterProgram = new glshaderprogram({"shaders/debug/rendercubemap.vert","shaders/debug/prefilter_cubemap.frag"});
-            precomputeBRDF = new glshaderprogram({"shaders/hdr.vert","shaders/debug/precompute_brdf.frag"});
+            precomputeBRDF = new glshaderprogram({"shaders/fsquad.vert","shaders/debug/precompute_brdf.frag"});
 
             //envirounmentMap = new CubeMapRenderTarget(2048,2048,false);
             irradianceMap = new CubeMapRenderTarget(32,32,false);
@@ -456,7 +462,6 @@ void SceneLight::SceneLightKeyBoardFunc(int key){
                 points[selectedLight].radius += 0.5f;
         break;
         case XK_comma:
-        std::cout<<"here";
             if(mode == 0)
                 directional[selectedLight].intensity -= 1.0f;
             else if(mode == 1)
@@ -465,7 +470,6 @@ void SceneLight::SceneLightKeyBoardFunc(int key){
                 spots[selectedLight].intensity -= 1.0f;
         break;
         case XK_period:
-                std::cout<<"here";
             if(mode == 0)
                 directional[selectedLight].intensity += 1.0f;
             else if(mode == 1)
@@ -475,7 +479,7 @@ void SceneLight::SceneLightKeyBoardFunc(int key){
         break;
         case XK_P:
         case XK_p:
-            std::cout<<this;
+            // std::cout<<this;
         break;
 	}
 }

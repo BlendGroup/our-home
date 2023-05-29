@@ -7,12 +7,14 @@
 class titlescene : public basescene {
 public:
 	void setupProgram() override;
-	sceneCamera* setupCamera() override;
+	void setupCamera() override;
 	void init() override;
 	void render() override;
-	void update(sceneCamera* cam) override;
+	void update() override;
+	void reset() override;
 	void uninit() override;
 	void keyboardfunc(int key) override;
+	camera* getCamera() override;
 };
 
 #endif

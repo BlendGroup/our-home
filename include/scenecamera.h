@@ -14,15 +14,15 @@ private:
     BsplineInterpolator *m_bspPositions;
     BsplineInterpolator *m_bspFront;
     float t;
-	std::vector<vmath::vec3> frontKeyFrames;
-	std::vector<vmath::vec3> positionKeyFrames;
-    friend class sceneCameraRig;
+	friend class sceneCameraRig;
 
 public:
     sceneCamera(const std::vector<vmath::vec3> &positionKeyFrames, const std::vector<vmath::vec3> &frontKeyFrames);
     ~sceneCamera();
 	float getDistanceOnSpline() const;
     void updateT(float speed);
+	void setT(float t);
+	float getT();
 	void resetT();
 	vmath::mat4 matrix() const override;
 	vmath::vec3 position() const override;

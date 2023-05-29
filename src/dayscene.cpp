@@ -1,4 +1,3 @@
-#define DEBUG
 #include<scenes/day.h>
 #include<glmodelloader.h>
 #include<glshaderloader.h>
@@ -16,56 +15,79 @@
 #include<assimp/postprocess.h>
 #include<global.h>
 #include<opensimplexnoise.h>
+#include<debugcamera.h>
+#include<crossfade.h>
+#include<lake.h>
 
 using namespace std;
 using namespace vmath;
 
-glshaderprogram* terrainRenderer;
+enum EVENTS {
+	CAMERA_MOVE = 0,
+	CROSSFADE_IN,
+
+//Dont Add	
+	NUM_EVENTS
+};
+
+static bool eventManager[NUM_EVENTS];
+
+static glshaderprogram* terrainRenderer;
+static glshaderprogram* lakeRenderer;
 
 static terrain* land;
+static terrain* land2;
+static lake* lake1;
+
+static debugCamera* tempCam;
+
+#ifdef DEBUG
+static modelplacer* lakePlacer;
+#endif
+
+static GLfloat crossinT		= 0.0f;
+
+static GLuint texTerrainMap;
+static GLuint texDiffuseGrass;
+static GLuint texDiffuseDirt;
+static GLuint texDiffuseMountain;
+extern GLuint texLabSceneFinal;
 
 void dayscene::setupProgram() {
 	try {
 		terrainRenderer = new glshaderprogram({"shaders/terrain/render.vert", "shaders/terrain/render.tesc", "shaders/terrain/render.tese", "shaders/terrain/render.frag"});
+		lakeRenderer = new glshaderprogram({"shaders/lake/render.vert", "shaders/lake/render.frag"});
 	} catch(string errorString)  {
 		throwErr(errorString);
 	}
 }
 
-sceneCamera* dayscene::setupCamera() {
-	vector<vec3> positionKeyFrames = {
-		vec3(-1.96f, -0.22f, -1.11f),
-		vec3(-1.82f, -0.08f, -0.91f),
-		vec3(-1.71f, -0.12f, -1.07f),
-		vec3(-1.63f, -0.3f, -1.7f),
-		vec3(-1.15f, -0.05f, -1.81f),
-		vec3(-0.82f, 0.28f, -1.85f),
-		vec3(-1.17f, 0.06f, -1.1f),
-		vec3(-2.9f, -0.2f, -0.51f),
-		vec3(-3.49f, -0.56f, 0.05f)
-	};
-    
-	vector<vec3> frontKeyFrames = {
-		vec3(-1.96f, -0.35f, -1.65f),
-		vec3(-1.74f, -0.3f, -1.29f),
-		vec3(-1.38f, -0.47f, -1.48f),
-		vec3(-1.26f, -0.4f, -1.5f),
-		vec3(-0.8f, -0.28f, -1.23f),
-		vec3(-0.47f, -0.26f, -0.37f),
-		vec3(-1.67f, -0.42f, 0.45f),
-		vec3(-3.19f, -0.36f, 0.96f),
-		vec3(-3.49f, -0.27f, 2.02f)
-	};
-
-	return new sceneCamera(positionKeyFrames, frontKeyFrames);
+void dayscene::setupCamera() {
+	tempCam = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
 }
 
 void dayscene::init() {
+	for(int i = 0; i < NUM_EVENTS; i++) {
+		eventManager[i] = false;
+	}
+	eventManager[CROSSFADE_IN] = true;
+
 	ivec2 dim = ivec2(2048, 2048);
-	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 1000.0f, 3, 1234);
-	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1500.0f, 5, 0.11f, 543);
-	GLuint finalTerrain = opensimplexnoise::combineTwoNoiseTextures(mountainHeightMap, valleyHeightMap, dim);
-	land = new terrain(finalTerrain);
+	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 3, 1234);
+	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 7, 0.11f, 543);
+	land = new terrain(valleyHeightMap, 256, true, 5.0f, 32.0f);
+	land2 = new terrain(mountainHeightMap, 256, true, 5.0f, 32.0f);
+
+	texTerrainMap = createTexture2D("resources/textures/map.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
+	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
+	texDiffuseDirt = createTexture2D("resources/textures/dirt.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
+	texDiffuseMountain = createTexture2D("resources/textures/rocks2.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
+
+	lake1 = new lake();
+
+#ifdef DEBUG
+	lakePlacer = new modelplacer(vec3(0.0f, 10.0f, 0.0f), vec3(0.0f, 0.0f, 0.0f), 10.0f);
+#endif
 }
 
 void dayscene::render() {
@@ -73,21 +95,58 @@ void dayscene::render() {
 	glUniformMatrix4fv(terrainRenderer->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(terrainRenderer->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
 	glUniformMatrix4fv(terrainRenderer->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, -30.0f));
-	glUniform1i(terrainRenderer->getUniformLocation("numMeshes"), MESH_SIZE);
-	glUniform1f(terrainRenderer->getUniformLocation("maxTess"), MAX_PATCH_TESS_LEVEL);
-	glUniform1f(terrainRenderer->getUniformLocation("minTess"), MIN_PATCH_TESS_LEVEL);
+	glUniform1f(terrainRenderer->getUniformLocation("maxTess"), land->getMaxTess());
+	glUniform1f(terrainRenderer->getUniformLocation("minTess"), land->getMinTess());
 	glUniform3fv(terrainRenderer->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
-	glUniform1i(terrainRenderer->getUniformLocation("texHeight"), 0);
-	glUniform1i(terrainRenderer->getUniformLocation("texNormal"), 1);
-	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMin"), 3.0f);
-	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMax"), 60.0f);
+	glUniform1i(terrainRenderer->getUniformLocation("texHeight1"), 0);
+	glUniform1i(terrainRenderer->getUniformLocation("texNormal1"), 1);
+	glUniform1i(terrainRenderer->getUniformLocation("texHeight2"), 2);
+	glUniform1i(terrainRenderer->getUniformLocation("texNormal2"), 3);
+	glUniform1i(terrainRenderer->getUniformLocation("texMap"), 4);
+	glUniform1i(terrainRenderer->getUniformLocation("texDiffuseGrass"), 5);
+	// glUniform1i(terrainRenderer->getUniformLocation("texDiffuseDirt"), 6);
+	glUniform1i(terrainRenderer->getUniformLocation("texDiffuseMountain"), 7);
+	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMin"), 10.0f);
+	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMax"), 100.0f);
+	glUniform1f(terrainRenderer->getUniformLocation("texScale"), 10.0f);
 	glBindTextureUnit(0, land->getHeightMap());
 	glBindTextureUnit(1, land->getNormalMap());
+	glBindTextureUnit(2, land2->getHeightMap());
+	glBindTextureUnit(3, land2->getNormalMap());
+	glBindTextureUnit(4, texTerrainMap);
+	glBindTextureUnit(5, texDiffuseGrass);
+	glBindTextureUnit(6, texDiffuseDirt);
+	glBindTextureUnit(7, texDiffuseMountain);
 	land->render();
+
+	lakeRenderer->use();
+	glUniformMatrix4fv(lakeRenderer->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(lakeRenderer->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(lakeRenderer->getUniformLocation("mMat"), 1, GL_FALSE, lakePlacer->getModelMatrix());
+	lake1->render();
+
+	if(eventManager[CROSSFADE_IN]) {
+		crossfader::render(texLabSceneFinal, crossinT);
+	}
 }
 
-void dayscene::update(sceneCamera* cam) {
-	
+void dayscene::update() {
+	if(programglobal::isAnimating) {
+		t += programglobal::deltaTime;
+	}
+
+	if(crossinT >= 1.0f) {
+		eventManager[CROSSFADE_IN] = false;
+		eventManager[CAMERA_MOVE] = true;
+	}
+
+	if(eventManager[CROSSFADE_IN]) {
+		crossinT += 0.3f * programglobal::deltaTime;
+	}
+}
+
+void dayscene::reset() {
+	t = 0.0f;
 }
 
 void dayscene::uninit() {
@@ -95,4 +154,11 @@ void dayscene::uninit() {
 }
 
 void dayscene::keyboardfunc(int key) {
+	if(programglobal::debugMode == MODEL) {
+		lakePlacer->keyboardfunc(key);
+	}
+}
+
+camera* dayscene::getCamera() {
+	return tempCam;
 }

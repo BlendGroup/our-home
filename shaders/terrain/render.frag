@@ -4,8 +4,12 @@ layout(location = 0)out vec4 FragColor;
 layout(location = 1)out vec4 EmissionColor;
 
 uniform vec3 cameraPos;
+uniform float texScale;
 
 uniform sampler2D texMap;
+uniform sampler2D texDiffuseGrass;
+uniform sampler2D texDiffuseDirt;
+uniform sampler2D texDiffuseMountain;
 
 in TES_OUT {
 	vec2 tc;
@@ -25,6 +29,8 @@ void calcPhongLightInWorld(in vec3 posInWorld, in vec3 norInWorld, in vec3 light
 void main(void) {
 	float diffuse, specular;
 	calcPhongLightInWorld(fs_in.pos, fs_in.nor, vec3(0.0, 10000.0, 0.0), cameraPos, 45.0, diffuse, specular);
-	FragColor = vec4(vec3(fs_in.tc.x, 1.0, fs_in.tc.y) * diffuse + vec3(0.1, 0.1, 0.1) * specular, 1.0);
+	float mixVal = texture(texMap, fs_in.tc).r;
+	vec3 difColor = mix(texture(texDiffuseGrass, fs_in.tc * texScale).rgb, texture(texDiffuseMountain, fs_in.tc * texScale).rgb, mixVal);
+	FragColor = vec4(diffuse * difColor + vec3(0.1, 0.1, 0.1) * specular, 1.0);
 	EmissionColor = vec4(0.0);
 }

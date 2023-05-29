@@ -18,10 +18,11 @@ uniform float FlickerSpeed;
 uniform float RimPower;
 uniform float GlowSpeed;
 uniform float GlowDistance;
+uniform float EmissionPower;
 
 layout(location = 0)out vec4 FragColor;
 layout(location = 1)out vec4 EmmisiveColor;
-
+layout(location = 2)out vec4 OclusionColor;
 
 float rand(float n){
     return fract(sin(n) * 43758.5453123);
@@ -33,8 +34,7 @@ float noise(float p){
     return mix(rand(fl),rand(fl+1.0),fc);
 }
 
-void main(void){
-
+void main(void) {
     float val = gTime * BarSpeed + fs_in.P.y * BarDistance;
     float bars = step(val - floor(val),0.5) * 0.65;
     float flicker = clamp(noise(gTime * FlickerSpeed),0.65,1.0);
@@ -44,7 +44,8 @@ void main(void){
 
     FragColor = MainColor + rimColor + (0.35 * MainColor);
     FragColor.a = alpha * (bars + rim) * flicker;
-    EmmisiveColor = vec4(FragColor.rgb, 1.0) *  0.2;
+    EmmisiveColor = vec4(FragColor.rgb, 1.0) *  0.35 * EmissionPower;
+	OclusionColor = vec4(0.0);
 }
 
 
