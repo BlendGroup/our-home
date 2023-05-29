@@ -17,6 +17,7 @@
 #include<opensimplexnoise.h>
 #include<debugcamera.h>
 #include<crossfade.h>
+#include<shapes.h>
 
 using namespace std;
 using namespace vmath;
@@ -76,8 +77,6 @@ void dayscene::init() {
 	texDiffuseMountain = createTexture2D("resources/textures/rocks2.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 }
 
-GLfloat bound = 1.0f;
-
 void dayscene::render() {
 	terrainRenderer->use();
 	glUniformMatrix4fv(terrainRenderer->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
@@ -113,7 +112,9 @@ void dayscene::render() {
 }
 
 void dayscene::update() {
-	t += programglobal::deltaTime;
+	if(programglobal::isAnimating) {
+		t += programglobal::deltaTime;
+	}
 
 	if(crossinT >= 1.0f) {
 		eventManager[CROSSFADE_IN] = false;
@@ -134,14 +135,6 @@ void dayscene::uninit() {
 }
 
 void dayscene::keyboardfunc(int key) {
-	switch(key) {
-	case XK_i:
-		bound += 0.1f;
-		break;
-	case XK_k:
-		bound -= 0.1f;
-		break;
-	}
 }
 
 camera* dayscene::getCamera() {
