@@ -1,17 +1,15 @@
 #version 460 core
 
-uniform mat4 mMat;
-uniform mat4 vMat;
 uniform mat4 pMat;
-
+uniform mat4 vMat;
+uniform mat4 mMat;
 
 void main(void) {
-	const vec3 vPos[] = vec3[4](
-		vec3(-0.5, 0.0, -0.5),
-		vec3(0.5, 0.0, -0.5),
-		vec3(-0.5, 0.0, 0.5),
-		vec3(0.5, 0.0, 0.5)
+	vec3 lakePos[] = vec3[4](
+		vec3(1.0, 0.0, 1.0),
+		vec3(-1.0, 0.0, 1.0),
+		vec3(1.0, 0.0, -1.0),
+		vec3(-1.0, 0.0, -1.0)
 	);
-
-	gl_Position = pMat * vMat * mMat * vec4(vPos[gl_VertexID], 1.0);
+	gl_Position = pMat * vMat * mMat * vec4(lakePos[gl_VertexID], 1.0);
 }

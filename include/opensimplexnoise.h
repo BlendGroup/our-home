@@ -5,14 +5,10 @@
 #include<GL/glew.h>
 #include<GL/gl.h>
 
-enum noisetype {
-	Noise2D,
-	Noise3D,
-	Noise4D
-};
-
 class opensimplexnoise {
 public:
-	opensimplexnoise();
-	GLuint createNoiseTextureOnUniformInput(noisetype type, const int* dim, const int* offset, float timeInterval, float amplitude, long seed);
+	static GLuint createNoiseTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, float amplitude, long seed);
+	static GLuint createFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, int octave, long seed);
+	static GLuint createTurbulenceFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offset, float timeInterval, int octave, float noiseoffset, long seed);
+	static GLuint combineTwoNoiseTextures(GLuint inputImage1, GLuint inputImage2, vmath::ivec2 dim, float offset);
 };

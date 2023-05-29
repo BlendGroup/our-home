@@ -1,42 +1,55 @@
+#include<AL/alut.h>
 #include<iostream>
 #include<memory>
+#include<chrono>
 
 #include<GL/glew.h>
 #include<GL/gl.h>
 
 #include<vmath.h>
-#include<glshaderloader.h>
 #include<scenecamera.h>
-#include<scenecamerarig.h>
 #include<debugcamera.h>
-#include<testPBR.h>
-#include<testLab.h>
-#include<testmodel.h>
 #include<hdr.h>
 #include<windowing.h>
 #include<errorlog.h>
 #include<global.h>
 #include<clhelper.h>
+#include<gltextureloader.h>
+#include<shapes.h>
+#include<godrays.h>
+#include<crossfade.h>
+
+#include<scenes/base.h>
+#include<scenes/lab.h>
+#include<scenes/day.h>
+#include<scenes/title.h>
 
 using namespace std;
 using namespace vmath;
 
 static bool hdrEnabled = true;
 static HDR* hdr;
-static sceneCamera* scenecamera;
-static sceneCameraRig* scenecamerarig;
 static debugCamera* debugcamera;
 static bool isDebugCameraOn = false;
-static bool isAnimating = false;
+static vector<basescene*> sceneList;
+static basescene* currentScene;
+static glwindow* window;
 
-mat4 programglobal::perspective;
-clglcontext* programglobal::oclContext;
+vmath::mat4 programglobal::perspective;
 camera* programglobal::currentCamera;
+double programglobal::deltaTime;
+debugMode_t programglobal::debugMode = NONE;
+clglcontext* programglobal::oclContext;
+shaperenderer* programglobal::shapeRenderer;
+godrays* programglobal::godrayObject;
+bool programglobal::isAnimating = false;
 
 void setupProgram(void) {
 	try {
-		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl"});
 		hdr->setupProgram();
+		for(basescene* b : sceneList) {
+			b->setupProgram();
+		}
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -44,7 +57,10 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 5.0f, 5.0f), -90.0f, 0.0f);
+		debugcamera = new debugCamera(vec3(0.0f, 20.0f, 5.0f), -90.0f, 0.0f);
+		for(basescene* b : sceneList) {
+			b->setupCamera();
+		}
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -55,12 +71,32 @@ void init(void) {
 		//Object Creation
 		hdr = new HDR(1.5f, 1.0f, 2048);
 		programglobal::oclContext = new clglcontext(1);
+		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
+		programglobal::shapeRenderer = new shaperenderer();
+		crossfader::init();
+		sceneList.insert(sceneList.begin(), {
+			new titlescene(),
+			new labscene(),
+			new dayscene()
+		});
 
 		//Inititalize
+		alutInit(0, NULL);
+		initTextureLoader();
 		hdr->init();
+		hdr->setBloom(true);
+		for(basescene* b : sceneList) {
+			b->init();
+		}
+
+		playNextScene();
+		playNextScene();
+		playNextScene();
 
 		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_MULTISAMPLE);
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -68,31 +104,54 @@ void init(void) {
 
 void render(glwindow* window) {
 	try {
-		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamera);
+		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(currentScene->getCamera());
 
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
 			glViewport(0, 0, hdr->getSize(), hdr->getSize());
+			glClearBufferfv(GL_COLOR, 1, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+			glClearBufferfv(GL_COLOR, 2, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		} else {
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 		}
 
-		glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.3f, 0.2f, 1.0f));
+		glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().height, 0.1f, 1000.0f);
 
+		currentScene->render();
+
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
-			glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
+			glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+			glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 			hdr->render();
+			if(programglobal::godrayObject) {
+				programglobal::godrayObject->renderRays(hdr);
+			}
 		}
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
 }
 
+void resetFBO() {
+	if(hdrEnabled) {
+		glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
+		glViewport(0, 0, hdr->getSize(), hdr->getSize());
+	} else {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, window->getSize().width, window->getSize().height);
+	}
+}
+
 void update(void) {
+	currentScene->update();
+}
+
+void resetScene(void) {
+	currentScene->reset();
 }
 
 void keyboard(glwindow* window, int key) {
@@ -107,14 +166,37 @@ void keyboard(glwindow* window, int key) {
 		isDebugCameraOn = !isDebugCameraOn;
 		break;
 	case XK_F3:
-		hdrEnabled = !hdrEnabled;
+		programglobal::debugMode = NONE;
+		break;
+	case XK_F4:
+		resetScene();
+		break;
+	case XK_F5:
+		programglobal::debugMode = CAMERA;
+		break;
+	case XK_F6:
+		programglobal::debugMode = MODEL;
+		break;
+	case XK_F7:
+		programglobal::debugMode = SPLINE;
+		break;
+	case XK_F8:
+		programglobal::debugMode = LIGHT;
 		break;
 	case XK_space:
-		isAnimating = !isAnimating;
+		programglobal::isAnimating = !programglobal::isAnimating;
 		break;
 	}
-	hdr->keyboardfunc(key);
 	debugcamera->keyboardFunc(key);
+	currentScene->keyboardfunc(key);
+}
+
+void playNextScene(void) {
+	static int current = -1;
+	current++;
+	if(current < sceneList.size()) {
+		currentScene = sceneList[current];
+	}
 }
 
 void mouse(glwindow* window, int button, int action, int x, int y) {
@@ -125,27 +207,46 @@ void mouse(glwindow* window, int button, int action, int x, int y) {
 
 void uninit(void) {
 	hdr->uninit();
-
+	for(basescene* b : sceneList) {
+		b->uninit();
+		delete b;
+	}
+	crossfader::uninit();
 	delete programglobal::oclContext;
 	delete hdr;
 	delete debugcamera;
 }
 
+double getDeltaTime(glwindow *win) {
+	static double prev = win->getTime();
+	double current = win->getTime();
+	double delta = current - prev;
+	prev = current;
+	return delta;
+}
+
 int main(int argc, char **argv) {
+#define SPEED_MULTIPLIER 1
 	try {
-		glwindow* window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
-		init();
-		setupProgram();
-		setupSceneCamera();
+		window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
+		auto initstart = chrono::steady_clock::now();
 		window->setKeyboardFunc(keyboard);
 		window->setMouseFunc(mouse);
+		init();
 		window->setFullscreen(true);
+		auto initend = chrono::steady_clock::now();
+		chrono::duration<double> diff = initend - initstart;
+		cout<<"Time taken to initialize "<<diff.count()<<" sec"<<endl;
+		setupProgram();
+		setupSceneCamera();
 		while(!window->isClosed()) {
 			window->processEvents();
 			render(window);
-			if(isAnimating) {
-				update();
-			}
+			programglobal::deltaTime = getDeltaTime(window);
+			#ifdef DEBUG
+			programglobal::deltaTime *= SPEED_MULTIPLIER;
+			#endif
+			update();
 			window->swapBuffers();
 		}
 		uninit();

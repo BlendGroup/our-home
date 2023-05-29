@@ -1,22 +1,15 @@
 #ifndef __LAKE__
 #define __LAKE__
 
-#include<glbase.h>
-#include<vmath.h>
-#include<glshaderloader.h>
+#include<GL/glew.h>
+#include<GL/gl.h>
 
-class lake : public glbase {
+class lake {
 private:
-	glshaderprogram* renderLake;
-	vmath::mat4 modelMatrix;
 	GLuint vao;
 public:
-	lake(vmath::mat4);
-	void setupProgram(void) override;
-	void init(void) override;
-	void render(void) override;
-	void uninit(void) override;
-	~lake();
+	lake();
+	void render();
 };
 
 #endif

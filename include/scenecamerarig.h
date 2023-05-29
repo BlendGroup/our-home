@@ -11,6 +11,10 @@
 #include <splinerenderer.h>
 #include <global.h>
 
+#ifndef CAMERA_RIG_SCALER
+#define CAMERA_RIG_SCALER 0.01f
+#endif
+
 class sceneCameraRig
 {
 private:
@@ -20,21 +24,27 @@ private:
     glshaderprogram *program;
     GLuint vaoPoint, vaoPathToFront;
     GLuint vboPoint, vboPathToFront;
-    bool isRenderPath, isRenderFront, isRenderPathToFront;
-    float t;
+    bool isRenderPath, isRenderFront, isRenderPathToFront, isRenderPathPoints, isRenderFrontPoints;
+    float scalingFactor;
+	int selectedPathPoint;
+    int selectedFrontPoint;
 
-    void loadGeometry(void);
+	void loadGeometry(void);
 
 public:
-    sceneCameraRig(sceneCamera *camera);
+    sceneCameraRig(sceneCamera* camera);
     ~sceneCameraRig();
     void render() const;
     void updateT(float speed);
+	void resetT();
     void setRenderPath(bool setting);
     void setRenderPathPoints(bool setting);
     void setRenderFront(bool setting);
     void setRenderFrontPoints(bool setting);
     void setRenderPathToFront(bool setting);
+	void setScalingFactor(float scalingFactor);
+	sceneCamera* getCamera();
+	void keyboardfunc(int key);
 };
 
 #endif // __SCENE_CAMERA_RIG__

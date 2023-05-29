@@ -8,72 +8,65 @@
 #include<glshaderloader.h>
 #include<scenecamera.h>
 #include<debugcamera.h>
-#include<testPBR.h>
-#include<testLab.h>
-#include<testmodel.h>
 #include<hdr.h>
 #include<windowing.h>
 #include<errorlog.h>
 #include<global.h>
 #include<clhelper.h>
 #include<opensimplexnoise.h>
+#include<gltextureloader.h>
 
 #include<testeffect.h>
 #include<testcamera.h>
-#include<testmodel.h>
-#include<testterrain.h>
 #include<testcubemap.h>
+#include<testPBR.h>
+#include<testLab.h>
 #include<testnoise.h>
-#include<testLake.h>
+#include<testaudio.h>
 
 using namespace std;
 using namespace vmath;
 
-static bool hdrEnabled = false;
+static bool hdrEnabled = true;
 static HDR* hdr;
 static sceneCamera* scenecamera;
 static sceneCameraRig* scenecamerarig;
 static debugCamera *debugcamera;
 static bool isDebugCameraOn = false;
 static bool isAnimating = false;
+static bool isAudioPlaying = true;
 
 #define SHOW_TEST_SCENE 		0
 #define SHOW_MODEL_SCENE 		0
 #define SHOW_CAMERA_SCENE 		0
-#define SHOW_PBR_SCENE			0
+#define SHOW_PBR_SCENE			1
 #define SHOW_LAB_SCENE			0
 #define SHOW_CAMERA_RIG			0
 #define SHOW_TERRAIN_SCENE 		0
 #define SHOW_CUBEMAP_SCENE		0
 #define SHOW_NOISE_SCENE 		0
-#define SHOW_LAKE_SCENE 		1
+#define SHOW_AUDIO_SCENE		0
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
 camera* programglobal::currentCamera;
-opensimplexnoise* programglobal::noiseGenerator;
+
+extern vector<vec3> positionKeyFrames;
+extern vector<vec3> frontKeyFrames;
 
 void setupProgram(void) {
-	try {
-		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl"});
-	
+	try {	
 #if SHOW_TEST_SCENE
 		setupProgramTestEffect();
 #endif
 #if SHOW_CAMERA_SCENE
 		setupProgramTestCamera();
 #endif
-#if SHOW_MODEL_SCENE
-		setupProgramTestModel();
-#endif
 #if SHOW_PBR_SCENE
 		setupProgramTestPbr();
 #endif
 #if SHOW_LAB_SCENE
 		setupProgramTestLab();
-#endif
-#if SHOW_TERRAIN_SCENE
-		setupProgramTestTerrain();
 #endif
 #if SHOW_CUBEMAP_SCENE
 		setupProgramTestRenderToCubemap();
@@ -92,11 +85,9 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 2.0f, 5.0f), -90.0f, 0.0f);
+		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
 		setupSceneCameraTestCamera(scenecamera);
-#if SHOW_CAMERA_RIG
-		setupSceneCameraRigTestCamera(scenecamera, scenecamerarig);
-#endif // SHOW_CAMERA_RIG
+		setupSceneCameraRigTestCamera(scenecamerarig, scenecamera);
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -105,9 +96,9 @@ void setupSceneCamera(void) {
 void init(void) {
 	try {
 		//Object Creation
-		hdr = new HDR(1.5f, 1.0f, 2048);
+		hdr = new HDR(1.0f, 1.0f, 2048);
 		programglobal::oclContext = new clglcontext(1);
-		programglobal::noiseGenerator = new opensimplexnoise();	
+		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
 
 		//Inititalize
 #if SHOW_TEST_SCENE
@@ -116,17 +107,11 @@ void init(void) {
 #if SHOW_CAMERA_SCENE
 		initTestCamera();
 #endif
-#if SHOW_MODEL_SCENE
-		initTestModel();
-#endif
 #if SHOW_PBR_SCENE
 		initTestPbr();
 #endif
 #if SHOW_LAB_SCENE
 	initTestLab();
-#endif
-#if SHOW_TERRAIN_SCENE
-		initTestTerrain();
 #endif
 #if SHOW_CUBEMAP_SCENE
 		initTestRenderToCubemap();
@@ -134,8 +119,9 @@ void init(void) {
 #if SHOW_NOISE_SCENE
 		initTestNoise();
 #endif
-#if SHOW_LAKE_SCENE
-		initTestLake();
+#if SHOW_AUDIO_SCENE
+		alutInit(0, NULL);
+		initTestAudio();
 #endif
 		hdr->init();
 
@@ -149,9 +135,9 @@ void init(void) {
 void render(glwindow* window) {
 	try {
 		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(scenecamera);
-
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
+			glClearBufferfv(GL_COLOR, 1, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 			glViewport(0, 0, hdr->getSize(), hdr->getSize());
 		} else {
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
@@ -165,23 +151,14 @@ void render(glwindow* window) {
 		renderTestEffect();
 #endif
 #if SHOW_CAMERA_SCENE
-#if SHOW_CAMERA_RIG
 		renderCameraRigTestCamera(scenecamerarig);
-#endif // SHOW_CAMERA_RIG
 		renderTestCamera();
 #endif // SHOW_CAMERA_SCENE
-#if SHOW_MODEL_SCENE
-		renderTestModel(dynamic_cast<camera*>(debugcamera));
-#endif
 #if SHOW_PBR_SCENE
-		renderTestPbr(dynamic_cast<camera*>(debugcamera),debugcamera->getPosition());
+		renderTestPbr(dynamic_cast<camera*>(debugcamera),debugcamera->position());
 #endif
 #if SHOW_LAB_SCENE
 	renderTestLab(dynamic_cast<camera*>(debugcamera), debugcamera->position());
-#endif
-		// renderTestEffect();
-#if SHOW_TERRAIN_SCENE
-		renderTestTerrain();
 #endif
 #if SHOW_CUBEMAP_SCENE
 		renderTestRenderToCubemap(dynamic_cast<camera*>(debugcamera));
@@ -189,13 +166,14 @@ void render(glwindow* window) {
 #if SHOW_NOISE_SCENE
 		renderTestNoise();
 #endif
-#if SHOW_LAKE_SCENE
-		renderTestLake();
+#if SHOW_AUDIO_SCENE
+		renderTestAudio(isAudioPlaying);
 #endif
 
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
 			glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
+			glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 			hdr->render();
 		}
@@ -205,11 +183,7 @@ void render(glwindow* window) {
 }
 
 void update(void) {
-#if SHOW_CAMERA_RIG
-	scenecamerarig->updateT(0.0005f);
-#else
 	scenecamera->updateT(0.0005f);
-#endif // SHOW_CAMERA_RIG
 }
 
 void keyboard(glwindow* window, int key) {
@@ -226,19 +200,24 @@ void keyboard(glwindow* window, int key) {
 	case XK_F3:
 		hdrEnabled = !hdrEnabled;
 		break;
+	case XK_F4:
+		isAudioPlaying = !isAudioPlaying;
+		break;
 	case XK_space:
 		isAnimating = !isAnimating;
 		break;
 	}
 	hdr->keyboardfunc(key);
 	debugcamera->keyboardFunc(key);
-#if SHOW_TERRAIN_SCENE
-	keyboardFuncTestTerrain(key);
+#ifdef SHOW_LAB_SCENE
+	keyboardFuncTestLab(key);
+#endif
+#if SHOW_CAMERA_RIG
+	scenecamerarig->keyboardfunc(key);
 #endif
 #if SHOW_CUBEMAP_SCENE
 	keyboardFuncTestRenderToCubemap(key);
 #endif
-
 }
 
 void mouse(glwindow* window, int button, int action, int x, int y) {
@@ -252,33 +231,25 @@ void uninit(void) {
 	uninitTestEffect();
 #endif
 #if SHOW_CAMERA_SCENE
-#if SHOW_CAMERA_RIG
 	if(scenecamerarig) {
 		delete scenecamerarig;
 	}
-#endif // SHOW_CAMERA_RIG
 	if(scenecamera) {
 		delete scenecamera;
 	}
 	uninitTestCamera();
 #endif // SHOW_CAMERA_SCENE
-#if SHOW_MODEL_SCENE
-	uninitTestModel();
-#endif
 #if SHOW_PBR_SCENE
 	uninitTestPbr();
 #endif
 #if SHOW_LAB_SCENE
 	uninitTestLab();
 #endif
-#if SHOW_TERRAIN_SCENE
-	uninitTestTerrain();
-#endif
 #if SHOW_CUBEMAP_SCENE
 	uninitTestRenderToCubemap();
 #endif
-#if SHOW_LAKE_SCENE
-	uninitTestLake();
+#if SHOW_AUDIO_SCENE
+	uninitTestAudio();
 #endif
 	hdr->uninit();
 

@@ -5,19 +5,19 @@
 #include<string>
 #include<vector>
 #include<unordered_map>
+#include<GL/glew.h>
+#include<GL/gl.h>
+#include<glshaderloader.h>
 
 #define MAX_BONE_COUNT 100
 #define MAX_BONE_INFLUENCE 4
 
 enum textureTypes {
 	TEX_DIFFUSE = 0,
-	TEX_SPECULAR = 1,
-	TEX_NORMAL = 2,
-	TEX_AO = 3,
-	TEX_ROUGHNESS = 4,
-	TEX_METALIC = 5,
-	TEX_GLOSSINESS = 6,
-	TEX_EMISSIVE = 7
+	TEX_NORMAL = 1,
+	TEX_PBR = 2,
+	TEX_SPECULAR = 3,
+	TEX_EMISSIVE = 4,
 };
 
 enum materialTypes {
@@ -25,8 +25,11 @@ enum materialTypes {
 	MAT_DIFFUSE = 1,
 	MAT_SPECULAR = 2,
 	MAT_EMISSIVE = 3,
-	MAT_SHININESS = 4,
-	MAT_OPACITY = 5
+	MAT_METALLIC = 4,
+	MAT_ROUGHNESS = 5,
+	MAT_OPACITY = 6,
+	MAT_SPECULAR_INTENSITY = 7,
+	MAT_SPECULAR_POWER = 8
 };
 
 // structure to keep track of textures in model
@@ -46,7 +49,8 @@ struct glmaterial{
 	vmath::vec3 diffuse;
 	vmath::vec3 specular;
 	vmath::vec3 emissive; // may or may not use
-	float shininess;
+	float metallic;// use as shininess in non pbr
+	float roughness; // use as specular strength in non pbr
 	float opacity;
 	std::vector<texture> textures;
 };
@@ -111,11 +115,10 @@ public:
 	std::vector<glmaterial> materials;
 	int boneCounter = 0;
 	glmodel(std::string path, unsigned flags, bool isPbr);
+	bool PBR;
 	void setBoneMatrixUniform(GLuint uniformLocation, unsigned i);
 	void setBoneMatrixUniform(GLuint uniformLocation, GLuint bMat,unsigned i);
 	void update(float dt, int baseAnimation , int layeredAnimation = 0, float blendFactor = 0.0f );
-	void draw(glshaderprogram* program,int instance = 1);
+	void draw(glshaderprogram* program,int instance = 1,bool setMaterials = true);
 };
-
-
 #endif

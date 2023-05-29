@@ -1,15 +1,16 @@
 #version 460 core
 
-out vec3 texCoord;
+layout (location = 0) in vec3 aPos;
 
-void main(void) {
-	vec4 vPos[] = vec4[4](
-		vec4(0.8, 0.8, 0.0, 1.0),
-		vec4(-0.8, 0.8, 0.0, 1.0),
-		vec4(0.8, -0.8, 0.0, 1.0),
-		vec4(-0.8, -0.8, 0.0, 1.0)
-	);
+out vec3 TexCoords;
 
-	texCoord = vPos[gl_VertexID].xyz;
-	gl_Position = vPos[gl_VertexID];
+uniform mat4 pMat;
+uniform mat4 vMat;
+
+void main()
+{
+    TexCoords = aPos;
+    mat4 rotView = mat4(mat3(vMat));
+    vec4 pos = pMat * rotView * vec4(aPos, 1.0);
+    gl_Position = pos.xyww;
 }

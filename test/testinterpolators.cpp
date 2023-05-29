@@ -32,7 +32,6 @@ void initTestInterpolators(void) {
     bspline = new BsplineInterpolator(points);
     renderer = new SplineRenderer(bspline);
     renderer->setRenderPoints(true);
-    renderer->setRenderControlPoints(true);
 }
 
 void renderTestInterpolators(int winWidth, int winHeight) {
