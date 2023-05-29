@@ -18,6 +18,7 @@
 #include<audio.h>
 #include<godrays.h>
 #include<crossfade.h>
+#include<eventmanager.h>
 
 using namespace std;
 using namespace vmath;
@@ -61,6 +62,7 @@ static sceneCameraRig* cameraRig;
 static SplineAdjuster* robotSpline;
 #endif
 
+static eventmanager* labevents;
 static GLfloat robotT		= 0.01f;
 static GLfloat astonautT	= 0.0f;
 static GLfloat cameraT		= 0.0f;
@@ -121,6 +123,10 @@ void labscene::setupCamera() {
 }
 
 void labscene::init() {
+	labevents = new eventmanager({
+		{ 1.0f, 1.0f }
+	});
+
 	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKai.wav");
 	playerRobotThump = new audioplayer("resources/audio/MetallicThumps.wav");
 
