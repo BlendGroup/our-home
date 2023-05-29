@@ -22,7 +22,6 @@ uniform sampler2D texNormal2;
 uniform sampler2D texMap;
 uniform float amplitudeMin;
 uniform float amplitudeMax;
-uniform float numMeshes;
 
 void main(void) {
 	vec2 tc1 = mix(tes_in[0].tc, tes_in[1].tc, gl_TessCoord.x);
