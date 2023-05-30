@@ -6,10 +6,25 @@
 
 class lake {
 private:
-	GLuint vao;
+	GLuint vaoEmpty;
+	GLuint fboReflection;
+	GLuint texColorReflection;
+	GLuint rboDepthReflection;
+	GLuint fboRefraction;
+	GLuint texColorRefraction;
+	GLuint texDepthRefraction;
+	GLfloat height;
 public:
-	lake();
-	void render();
+	lake(float lakeheight);
+	GLuint getReflectionTexture(void);
+	GLuint getRefractionTexture(void);
+	GLuint getDepthTexture(void);
+	void setReflectionFBO(void);
+	void setRefractionFBO(void);
+	void render(void);
+	inline GLfloat getLakeHeight() {
+		return this->height;
+	}
 };
 
 #endif

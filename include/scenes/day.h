@@ -5,6 +5,8 @@
 #include<scenecamera.h>
 
 class dayscene : public basescene {
+private:
+	void renderScene(bool cameraflipy = false);
 public:
 	void setupProgram() override;
 	void setupCamera() override;
