@@ -40,4 +40,10 @@ void main(void) {
 	tes_out.nor = mat3(mMat) * mix(texture(texNormal1, tc).rgb, texture(texNormal2, tc).rgb, texture(texMap, tc).r);
 	tes_out.pos = vec3(mMat * p);
 	gl_Position = pMat * vMat * mMat * p;
+
+	vec4 clipingPlaneReflection = vec4(0.0, 1.0, 0.0, 5.0);
+	vec4 clipingPlaneRefraction = vec4(0.0, -1.0, 0.0, -5.0);
+
+	gl_ClipDistance[0] = dot(mMat * p, clipingPlaneReflection);
+	gl_ClipDistance[1] = dot(mMat * p, clipingPlaneRefraction);
 }

@@ -73,9 +73,9 @@ void dayscene::init() {
 
 	ivec2 dim = ivec2(2048, 2048);
 	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 3, 1234);
-	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 7, 0.11f, 543);
-	land = new terrain(valleyHeightMap, 256, true, 5.0f, 32.0f);
-	land2 = new terrain(mountainHeightMap, 256, true, 5.0f, 32.0f);
+	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 6, 0.11f, 543);
+	land = new terrain(valleyHeightMap, 256, true, 5.0f, 16.0f);
+	land2 = new terrain(mountainHeightMap, 256, true, 5.0f, 16.0f);
 
 	texTerrainMap = createTexture2D("resources/textures/map.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -125,15 +125,19 @@ void dayscene::renderScene(void) {
 }
 
 void dayscene::render() {
+	glEnable(GL_CLIP_DISTANCE0);
 	lake1->setReflectionFBO();
 	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 	this->renderScene();
+	glDisable(GL_CLIP_DISTANCE0);
 
+	glEnable(GL_CLIP_DISTANCE1);
 	lake1->setRefractionFBO();
 	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 	this->renderScene();
+	glDisable(GL_CLIP_DISTANCE1);
 
 	resetFBO();
 
