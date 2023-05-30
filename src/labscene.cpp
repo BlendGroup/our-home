@@ -405,17 +405,16 @@ void labscene::keyboardfunc(int key) {
 		cameraRig->keyboardfunc(key);
 	} else if(programglobal::debugMode == SPLINE) {
 		robotSpline->keyboardfunc(key);
-	} else {
-		switch(key) {
-		case XK_Up:
-			(*labevents) += 0.4f;
-			break;
-		case XK_Down:
-			(*labevents) -= 0.4f;
-			break;
-		}
+	} else if(programglobal::debugMode == MODEL) {
+	} else if(programglobal::debugMode == LIGHT){
 	}
 	switch(key) {
+	case XK_Up:
+		(*labevents) += 0.4f;
+		break;
+	case XK_Down:
+		(*labevents) -= 0.4f;
+		break;
 	case XK_Tab:
 		if(programglobal::debugMode == CAMERA) {
 			cout<<cameraRig->getCamera()<<endl;
