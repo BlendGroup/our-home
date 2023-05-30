@@ -7,7 +7,6 @@
 
 class basescene {
 protected:
-	float t;
 public:
 	virtual void setupProgram() = 0;
 	virtual void setupCamera() = 0;

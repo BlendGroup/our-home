@@ -374,14 +374,11 @@ void labscene::render() {
 }
 
 void labscene::reset() {
-	t = 0.0f;
+	labevents->resetT();
 }
 
 void labscene::update() {
-	if(programglobal::isAnimating) {
-		t += programglobal::deltaTime;
-	}
-	labevents->updateT(t);
+	labevents->increment();
 	static const float ROBOT_ANIM_SPEED = 0.99f;
 	static const float ASTRO_ANIM_SPEED = 0.1f;
 	static const float HOLOGRAM_UPDATE_SPEED = 0.5f;
@@ -413,23 +410,21 @@ void labscene::keyboardfunc(int key) {
 	} else {
 		switch(key) {
 		case XK_Up:
-			t += 0.4f;
+			(*labevents) += 0.4f;
 			break;
 		case XK_Down:
-			t -= 0.4f;
+			(*labevents) -= 0.4f;
 			break;
 		}
 	}
 	switch(key) {
 	case XK_Tab:
-		//cout << doorPlacer;
 		if(programglobal::debugMode == CAMERA) {
 			cout<<cameraRig->getCamera()<<endl;
 		}	
 		if(programglobal::debugMode == SPLINE) {
 			cout<<robotSpline->getSpline()<<endl;
 		}
-		cout<<"Current T = "<<t<<endl;
 		break;
 	}
 }

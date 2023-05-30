@@ -18,19 +18,10 @@
 #include<debugcamera.h>
 #include<crossfade.h>
 #include<lake.h>
+#include<eventmanager.h>
 
 using namespace std;
 using namespace vmath;
-
-enum EVENTS {
-	CAMERA_MOVE = 0,
-	CROSSFADE_IN,
-
-//Dont Add	
-	NUM_EVENTS
-};
-
-static bool eventManager[NUM_EVENTS];
 
 static glshaderprogram* terrainRenderer;
 static glshaderprogram* lakeRenderer;
@@ -46,8 +37,6 @@ static modelplacer* lakePlacer;
 static glshaderprogram* drawTexQuad;
 #endif
 
-static GLfloat crossinT		= 0.0f;
-
 static GLuint texTerrainMap;
 static GLuint texDiffuseGrass;
 static GLuint texDiffuseDirt;
@@ -56,6 +45,12 @@ static GLuint texLakeMap;
 extern GLuint texLabSceneFinal;
 
 static int currentTex = 0;
+
+enum tvalues {
+	CROSSIN_T,
+	CAMERAMOVE_T
+};
+static eventmanager* dayevents;
 
 void dayscene::setupProgram() {
 	try {
@@ -72,10 +67,9 @@ void dayscene::setupCamera() {
 }
 
 void dayscene::init() {
-	for(int i = 0; i < NUM_EVENTS; i++) {
-		eventManager[i] = false;
-	}
-	eventManager[CROSSFADE_IN] = true;
+	dayevents = new eventmanager({
+		{CROSSIN_T, { 0.0f, 4.0f }}
+	});
 
 	ivec2 dim = ivec2(2048, 2048);
 	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 3, 1234);
@@ -165,28 +159,17 @@ void dayscene::render() {
 
 	glEnable(GL_DEPTH_TEST);
 
-	if(eventManager[CROSSFADE_IN]) {
-		crossfader::render(texLabSceneFinal, crossinT);
+	if((*dayevents)[CROSSIN_T] < 1.0f) {
+		crossfader::render(texLabSceneFinal, (*dayevents)[CROSSIN_T]);
 	}
 }
 
 void dayscene::update() {
-	if(programglobal::isAnimating) {
-		t += programglobal::deltaTime;
-	}
-
-	if(crossinT >= 1.0f) {
-		eventManager[CROSSFADE_IN] = false;
-		eventManager[CAMERA_MOVE] = true;
-	}
-
-	if(eventManager[CROSSFADE_IN]) {
-		crossinT += 0.3f * programglobal::deltaTime;
-	}
+	dayevents->increment();
 }
 
 void dayscene::reset() {
-	t = 0.0f;
+	dayevents->resetT();
 }
 
 void dayscene::uninit() {
