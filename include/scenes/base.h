@@ -17,6 +17,7 @@ public:
 	virtual void uninit() = 0;
 	virtual void keyboardfunc(int key) = 0;
 	virtual camera* getCamera() = 0;
+	virtual void crossfade() = 0;
 };
 
 void playNextScene();

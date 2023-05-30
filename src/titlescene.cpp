@@ -107,3 +107,7 @@ void titlescene::keyboardfunc(int key) {
 camera* titlescene::getCamera() {
 	return staticcamera;
 }
+
+void titlescene::crossfade() {
+	
+}

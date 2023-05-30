@@ -93,8 +93,8 @@ void labscene::setupProgram() {
 void labscene::setupCamera() {
 	vector<vec3> positionKeyFrames = {
 		vec3(-1.96f, -0.27f, -1.13f),
-		vec3(-1.94f, -0.32f, -0.97f),
-		vec3(-1.89f, -0.37f, -1.22f),
+		vec3(-1.95f, -0.32f, -1.11f),
+		vec3(-1.89f, -0.37f, -1.36f),
 		vec3(-1.84f, -0.33f, -1.65f),
 		vec3(-1.47f, -0.15f, -1.82f),
 		vec3(-0.82f, 0.28f, -1.85f),
@@ -105,7 +105,7 @@ void labscene::setupCamera() {
     
 	vector<vec3> frontKeyFrames = {
 		vec3(-1.96f, -0.27f, -1.65f),
-		vec3(-1.84f, -0.4f, -1.53f),
+		vec3(-1.74f, -0.4f, -1.53f),
 		vec3(-1.5f, -0.4f, -1.48f),
 		vec3(-1.36f, -0.38f, -1.43f),
 		vec3(-0.51f, -0.28f, -0.98f),
@@ -356,17 +356,14 @@ void labscene::render() {
 		// glBindTextureUnit(0,envMapper->cubemap_texture);
 		// glDrawArrays(GL_TRIANGLES, 0, 36);
 
+		if((*labevents)[CROSSIN_T] < 1.0f) {
+			crossfader::render(texTitleSceneFinal, (*labevents)[CROSSIN_T]);
+		}
+
 		if(programglobal::debugMode == CAMERA) {
 			cameraRig->render();
 		} else if(programglobal::debugMode == SPLINE) {
 			robotSpline->render(RED_PINK_COLOR);
-		}
-	
-		if((*labevents)[CROSSIN_T] < 1.0f) {
-			crossfader::render(texTitleSceneFinal, (*labevents)[CROSSIN_T]);
-		}
-		if((*labevents)[CROSSOUT_T] < 1.0f) {
-			crossfader::render(texLabSceneFinal, 1.0f - (*labevents)[CROSSOUT_T]);
 		}
 	} catch(string errString) {
 		throwErr(errString);
@@ -390,7 +387,8 @@ void labscene::update() {
 	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 0);
 
 	if((*labevents)[CROSSOUT_T] >= 1.0f) {
-		playNextScene();
+		programglobal::isAnimating = false;
+		// playNextScene();
 	}
 }
 
@@ -431,4 +429,10 @@ void labscene::keyboardfunc(int key) {
 
 camera* labscene::getCamera() {
 	return camera1;
+}
+
+void labscene::crossfade() {
+	if((*labevents)[CROSSOUT_T] > 0.0f) {
+		crossfader::render(texLabSceneFinal, 1.0f - (*labevents)[CROSSOUT_T]);
+	}
 }

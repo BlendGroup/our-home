@@ -57,7 +57,7 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 20.0f, 5.0f), -90.0f, 0.0f);
+		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 2.0f), -90.0f, 0.0f);
 		for(basescene* b : sceneList) {
 			b->setupCamera();
 		}
@@ -77,7 +77,7 @@ void init(void) {
 		sceneList.insert(sceneList.begin(), {
 			new titlescene(),
 			new labscene(),
-			new dayscene()
+			// new dayscene()
 		});
 
 		//Inititalize
@@ -87,11 +87,11 @@ void init(void) {
 		hdr->setBloom(true);
 		for(basescene* b : sceneList) {
 			b->init();
-		}
+		} 
 
 		playNextScene();
-		playNextScene();
-		playNextScene();
+		// playNextScene();
+		// playNextScene();
 
 		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);
@@ -130,6 +130,7 @@ void render(glwindow* window) {
 			if(programglobal::godrayObject) {
 				programglobal::godrayObject->renderRays(hdr);
 			}
+			currentScene->crossfade();
 		}
 	} catch(string errorString) {
 		throwErr(errorString);
