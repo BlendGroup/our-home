@@ -62,6 +62,16 @@ static sceneCameraRig* cameraRig;
 static SplineAdjuster* robotSpline;
 #endif
 
+enum tvalues {
+	ROBOT_T,
+	ASTRONAUT_T,
+	CAMERA_T,
+	DOOR_T,
+	HOLOGRAM_T,
+	CROSSIN_T,
+	CROSSOUT_T
+};
+
 static eventmanager* labevents;
 static GLfloat robotT		= 0.01f;
 static GLfloat astonautT	= 0.0f;
@@ -124,7 +134,13 @@ void labscene::setupCamera() {
 
 void labscene::init() {
 	labevents = new eventmanager({
-		{ 1.0f, 1.0f }
+		{HOLOGRAM_T, { 0.0f, 0.0f }},
+		{ASTRONAUT_T, { 0.0f, 0.0f }},
+		{CROSSIN_T, { 0.0f, 3.36f }},
+		{CAMERA_T, { 3.36f, 40.0f }},
+		{ROBOT_T, { 20.5f, 16.5f }},
+		{DOOR_T, { 41.0f, 13.5f }},
+		{CROSSOUT_T, { 53.8f, 4.0f }},
 	});
 
 	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKai.wav");
