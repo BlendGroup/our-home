@@ -37,11 +37,14 @@ static modelplacer* lakePlacer;
 static glshaderprogram* drawTexQuad;
 #endif
 
+static GLfloat lakeT = 0.0f;
+
 static GLuint texTerrainMap;
 static GLuint texDiffuseGrass;
 static GLuint texDiffuseDirt;
 static GLuint texDiffuseMountain;
 static GLuint texLakeMap;
+static GLuint texLakeDuDVMap;
 extern GLuint texLabSceneFinal;
 
 static int currentTex = 0;
@@ -82,6 +85,7 @@ void dayscene::init() {
 	texDiffuseDirt = createTexture2D("resources/textures/dirt.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseMountain = createTexture2D("resources/textures/rocks2.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texLakeMap = createTexture2D("resources/textures/lake.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
+	texLakeDuDVMap = createTexture2D("resources/textures/dudv.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
 
 	lake1 = new lake(-6.0f);
 
@@ -151,8 +155,12 @@ void dayscene::render() {
 	glUniformMatrix4fv(lakeRenderer->getUniformLocation("mMat"), 1, GL_FALSE, translate(-4.0f, lake1->getLakeHeight(), -72.0f) * scale(29.0f));
 	glUniform1i(lakeRenderer->getUniformLocation("texRefraction"), 0);
 	glUniform1i(lakeRenderer->getUniformLocation("texReflection"), 1);
+	glUniform1i(lakeRenderer->getUniformLocation("texDuDv"), 2);
+	glUniform1f(lakeRenderer->getUniformLocation("time"), lakeT);
+	glUniform3fv(lakeRenderer->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
 	glBindTextureUnit(0, lake1->getRefractionTexture());
 	glBindTextureUnit(1, lake1->getReflectionTexture());
+	glBindTextureUnit(2, texLakeDuDVMap);
 	lake1->render();
 
 	glDisable(GL_DEPTH_TEST);
@@ -176,6 +184,8 @@ void dayscene::render() {
 
 void dayscene::update() {
 	dayevents->increment();
+	const float LAKE_SPEED = 0.05f;
+	lakeT += programglobal::deltaTime * LAKE_SPEED;
 }
 
 void dayscene::reset() {
