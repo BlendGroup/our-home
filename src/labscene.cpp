@@ -117,6 +117,7 @@ void labscene::setupCamera() {
 
 	camera1 = new sceneCamera(positionKeyFrames, frontKeyFrames);
 
+#ifdef DEBUG
 	cameraRig = new sceneCameraRig(camera1);
 	cameraRig->setRenderFront(true);
 	cameraRig->setRenderFrontPoints(true);
@@ -124,6 +125,7 @@ void labscene::setupCamera() {
 	cameraRig->setRenderPathPoints(true);
 	cameraRig->setRenderPathToFront(true);
 	cameraRig->setScalingFactor(0.01f);
+#endif
 }
 
 void labscene::init() {
@@ -164,6 +166,8 @@ void labscene::init() {
 	robotSpline->setRenderPath(true);
 	robotSpline->setRenderPoints(true);
 	robotSpline->setScalingFactor(0.01f);
+	
+	doorPlacer = new modelplacer();
 #endif
 
 	envMapper = new CubeMapRenderTarget(CUBEMAP_SIZE, CUBEMAP_SIZE, false);
@@ -230,10 +234,6 @@ void labscene::init() {
 	glEnableVertexAttribArray(0);
 
 	glGenVertexArrays(1, &emptyvao);
-
-#ifdef DEBUG
-	doorPlacer = new modelplacer(vec3(-1.38f, -0.41f, -1.45f), vec3(0.0f, 0.0f, 0.0f), 0.08f);
-#endif
 	
 	unsigned char white[] = {255, 255, 255, 255};
 	glGenTextures(1, &texLabSceneFinal);
@@ -268,8 +268,6 @@ void labscene::init() {
 void labscene::render() {
 	try {
 		camera1->setT((*labevents)[CAMERA_T]);
-
-		programglobal::godrayObject = godraysDoor;
 
 		programStaticPBR->use();
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"),1,GL_FALSE, programglobal::perspective);
@@ -315,7 +313,6 @@ void labscene::render() {
 		programHologram->use();
 		glUniformMatrix4fv(programHologram->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
         glUniformMatrix4fv(programHologram->getUniformLocation("vMat"),1,GL_FALSE, programglobal::currentCamera->matrix());
-		//translate(-1.96f, -0.27f, -1.682f) * rotate(13f, 1.0f, 0.0f, 0.0f) * rotate(-50f, 0.0f, 1.0f, 0.0f) * rotate(-1f, 0.0f, 0.0f, 1.0f) * scale(0.11f)
         glUniformMatrix4fv(programHologram->getUniformLocation("mMat"),1,GL_FALSE, translate(-1.96f, -0.27f, -1.68f) * scale(0.11f));
 		glUniform4fv(programHologram->getUniformLocation("MainColor"),1,vec4(0.0f,0.0f,1.0f,1.0f));
 		glUniform4fv(programHologram->getUniformLocation("RimColor"),1,vec4(0.0f,1.0f,1.0f,1.0f));
@@ -387,8 +384,7 @@ void labscene::update() {
 	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 0);
 
 	if((*labevents)[CROSSOUT_T] >= 1.0f) {
-		programglobal::isAnimating = false;
-		// playNextScene();
+		playNextScene();
 	}
 }
 
@@ -431,6 +427,9 @@ camera* labscene::getCamera() {
 }
 
 void labscene::crossfade() {
+	if((*labevents)[DOOR_T] > 0.0f) {
+		godraysDoor->renderRays();
+	}
 	if((*labevents)[CROSSOUT_T] > 0.0f) {
 		crossfader::render(texLabSceneFinal, 1.0f - (*labevents)[CROSSOUT_T]);
 	}

@@ -5,7 +5,7 @@
 #include<clhelper.h>
 #include<camera.h>
 #include<shapes.h>
-#include<godrays.h>
+#include<hdr.h>
 
 enum debugMode_t {
 	NONE,
@@ -22,8 +22,8 @@ namespace programglobal {
 	extern double deltaTime;
 	extern shaperenderer* shapeRenderer;
 	extern debugMode_t debugMode;
-	extern godrays* godrayObject;
 	extern bool isAnimating;
+	extern HDR* hdr;
 } // namespace programglobal
 
 void resetFBO();
