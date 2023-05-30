@@ -16,8 +16,9 @@ private:
 	clglmem normalMap;
 	GLfloat minTess;
 	GLfloat maxTess;
+	GLint meshSize;
 public:
-	terrain(GLuint heightMap, bool calcNormal, GLfloat minTess, GLfloat maxTess);
+	terrain(GLuint heightMap, GLint meshSize, bool calcNormal, GLfloat minTess, GLfloat maxTess);
 	void render(void);
 	inline GLuint getHeightMap() {
 		return this->heightMap.gl;
@@ -30,6 +31,9 @@ public:
 	}
 	inline GLfloat getMaxTess(){
 		return this->maxTess;
+	}
+	inline GLint getMeshSize() {
+		return this->meshSize;
 	}
 	~terrain();
 };

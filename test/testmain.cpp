@@ -18,13 +18,11 @@
 
 #include<testeffect.h>
 #include<testcamera.h>
-#include<testterrain.h>
 #include<testcubemap.h>
 #include<testPBR.h>
 #include<testLab.h>
 #include<testnoise.h>
 #include<testaudio.h>
-#include<testgodrays.h>
 
 using namespace std;
 using namespace vmath;
@@ -48,7 +46,6 @@ static bool isAudioPlaying = true;
 #define SHOW_CUBEMAP_SCENE		0
 #define SHOW_NOISE_SCENE 		0
 #define SHOW_AUDIO_SCENE		0
-#define SHOW_GODRAYS_SCENE		1
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
@@ -71,19 +68,15 @@ void setupProgram(void) {
 #if SHOW_LAB_SCENE
 		setupProgramTestLab();
 #endif
-#if SHOW_TERRAIN_SCENE
-		setupProgramTestTerrain();
-#endif
 #if SHOW_CUBEMAP_SCENE
 		setupProgramTestRenderToCubemap();
 #endif
 #if SHOW_NOISE_SCENE
 		setupProgramTestNoise();
 #endif
-#if SHOW_GODRAYS_SCENE
-	setupProgramTestGodrays();
+#if SHOW_LAKE_SCENE
+		setupProgramTestLake();
 #endif
-
 		hdr->setupProgram();
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -120,9 +113,6 @@ void init(void) {
 #if SHOW_LAB_SCENE
 	initTestLab();
 #endif
-#if SHOW_TERRAIN_SCENE
-		initTestTerrain();
-#endif
 #if SHOW_CUBEMAP_SCENE
 		initTestRenderToCubemap();
 #endif
@@ -132,9 +122,6 @@ void init(void) {
 #if SHOW_AUDIO_SCENE
 		alutInit(0, NULL);
 		initTestAudio();
-#endif
-#if SHOW_GODRAYS_SCENE
-	initTestGodrays();
 #endif
 		hdr->init();
 
@@ -173,10 +160,6 @@ void render(glwindow* window) {
 #if SHOW_LAB_SCENE
 	renderTestLab(dynamic_cast<camera*>(debugcamera), debugcamera->position());
 #endif
-		// renderTestEffect();
-#if SHOW_TERRAIN_SCENE
-		renderTestTerrain();
-#endif
 #if SHOW_CUBEMAP_SCENE
 		renderTestRenderToCubemap(dynamic_cast<camera*>(debugcamera));
 #endif
@@ -185,14 +168,6 @@ void render(glwindow* window) {
 #endif
 #if SHOW_AUDIO_SCENE
 		renderTestAudio(isAudioPlaying);
-#endif
-#if SHOW_GODRAYS_SCENE
-		if(hdrEnabled) {
-			renderTestGodrays(dynamic_cast<camera*>(debugcamera), hdr->getSize(), hdr->getSize());
-		}
-		else {
-			renderTestGodrays(dynamic_cast<camera*>(debugcamera), window->getSize().width, window->getSize().height);
-		}
 #endif
 
 		if(hdrEnabled) {
@@ -240,14 +215,8 @@ void keyboard(glwindow* window, int key) {
 #if SHOW_CAMERA_RIG
 	scenecamerarig->keyboardfunc(key);
 #endif
-#if SHOW_TERRAIN_SCENE
-	keyboardFuncTestTerrain(key);
-#endif
 #if SHOW_CUBEMAP_SCENE
 	keyboardFuncTestRenderToCubemap(key);
-#endif
-#ifdef SHOW_GODRAYS_SCENE
-	keyboardFuncTestGodrays(key);
 #endif
 }
 
@@ -276,17 +245,11 @@ void uninit(void) {
 #if SHOW_LAB_SCENE
 	uninitTestLab();
 #endif
-#if SHOW_TERRAIN_SCENE
-	uninitTestTerrain();
-#endif
 #if SHOW_CUBEMAP_SCENE
 	uninitTestRenderToCubemap();
 #endif
 #if SHOW_AUDIO_SCENE
 	uninitTestAudio();
-#endif
-#if SHOW_GODRAYS_SCENE
-	uninitTestGodrays();
 #endif
 	hdr->uninit();
 

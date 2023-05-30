@@ -228,7 +228,7 @@ public:
     }
 
 	inline friend std::ostream& operator<<(std::ostream& out, const vecN &that) {
-		out<<"vec3(";
+		out<<"vec"<<len<<"(";
 		for(int n = 0; n < len; n++) {
 			out<<that[n]<<"f, ";
 		}
@@ -1314,6 +1314,10 @@ static inline vecN<T,N> max(const vecN<T,N>& x, const vecN<T,N>& y)
     }
 
     return t;
+}
+
+static inline float clamp(const float& x, const float& minVal, const float& maxVal) {
+	return std::min(std::max(x, minVal), maxVal);
 }
 
 template <typename T, const int N>

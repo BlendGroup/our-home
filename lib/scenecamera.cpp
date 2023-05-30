@@ -32,6 +32,14 @@ void sceneCamera::resetT() {
 	this->t = 0.0f;
 }
 
+void sceneCamera::setT(float t) {
+	this->t = t;
+}
+
+float sceneCamera::getT() {
+	return this->t;
+}
+
 float sceneCamera::getDistanceOnSpline() const
 {
     return m_bspPositions->getDistanceOnSpline(t);

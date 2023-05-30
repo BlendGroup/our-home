@@ -17,6 +17,7 @@
 #include<gltextureloader.h>
 #include<shapes.h>
 #include<godrays.h>
+#include<crossfade.h>
 
 #include<scenes/base.h>
 #include<scenes/lab.h>
@@ -30,17 +31,18 @@ static bool hdrEnabled = true;
 static HDR* hdr;
 static debugCamera* debugcamera;
 static bool isDebugCameraOn = false;
-static bool isAnimating = false;
 static vector<basescene*> sceneList;
 static basescene* currentScene;
+static glwindow* window;
 
 vmath::mat4 programglobal::perspective;
 camera* programglobal::currentCamera;
 double programglobal::deltaTime;
-debugMode_t programglobal::debugMode;
+debugMode_t programglobal::debugMode = NONE;
 clglcontext* programglobal::oclContext;
 shaperenderer* programglobal::shapeRenderer;
 godrays* programglobal::godrayObject;
+bool programglobal::isAnimating = false;
 
 void setupProgram(void) {
 	try {
@@ -55,7 +57,7 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
+		debugcamera = new debugCamera(vec3(0.0f, 20.0f, 5.0f), -90.0f, 0.0f);
 		for(basescene* b : sceneList) {
 			b->setupCamera();
 		}
@@ -71,21 +73,23 @@ void init(void) {
 		programglobal::oclContext = new clglcontext(1);
 		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
 		programglobal::shapeRenderer = new shaperenderer();
+		crossfader::init();
 		sceneList.insert(sceneList.begin(), {
 			new titlescene(),
 			new labscene(),
-			// new dayscene()
+			new dayscene()
 		});
 
 		//Inititalize
 		alutInit(0, NULL);
 		initTextureLoader();
 		hdr->init();
-		hdr->toggleBloom(true);
+		hdr->setBloom(true);
 		for(basescene* b : sceneList) {
 			b->init();
 		}
 
+		playNextScene();
 		playNextScene();
 		playNextScene();
 
@@ -111,7 +115,7 @@ void render(glwindow* window) {
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 		}
 
-		glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 1.0f, 0.0f, 1.0f));
+		glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().height, 0.1f, 1000.0f);
 
@@ -119,7 +123,7 @@ void render(glwindow* window) {
 
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
-			glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 1.0f, 0.0f, 1.0f));
+			glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 			glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 			hdr->render();
@@ -132,10 +136,18 @@ void render(glwindow* window) {
 	}
 }
 
-void update(void) {
-	if(isAnimating) {
-		currentScene->update();
+void resetFBO() {
+	if(hdrEnabled) {
+		glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
+		glViewport(0, 0, hdr->getSize(), hdr->getSize());
+	} else {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, window->getSize().width, window->getSize().height);
 	}
+}
+
+void update(void) {
+	currentScene->update();
 }
 
 void resetScene(void) {
@@ -153,6 +165,9 @@ void keyboard(glwindow* window, int key) {
 	case XK_F2:
 		isDebugCameraOn = !isDebugCameraOn;
 		break;
+	case XK_F3:
+		programglobal::debugMode = NONE;
+		break;
 	case XK_F4:
 		resetScene();
 		break;
@@ -169,7 +184,7 @@ void keyboard(glwindow* window, int key) {
 		programglobal::debugMode = LIGHT;
 		break;
 	case XK_space:
-		isAnimating = !isAnimating;
+		programglobal::isAnimating = !programglobal::isAnimating;
 		break;
 	}
 	debugcamera->keyboardFunc(key);
@@ -196,6 +211,7 @@ void uninit(void) {
 		b->uninit();
 		delete b;
 	}
+	crossfader::uninit();
 	delete programglobal::oclContext;
 	delete hdr;
 	delete debugcamera;
@@ -212,12 +228,12 @@ double getDeltaTime(glwindow *win) {
 int main(int argc, char **argv) {
 #define SPEED_MULTIPLIER 1
 	try {
-		glwindow* window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
+		window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
 		auto initstart = chrono::steady_clock::now();
 		window->setKeyboardFunc(keyboard);
 		window->setMouseFunc(mouse);
-		window->setFullscreen(true);
 		init();
+		window->setFullscreen(true);
 		auto initend = chrono::steady_clock::now();
 		chrono::duration<double> diff = initend - initstart;
 		cout<<"Time taken to initialize "<<diff.count()<<" sec"<<endl;
@@ -230,9 +246,7 @@ int main(int argc, char **argv) {
 			#ifdef DEBUG
 			programglobal::deltaTime *= SPEED_MULTIPLIER;
 			#endif
-			if(isAnimating) {
-				update();
-			}
+			update();
 			window->swapBuffers();
 		}
 		uninit();

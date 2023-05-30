@@ -22,8 +22,6 @@ static debugCamera* staticcamera;
 static glshaderprogram* programRender;
 static glmodel* modelTitle;
 
-#define tex_1k 1920, 1080
-
 void titlescene::setupProgram() {
 	programRender = new glshaderprogram({"shaders/title/render.vert", "shaders/title/render.frag"});
 }
@@ -65,13 +63,16 @@ void titlescene::render() {
 }
 
 void titlescene::update(void) {
-	this->t += programglobal::deltaTime;
-	if(this->t >= 5.0f) {
+	if(programglobal::isAnimating) {
+		this->t += programglobal::deltaTime;
+	}
+	if(this->t >= 2.0f) {
 		glBindFramebuffer(GL_FRAMEBUFFER, fboTitleSceneFinal);
 		glViewport(0, 0, tex_1k);
 		glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 		this->render();
+		resetFBO();
 		playNextScene();
 	}
 }

@@ -61,7 +61,7 @@ void HDR::init(void) {
 	glGenTextures(1, &this->occlusionTex);
 	glBindTexture(GL_TEXTURE_2D, this->occlusionTex);
 	glTexStorage2D(GL_TEXTURE_2D, this->mipLevels, GL_RGBA8, this->getSize(),this->getSize());
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
 
@@ -144,7 +144,7 @@ void HDR::render(void) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void HDR::toggleBloom(bool value){
+void HDR::setBloom(bool value){
 	this->bloomEnabled = value;
 }
 

@@ -31,7 +31,7 @@ public:
 	void render(void) override;
 	void uninit(void) override;
 	void keyboardfunc(int key);
-	void toggleBloom(bool val);
+	void setBloom(bool val);
 	GLuint getFBO(void);
 	GLsizei getSize(void);
 	GLfloat getExposure(void);

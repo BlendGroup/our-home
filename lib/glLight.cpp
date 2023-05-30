@@ -13,7 +13,13 @@ using namespace std;
 static int mode = 0;
 static int selectedLight = 0;
 
-SceneLight::SceneLight(bool envLight){
+SceneLight::SceneLight(bool envLight) :
+	envProgram(nullptr),
+	irradianceProgram(nullptr),
+	prefilterProgram(nullptr),
+	precomputeBRDF(nullptr),
+	irradianceMap(nullptr),
+	prefilterMap(nullptr) {
     const float cubeVerts[] = {
         -0.5f, -0.5f, -0.5f, 
         0.5f, -0.5f, -0.5f, 

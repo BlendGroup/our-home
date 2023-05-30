@@ -17,24 +17,13 @@
 #include<assimp/postprocess.h>
 #include<audio.h>
 #include<godrays.h>
+#include<crossfade.h>
+#include<eventmanager.h>
 
 using namespace std;
 using namespace vmath;
 
 #define CUBEMAP_SIZE 2048
-
-enum EVENTS {
-	DOOR_ANIM = 0,
-	ROBOT_ANIM,
-	BKGND_MUSIC_PLAY,
-	CAMERA_MOVE,
-	CROSSFADE,
-
-//Dont Add	
-	NUM_EVENTS
-};
-
-static bool eventManager[NUM_EVENTS];
 
 static sceneCamera* camera1;
 
@@ -73,14 +62,21 @@ static sceneCameraRig* cameraRig;
 static SplineAdjuster* robotSpline;
 #endif
 
-static GLfloat robotT		= 0.01f;
-static GLfloat astonautT	= 0.0f;
-static GLfloat cameraT		= 0.0f;
-static GLfloat doorT		= 0.0f;
+enum tvalues {
+	ROBOT_T,
+	ASTRONAUT_T,
+	CAMERA_T,
+	DOOR_T,
+	HOLOGRAM_T,
+	CROSSIN_T,
+	CROSSOUT_T
+};
+
+static eventmanager* labevents;
 static GLfloat hologramT	= 0.0f;
-static GLfloat crossT		= 0.0f;
 
 extern GLuint texTitleSceneFinal;
+GLuint texLabSceneFinal;
 
 void labscene::setupProgram() {
 	try {
@@ -89,7 +85,6 @@ void labscene::setupProgram() {
 		programSkybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
 		programColor = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
 		programHologram = new glshaderprogram({"shaders/hologram/hologram.vert","shaders/hologram/hologram.frag"});
-		programCrossfade = new glshaderprogram({"shaders/fsquad.vert", "shaders/crossfade.frag"});
 	} catch(string errorString)  {
 		throwErr(errorString);
 	}
@@ -132,11 +127,14 @@ void labscene::setupCamera() {
 }
 
 void labscene::init() {
-	for(int i = 0; i < NUM_EVENTS; i++) {
-		eventManager[i] = false;
-	}
-	eventManager[CROSSFADE] = true;
-	
+	labevents = new eventmanager({
+		{CROSSIN_T, { 0.0f, 3.36f }},
+		{CAMERA_T, { 3.36f, 40.0f }},
+		{ROBOT_T, { 20.5f, 16.5f }},
+		{DOOR_T, { 41.0f, 13.5f }},
+		{CROSSOUT_T, { 53.8f, 4.0f }},
+	});
+
 	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKai.wav");
 	playerRobotThump = new audioplayer("resources/audio/MetallicThumps.wav");
 
@@ -237,6 +235,12 @@ void labscene::init() {
 	doorPlacer = new modelplacer(vec3(-1.38f, -0.41f, -1.45f), vec3(0.0f, 0.0f, 0.0f), 0.08f);
 #endif
 	
+	unsigned char white[] = {255, 255, 255, 255};
+	glGenTextures(1, &texLabSceneFinal);
+	glBindTexture(GL_TEXTURE_2D, texLabSceneFinal);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, white);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
 	programStaticPBR = new glshaderprogram({"shaders/pbr.vert", "shaders/pbrMain.frag"});
 	glBindFramebuffer(GL_FRAMEBUFFER, envMapper->FBO);
 	glViewport(0, 0, envMapper->width, envMapper->height);
@@ -263,6 +267,8 @@ void labscene::init() {
 
 void labscene::render() {
 	try {
+		camera1->setT((*labevents)[CAMERA_T]);
+
 		programglobal::godrayObject = godraysDoor;
 
 		programStaticPBR->use();
@@ -274,16 +280,16 @@ void labscene::render() {
 		glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
 		sceneLightManager->setLightUniform(programStaticPBR);
 		modelLab->draw(programStaticPBR);
-		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(mix(vec3(-3.3, -0.4f, 2.8f), vec3(-4.62f, -0.4f, 2.8f), doorT)));
+		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(mix(vec3(-3.3, -0.4f, 2.8f), vec3(-4.62f, -0.4f, 2.8f), (*labevents)[DOOR_T])));
 		modelDoor->draw(programStaticPBR);
-		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, doorPlacer->getModelMatrix());
+		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-1.38f, -0.41f, -1.45f) * scale(0.08f));
 		modelMug->draw(programStaticPBR);
 
 		programDynamicPBR->use();
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"), 1,GL_FALSE, programglobal::perspective);
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"), 1,GL_FALSE, programglobal::currentCamera->matrix());
-		vec3 position = bspRobot->interpolate(robotT - 0.01f);
-		vec3 front = bspRobot->interpolate(robotT);
+		vec3 position = bspRobot->interpolate((*labevents)[ROBOT_T] - 0.01f);
+		vec3 front = bspRobot->interpolate((*labevents)[ROBOT_T]);
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(position) * targetat(position, front, vec3(0.0f, 1.0f, 0.0f)) * scale(0.042f));
 		glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
 		// Lights data
@@ -310,17 +316,18 @@ void labscene::render() {
 		glUniformMatrix4fv(programHologram->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
         glUniformMatrix4fv(programHologram->getUniformLocation("vMat"),1,GL_FALSE, programglobal::currentCamera->matrix());
 		//translate(-1.96f, -0.27f, -1.682f) * rotate(13f, 1.0f, 0.0f, 0.0f) * rotate(-50f, 0.0f, 1.0f, 0.0f) * rotate(-1f, 0.0f, 0.0f, 1.0f) * scale(0.11f)
-        glUniformMatrix4fv(programHologram->getUniformLocation("mMat"),1,GL_FALSE, translate(-1.96013f, -0.266205f, -1.682f) * scale(0.11f));
+        glUniformMatrix4fv(programHologram->getUniformLocation("mMat"),1,GL_FALSE, translate(-1.96f, -0.27f, -1.68f) * scale(0.11f));
 		glUniform4fv(programHologram->getUniformLocation("MainColor"),1,vec4(0.0f,0.0f,1.0f,1.0f));
 		glUniform4fv(programHologram->getUniformLocation("RimColor"),1,vec4(0.0f,1.0f,1.0f,1.0f));
 		glUniform1f(programHologram->getUniformLocation("gTime"), hologramT);
-		glUniform1f(programHologram->getUniformLocation("GlitchIntensity"), 1.0f);
-		glUniform1f(programHologram->getUniformLocation("GlitchSpeed"), 1.0f);
-		glUniform1f(programHologram->getUniformLocation("BarSpeed"),7.0f);
-		glUniform1f(programHologram->getUniformLocation("BarDistance"),0.1f);
-		glUniform1f(programHologram->getUniformLocation("alpha"), 0.5f);
-		glUniform1f(programHologram->getUniformLocation("FlickerSpeed"),5.0f);
+		glUniform1f(programHologram->getUniformLocation("GlitchIntensity"), 5.0f);
+		glUniform1f(programHologram->getUniformLocation("GlitchSpeed"), 100.0f);
+		glUniform1f(programHologram->getUniformLocation("BarSpeed"),2.0f);
+		glUniform1f(programHologram->getUniformLocation("BarDistance"),100.0f);
+		glUniform1f(programHologram->getUniformLocation("alpha"), 1.0f);
+		glUniform1f(programHologram->getUniformLocation("FlickerSpeed"),10.0f);
 		glUniform1f(programHologram->getUniformLocation("RimPower"),5.0f);
+		glUniform1f(programHologram->getUniformLocation("EmissionPower"), (*labevents)[CROSSIN_T]);
 		// glUniform1f(programHologram->getUniformLocation("GlowSpeed"),1.0f);
 		// glUniform1f(programHologram->getUniformLocation("GlowDistance"),1.0f);
 		modelBLEND->draw(programHologram,1,false);
@@ -349,24 +356,17 @@ void labscene::render() {
 		// glBindTextureUnit(0,envMapper->cubemap_texture);
 		// glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		if(!eventManager[CAMERA_MOVE]) {
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			programCrossfade->use();
-			glUniform1f(programCrossfade->getUniformLocation("alpha"), 1.0f - crossT);
-			glUniform1i(programCrossfade->getUniformLocation("texSampler"), 0);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, texTitleSceneFinal);
-			glBindVertexArray(emptyvao);
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-			glBindVertexArray(0);
-			glDisable(GL_BLEND);
-		}
-
 		if(programglobal::debugMode == CAMERA) {
 			cameraRig->render();
 		} else if(programglobal::debugMode == SPLINE) {
 			robotSpline->render(RED_PINK_COLOR);
+		}
+	
+		if((*labevents)[CROSSIN_T] < 1.0f) {
+			crossfader::render(texTitleSceneFinal, (*labevents)[CROSSIN_T]);
+		}
+		if((*labevents)[CROSSOUT_T] < 1.0f) {
+			crossfader::render(texLabSceneFinal, 1.0f - (*labevents)[CROSSOUT_T]);
 		}
 	} catch(string errString) {
 		throwErr(errString);
@@ -378,58 +378,23 @@ void labscene::reset() {
 }
 
 void labscene::update() {
-	t += programglobal::deltaTime;
-
-	if(crossT >= 1.0f) {
-		eventManager[CAMERA_MOVE] = true;
-		eventManager[CROSSFADE] = false;
+	if(programglobal::isAnimating) {
+		t += programglobal::deltaTime;
 	}
-	if(doorT >= 1.0f) {
-		cout<<t<<endl;
-		playNextScene();
-	}
-	if(robotT >= 1.0f) {
-		eventManager[ROBOT_ANIM] = false;
-	}
-	// if(t >= 6.2f) {
-	// 	eventManager[BKGND_MUSIC_PLAY] = true;
-	// 	playerBkgnd->play();
-	// }
-	if(t >= 41.0f) {
-		eventManager[DOOR_ANIM] = true;
-	}
-	if(t >= 20.5f && t <= 20.6f) {
-		eventManager[ROBOT_ANIM] = true;
-	}
-	
-	static const float DOOR_OPEN_SPEED = 0.075f;
-	static const float ROBOT_MOVE_SPEED = 0.06f;
+	labevents->updateT(t);
 	static const float ROBOT_ANIM_SPEED = 0.99f;
 	static const float ASTRO_ANIM_SPEED = 0.1f;
 	static const float HOLOGRAM_UPDATE_SPEED = 0.5f;
-	static const float CAMERA_SPEED = 0.025f;
-	static const float CROSSFADE_SPEED = 0.3f;
-
-	if(eventManager[CROSSFADE]) {
-		crossT += CROSSFADE_SPEED * programglobal::deltaTime;
-	}
-	if(eventManager[DOOR_ANIM]) {
-		doorT += DOOR_OPEN_SPEED * programglobal::deltaTime;
-	}
-	if(eventManager[ROBOT_ANIM]) {
-		modelRobot->update(ROBOT_ANIM_SPEED * programglobal::deltaTime, 0);
-		if(fmod(robotT, 0.04f) <= 0.001f) {
-			playerRobotThump->play();
-		}
-		robotT += ROBOT_MOVE_SPEED * programglobal::deltaTime;
-		robotT = std::min(robotT, 1.0f);
-	}
-	if(eventManager[CAMERA_MOVE]) {
-		camera1->updateT(CAMERA_SPEED * programglobal::deltaTime);
-	}
 	
+	if((*labevents)[ROBOT_T] >= 0.00001f && (*labevents)[ROBOT_T] <= 0.99999f) {
+		modelRobot->update(ROBOT_ANIM_SPEED * programglobal::deltaTime, 0);
+	}
 	hologramT += HOLOGRAM_UPDATE_SPEED * programglobal::deltaTime;
 	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 0);
+
+	if((*labevents)[CROSSOUT_T] >= 1.0f) {
+		playNextScene();
+	}
 }
 
 void labscene::uninit() {
@@ -445,9 +410,19 @@ void labscene::keyboardfunc(int key) {
 		cameraRig->keyboardfunc(key);
 	} else if(programglobal::debugMode == SPLINE) {
 		robotSpline->keyboardfunc(key);
+	} else {
+		switch(key) {
+		case XK_Up:
+			t += 0.4f;
+			break;
+		case XK_Down:
+			t -= 0.4f;
+			break;
+		}
 	}
 	switch(key) {
 	case XK_Tab:
+		//cout << doorPlacer;
 		if(programglobal::debugMode == CAMERA) {
 			cout<<cameraRig->getCamera()<<endl;
 		}	

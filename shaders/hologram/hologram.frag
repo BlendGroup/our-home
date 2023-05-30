@@ -18,6 +18,7 @@ uniform float FlickerSpeed;
 uniform float RimPower;
 uniform float GlowSpeed;
 uniform float GlowDistance;
+uniform float EmissionPower;
 
 layout(location = 0)out vec4 FragColor;
 layout(location = 1)out vec4 EmmisiveColor;
@@ -43,7 +44,7 @@ void main(void) {
 
     FragColor = MainColor + rimColor + (0.35 * MainColor);
     FragColor.a = alpha * (bars + rim) * flicker;
-    EmmisiveColor = vec4(FragColor.rgb, 1.0) *  0.2;
+    EmmisiveColor = vec4(FragColor.rgb, 1.0) *  0.35 * EmissionPower;
 	OclusionColor = vec4(0.0);
 }
 

@@ -3,6 +3,8 @@
 
 #include<camera.h>
 
+#define tex_1k 1920, 1080
+
 class basescene {
 protected:
 	float t;
