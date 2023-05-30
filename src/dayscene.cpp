@@ -91,7 +91,7 @@ void dayscene::init() {
 
 #ifdef DEBUG
 	// lakePlacer = new modelplacer(vec3(0.0f, 10.0f, 0.0f), vec3(0.0f, 0.0f, 0.0f), 10.0f);
-	lakePlacer = new modelplacer();
+	lakePlacer = new modelplacer(vec3(-49.0f, -6.0f, -72.0f), vec3(0.0f, 0.0f, 0.0f), 38.0f);
 #endif
 }
 
@@ -152,7 +152,7 @@ void dayscene::render() {
 	lakeRenderer->use();
 	glUniformMatrix4fv(lakeRenderer->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(lakeRenderer->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(lakeRenderer->getUniformLocation("mMat"), 1, GL_FALSE, translate(-4.0f, lake1->getLakeHeight(), -72.0f) * scale(29.0f));
+	glUniformMatrix4fv(lakeRenderer->getUniformLocation("mMat"), 1, GL_FALSE, lakePlacer->getModelMatrix());
 	glUniform1i(lakeRenderer->getUniformLocation("texRefraction"), 0);
 	glUniform1i(lakeRenderer->getUniformLocation("texReflection"), 1);
 	glUniform1i(lakeRenderer->getUniformLocation("texDuDv"), 2);
