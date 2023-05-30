@@ -71,6 +71,14 @@ mat4 debugCamera::matrix() const {
 	return lookat(this->pos, this->front + this->pos, upVector);
 }
 
+mat4 debugCamera::matrixYFlippedOnPlane(float planey) const {
+	float distance = 2.0f * (this->pos[1] - planey);
+	vec3 newpos = this->pos;
+	newpos[1] -= distance;
+	vec3 newfront = calcFront(this->yaw, -this->pitch);
+	return lookat(newpos, newfront + newpos, upVector);
+}
+
 vec3 debugCamera::position() const {
 	return this->pos;
 }

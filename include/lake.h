@@ -13,14 +13,18 @@ private:
 	GLuint fboRefraction;
 	GLuint texColorRefraction;
 	GLuint texDepthRefraction;
+	GLfloat height;
 public:
-	lake();
+	lake(float lakeheight);
 	GLuint getReflectionTexture(void);
 	GLuint getRefractionTexture(void);
 	GLuint getDepthTexture(void);
 	void setReflectionFBO(void);
 	void setRefractionFBO(void);
 	void render(void);
+	inline GLfloat getLakeHeight() {
+		return this->height;
+	}
 };
 
 #endif

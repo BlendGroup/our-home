@@ -83,7 +83,7 @@ void dayscene::init() {
 	texDiffuseMountain = createTexture2D("resources/textures/rocks2.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texLakeMap = createTexture2D("resources/textures/lake.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 
-	lake1 = new lake();
+	lake1 = new lake(-6.0f);
 
 #ifdef DEBUG
 	// lakePlacer = new modelplacer(vec3(0.0f, 10.0f, 0.0f), vec3(0.0f, 0.0f, 0.0f), 10.0f);
@@ -91,10 +91,10 @@ void dayscene::init() {
 #endif
 }
 
-void dayscene::renderScene(void) {
+void dayscene::renderScene(bool cameraFlip) {
 	terrainRenderer->use();
 	glUniformMatrix4fv(terrainRenderer->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	glUniformMatrix4fv(terrainRenderer->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(terrainRenderer->getUniformLocation("vMat"), 1, GL_FALSE, cameraFlip ? programglobal::currentCamera->matrixYFlippedOnPlane(lake1->getLakeHeight()) : programglobal::currentCamera->matrix());
 	glUniformMatrix4fv(terrainRenderer->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, -30.0f));
 	glUniform1f(terrainRenderer->getUniformLocation("maxTess"), land->getMaxTess());
 	glUniform1f(terrainRenderer->getUniformLocation("minTess"), land->getMinTess());
@@ -112,6 +112,7 @@ void dayscene::renderScene(void) {
 	glUniform1f(terrainRenderer->getUniformLocation("amplitudeMax"), 100.0f);
 	glUniform1f(terrainRenderer->getUniformLocation("texScale"), 10.0f);
 	glUniform1f(terrainRenderer->getUniformLocation("lakeDepth"), 10.0f);
+	glUniform1f(terrainRenderer->getUniformLocation("clipy"), lake1->getLakeHeight());
 	glBindTextureUnit(0, land->getHeightMap());
 	glBindTextureUnit(1, land->getNormalMap());
 	glBindTextureUnit(2, land2->getHeightMap());
@@ -125,11 +126,12 @@ void dayscene::renderScene(void) {
 }
 
 void dayscene::render() {
+	float distance = 2.0f * (programglobal::currentCamera->position()[1] - lake1->getLakeHeight());
 	glEnable(GL_CLIP_DISTANCE0);
 	lake1->setReflectionFBO();
 	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
-	this->renderScene();
+	this->renderScene(true);
 	glDisable(GL_CLIP_DISTANCE0);
 
 	glEnable(GL_CLIP_DISTANCE1);
@@ -146,7 +148,11 @@ void dayscene::render() {
 	lakeRenderer->use();
 	glUniformMatrix4fv(lakeRenderer->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(lakeRenderer->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(lakeRenderer->getUniformLocation("mMat"), 1, GL_FALSE, translate(-4.0f, -6.0f, -72.0f) * scale(29.0f));
+	glUniformMatrix4fv(lakeRenderer->getUniformLocation("mMat"), 1, GL_FALSE, translate(-4.0f, lake1->getLakeHeight(), -72.0f) * scale(29.0f));
+	glUniform1i(lakeRenderer->getUniformLocation("texRefraction"), 0);
+	glUniform1i(lakeRenderer->getUniformLocation("texReflection"), 1);
+	glBindTextureUnit(0, lake1->getRefractionTexture());
+	glBindTextureUnit(1, lake1->getReflectionTexture());
 	lake1->render();
 
 	glDisable(GL_DEPTH_TEST);

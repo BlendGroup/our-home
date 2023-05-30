@@ -25,6 +25,7 @@ public:
 	float getT();
 	void resetT();
 	vmath::mat4 matrix() const override;
+	vmath::mat4 matrixYFlippedOnPlane(float planey) const override;
 	vmath::vec3 position() const override;
 	friend std::ostream& operator<< (std::ostream &out, const sceneCamera &t);
 	friend std::ostream& operator<< (std::ostream &out, const sceneCamera *t);

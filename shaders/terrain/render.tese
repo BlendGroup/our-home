@@ -24,6 +24,7 @@ uniform sampler2D texLake;
 uniform float amplitudeMin;
 uniform float amplitudeMax;
 uniform float lakeDepth;
+uniform float clipy;
 
 void main(void) {
 	vec2 tc1 = mix(tes_in[0].tc, tes_in[1].tc, gl_TessCoord.x);
@@ -41,8 +42,8 @@ void main(void) {
 	tes_out.pos = vec3(mMat * p);
 	gl_Position = pMat * vMat * mMat * p;
 
-	vec4 clipingPlaneReflection = vec4(0.0, 1.0, 0.0, 5.0);
-	vec4 clipingPlaneRefraction = vec4(0.0, -1.0, 0.0, -5.0);
+	vec4 clipingPlaneReflection = vec4(0.0, 1.0, 0.0, -clipy);
+	vec4 clipingPlaneRefraction = vec4(0.0, -1.0, 0.0, clipy);
 
 	gl_ClipDistance[0] = dot(mMat * p, clipingPlaneReflection);
 	gl_ClipDistance[1] = dot(mMat * p, clipingPlaneRefraction);

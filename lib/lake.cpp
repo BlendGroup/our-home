@@ -2,7 +2,8 @@
 
 #define tex_1k 1920, 1080
 
-lake::lake() {
+lake::lake(float lakeHeight) {
+	this->height = lakeHeight;
 	glGenVertexArrays(1, &this->vaoEmpty);
 	
 	glGenTextures(1, &this->texColorReflection);

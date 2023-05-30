@@ -14,6 +14,7 @@ private:
 public:
 	debugCamera(vmath::vec3 position, float yaw, float pitch);
 	vmath::mat4 matrix(void) const override;
+	vmath::mat4 matrixYFlippedOnPlane(float planey) const override;
 	vmath::vec3 position(void) const override;
 	void keyboardFunc(unsigned int key);
 	void mouseFunc(int action, int x, int y);
