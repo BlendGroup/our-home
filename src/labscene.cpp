@@ -73,13 +73,7 @@ enum tvalues {
 };
 
 static eventmanager* labevents;
-static GLfloat robotT		= 0.01f;
-static GLfloat astonautT	= 0.0f;
-static GLfloat cameraT		= 0.0f;
-static GLfloat doorT		= 0.0f;
 static GLfloat hologramT	= 0.0f;
-static GLfloat crossinT		= 0.0f;
-static GLfloat crossoutT	= 0.0f;
 
 extern GLuint texTitleSceneFinal;
 GLuint texLabSceneFinal;
@@ -134,8 +128,6 @@ void labscene::setupCamera() {
 
 void labscene::init() {
 	labevents = new eventmanager({
-		{HOLOGRAM_T, { 0.0f, 0.0f }},
-		{ASTRONAUT_T, { 0.0f, 0.0f }},
 		{CROSSIN_T, { 0.0f, 3.36f }},
 		{CAMERA_T, { 3.36f, 40.0f }},
 		{ROBOT_T, { 20.5f, 16.5f }},
@@ -275,6 +267,8 @@ void labscene::init() {
 
 void labscene::render() {
 	try {
+		camera1->setT((*labevents)[CAMERA_T]);
+
 		programglobal::godrayObject = godraysDoor;
 
 		programStaticPBR->use();
@@ -286,7 +280,7 @@ void labscene::render() {
 		glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
 		sceneLightManager->setLightUniform(programStaticPBR);
 		modelLab->draw(programStaticPBR);
-		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(mix(vec3(-3.3, -0.4f, 2.8f), vec3(-4.62f, -0.4f, 2.8f), doorT)));
+		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(mix(vec3(-3.3, -0.4f, 2.8f), vec3(-4.62f, -0.4f, 2.8f), (*labevents)[DOOR_T])));
 		modelDoor->draw(programStaticPBR);
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-1.38f, -0.41f, -1.45f) * scale(0.08f));
 		modelMug->draw(programStaticPBR);
@@ -294,8 +288,8 @@ void labscene::render() {
 		programDynamicPBR->use();
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"), 1,GL_FALSE, programglobal::perspective);
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"), 1,GL_FALSE, programglobal::currentCamera->matrix());
-		vec3 position = bspRobot->interpolate(robotT - 0.01f);
-		vec3 front = bspRobot->interpolate(robotT);
+		vec3 position = bspRobot->interpolate((*labevents)[ROBOT_T] - 0.01f);
+		vec3 front = bspRobot->interpolate((*labevents)[ROBOT_T]);
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(position) * targetat(position, front, vec3(0.0f, 1.0f, 0.0f)) * scale(0.042f));
 		glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
 		// Lights data
@@ -333,7 +327,7 @@ void labscene::render() {
 		glUniform1f(programHologram->getUniformLocation("alpha"), 1.0f);
 		glUniform1f(programHologram->getUniformLocation("FlickerSpeed"),10.0f);
 		glUniform1f(programHologram->getUniformLocation("RimPower"),5.0f);
-		glUniform1f(programHologram->getUniformLocation("EmissionPower"), crossinT);
+		glUniform1f(programHologram->getUniformLocation("EmissionPower"), (*labevents)[CROSSIN_T]);
 		// glUniform1f(programHologram->getUniformLocation("GlowSpeed"),1.0f);
 		// glUniform1f(programHologram->getUniformLocation("GlowDistance"),1.0f);
 		modelBLEND->draw(programHologram,1,false);
@@ -368,11 +362,11 @@ void labscene::render() {
 			robotSpline->render(RED_PINK_COLOR);
 		}
 	
-		if(crossinT < 1.0f) {
-			crossfader::render(texTitleSceneFinal, crossinT);
+		if((*labevents)[CROSSIN_T] < 1.0f) {
+			crossfader::render(texTitleSceneFinal, (*labevents)[CROSSIN_T]);
 		}
-		if(crossoutT < 1.0f) {
-			crossfader::render(texLabSceneFinal, 1.0f - crossoutT);
+		if((*labevents)[CROSSOUT_T] < 1.0f) {
+			crossfader::render(texLabSceneFinal, 1.0f - (*labevents)[CROSSOUT_T]);
 		}
 	} catch(string errString) {
 		throwErr(errString);
@@ -387,22 +381,18 @@ void labscene::update() {
 	if(programglobal::isAnimating) {
 		t += programglobal::deltaTime;
 	}
+	labevents->updateT(t);
 	static const float ROBOT_ANIM_SPEED = 0.99f;
 	static const float ASTRO_ANIM_SPEED = 0.1f;
 	static const float HOLOGRAM_UPDATE_SPEED = 0.5f;
 	
-	crossinT = clamp((t - 0.0f) / 3.36f, 0.0f, 1.0f);
-	doorT = clamp((t - 41.0f) / 13.5f, 0.0f, 1.0f);
-	crossoutT = clamp((t - 53.8f) / 4.0f, 0.0f, 1.0f);
-	robotT = clamp((t - 20.5f) / 16.5f, 0.0f, 1.0f);
-	if(robotT >= 0.00001f && robotT <= 0.99999f) {
+	if((*labevents)[ROBOT_T] >= 0.00001f && (*labevents)[ROBOT_T] <= 0.99999f) {
 		modelRobot->update(ROBOT_ANIM_SPEED * programglobal::deltaTime, 0);
 	}
-	camera1->setT((t - 3.36f) / 40.0f);
 	hologramT += HOLOGRAM_UPDATE_SPEED * programglobal::deltaTime;
 	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 0);
 
-	if(crossoutT >= 1.0f) {
+	if((*labevents)[CROSSOUT_T] >= 1.0f) {
 		playNextScene();
 	}
 }
