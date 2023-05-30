@@ -15,7 +15,12 @@ private:
 	GLuint texDepthRefraction;
 public:
 	lake();
-	void render();
+	GLuint getReflectionTexture(void);
+	GLuint getRefractionTexture(void);
+	GLuint getDepthTexture(void);
+	void setReflectionFBO(void);
+	void setRefractionFBO(void);
+	void render(void);
 };
 
 #endif

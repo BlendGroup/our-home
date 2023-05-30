@@ -43,6 +43,7 @@ static debugCamera* tempCam;
 
 #ifdef DEBUG
 static modelplacer* lakePlacer;
+static glshaderprogram* drawTexQuad;
 #endif
 
 static GLfloat crossinT		= 0.0f;
@@ -54,10 +55,13 @@ static GLuint texDiffuseMountain;
 static GLuint texLakeMap;
 extern GLuint texLabSceneFinal;
 
+static int currentTex = 0;
+
 void dayscene::setupProgram() {
 	try {
 		terrainRenderer = new glshaderprogram({"shaders/terrain/render.vert", "shaders/terrain/render.tesc", "shaders/terrain/render.tese", "shaders/terrain/render.frag"});
 		lakeRenderer = new glshaderprogram({"shaders/lake/render.vert", "shaders/lake/render.frag"});
+		drawTexQuad = new glshaderprogram({"shaders/debug/basictex.vert", "shaders/debug/basictex.frag"});
 	} catch(string errorString)  {
 		throwErr(errorString);
 	}
@@ -88,11 +92,12 @@ void dayscene::init() {
 	lake1 = new lake();
 
 #ifdef DEBUG
-	lakePlacer = new modelplacer(vec3(0.0f, 10.0f, 0.0f), vec3(0.0f, 0.0f, 0.0f), 10.0f);
+	// lakePlacer = new modelplacer(vec3(0.0f, 10.0f, 0.0f), vec3(0.0f, 0.0f, 0.0f), 10.0f);
+	lakePlacer = new modelplacer();
 #endif
 }
 
-void dayscene::render() {
+void dayscene::renderScene(void) {
 	terrainRenderer->use();
 	glUniformMatrix4fv(terrainRenderer->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(terrainRenderer->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
@@ -123,12 +128,42 @@ void dayscene::render() {
 	glBindTextureUnit(7, texDiffuseMountain);
 	glBindTextureUnit(8, texLakeMap);
 	land->render();
+}
+
+void dayscene::render() {
+	lake1->setReflectionFBO();
+	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
+	this->renderScene();
+
+	lake1->setRefractionFBO();
+	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
+	this->renderScene();
+
+	resetFBO();
+
+	this->renderScene();
 
 	lakeRenderer->use();
 	glUniformMatrix4fv(lakeRenderer->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(lakeRenderer->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
 	glUniformMatrix4fv(lakeRenderer->getUniformLocation("mMat"), 1, GL_FALSE, translate(-4.0f, -6.0f, -72.0f) * scale(29.0f));
 	lake1->render();
+
+	glDisable(GL_DEPTH_TEST);
+	drawTexQuad->use();
+	glUniformMatrix4fv(drawTexQuad->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(drawTexQuad->getUniformLocation("vMat"), 1, GL_FALSE, mat4::identity());
+	glUniformMatrix4fv(drawTexQuad->getUniformLocation("mMat"), 1, GL_FALSE, translate(-0.36f, 0.181f, -0.7f) * scale(0.1f));
+	glUniform1i(drawTexQuad->getUniformLocation("texture_diffuse"), currentTex);
+	glBindTextureUnit(0, lake1->getReflectionTexture());
+	glBindTextureUnit(1, lake1->getRefractionTexture());
+	glBindTextureUnit(2, lake1->getDepthTexture());
+
+	programglobal::shapeRenderer->renderQuad();
+
+	glEnable(GL_DEPTH_TEST);
 
 	if(eventManager[CROSSFADE_IN]) {
 		crossfader::render(texLabSceneFinal, crossinT);
@@ -175,6 +210,8 @@ void dayscene::keyboardfunc(int key) {
 			cout<<lakePlacer<<endl;
 		}
 		break;
+	case XK_1: case XK_2: case XK_3:
+		currentTex = key - XK_1;
 	}
 }
 
