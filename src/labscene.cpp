@@ -100,7 +100,7 @@ void labscene::setupCamera() {
 		vec3(-0.82f, 0.28f, -1.85f),
 		vec3(-1.17f, 0.06f, -1.1f),
 		vec3(-2.9f, -0.2f, -0.51f),
-		vec3(-3.49f, -0.56f, 0.05f)
+		vec3(-3.49f, -0.41f, 0.05f)
 	};
     
 	vector<vec3> frontKeyFrames = {
@@ -167,7 +167,7 @@ void labscene::init() {
 	robotSpline->setRenderPoints(true);
 	robotSpline->setScalingFactor(0.01f);
 	
-	doorPlacer = new modelplacer();
+	doorPlacer = new modelplacer(vec3(-3.41f, -1.39f, 2.03f), vec3(0.0f, 0.0f, 0.0f), 1.0f);
 #endif
 
 	envMapper = new CubeMapRenderTarget(CUBEMAP_SIZE, CUBEMAP_SIZE, false);
@@ -280,7 +280,7 @@ void labscene::render() {
 		modelLab->draw(programStaticPBR);
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(mix(vec3(-3.3, -0.4f, 2.8f), vec3(-4.62f, -0.4f, 2.8f), (*labevents)[DOOR_T])));
 		modelDoor->draw(programStaticPBR);
-		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-1.38f, -0.41f, -1.45f) * scale(0.08f));
+		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-1.20599f, -0.41f, -1.363f) * scale(0.08f));
 		modelMug->draw(programStaticPBR);
 
 		programDynamicPBR->use();
@@ -299,7 +299,7 @@ void labscene::render() {
 		programDynamicPBR->use();
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE, programglobal::currentCamera->matrix());
-		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(-3.41f, -1.39f, 2.03f) * scale(1.0f));
+		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(-3.41f, -1.39f, 2.03f) * scale(0.86f));
 		glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1, programglobal::currentCamera->position());
 		// Lights data
 		glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
@@ -402,6 +402,7 @@ void labscene::keyboardfunc(int key) {
 	} else if(programglobal::debugMode == SPLINE) {
 		robotSpline->keyboardfunc(key);
 	} else if(programglobal::debugMode == MODEL) {
+		doorPlacer->keyboardfunc(key);
 	} else if(programglobal::debugMode == LIGHT){
 	}
 	switch(key) {
@@ -417,6 +418,9 @@ void labscene::keyboardfunc(int key) {
 		}	
 		if(programglobal::debugMode == SPLINE) {
 			cout<<robotSpline->getSpline()<<endl;
+		}
+		if(programglobal::debugMode == MODEL) {
+			cout<<doorPlacer<<endl;
 		}
 		break;
 	}
