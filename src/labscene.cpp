@@ -47,6 +47,7 @@ static glshaderprogram* programSkybox;
 static glshaderprogram* programColor;
 static glshaderprogram* programHologram;
 static glshaderprogram* programCrossfade;
+static glshaderprogram* programMugSteam;
 
 static GLuint skybox_vao,vbo;
 static GLuint emptyvao;
@@ -85,6 +86,7 @@ void labscene::setupProgram() {
 		programSkybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
 		programColor = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
 		programHologram = new glshaderprogram({"shaders/hologram/hologram.vert","shaders/hologram/hologram.frag"});
+		programMugSteam = new glshaderprogram({{"shaders/steam/steam.vert"}, {"shaders/steam/steam.frag"}});
 	} catch(string errorString)  {
 		throwErr(errorString);
 	}
@@ -284,8 +286,9 @@ void labscene::render() {
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, mugTransform * scale(0.08f));
 		modelMug->draw(programStaticPBR);
 
-		programColor->use();
-		// a cheap cylindrical billboard for mug smoke quad
+		// a cheap cylindrical billboard for mug steam quad
+		static const float STEAM_UPDATE_SPEED = 0.5f;
+		programMugSteam->use();
 		mat4 mugSteamQuadMVTransform = programglobal::currentCamera->matrix() * translate(-0.04f, 0.15f, 0.0f) * mugTransform;
 		mugSteamQuadMVTransform[0][0] = 1.0f;
 		mugSteamQuadMVTransform[0][1] = 0.0f;
@@ -293,10 +296,8 @@ void labscene::render() {
 		mugSteamQuadMVTransform[2][0] = 0.0f;
 		mugSteamQuadMVTransform[2][1] = 0.0f;
 		mugSteamQuadMVTransform[2][2] = 1.0f;
-		glUniformMatrix4fv(programColor->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * mugSteamQuadMVTransform * scale(0.07f));
-		glUniform4f(programColor->getUniformLocation("color"), 1.0f, 1.0f, 1.0f, 1.0f);
-		glUniform4fv(programColor->getUniformLocation("emissive"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
-		glUniform4fv(programColor->getUniformLocation("occlusion"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(programMugSteam->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * mugSteamQuadMVTransform * scale(0.07f));
+		glUniform1f(programMugSteam->getUniformLocation("time"), programglobal::deltaTime * STEAM_UPDATE_SPEED);
 		programglobal::shapeRenderer->renderQuad();
 
 		programDynamicPBR->use();
