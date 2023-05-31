@@ -30,6 +30,8 @@ static terrain* land;
 static terrain* land2;
 static lake* lake1;
 
+static glmodel* modelLab;
+
 static debugCamera* tempCam;
 
 #ifdef DEBUG
@@ -79,6 +81,8 @@ void dayscene::init() {
 	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 6, 0.11f, 543);
 	land = new terrain(valleyHeightMap, 256, true, 5.0f, 16.0f);
 	land2 = new terrain(mountainHeightMap, 256, true, 5.0f, 16.0f);
+
+	modelLab = new glmodel("resources/spaceship/LabOut.glb", 0, true);
 
 	texTerrainMap = createTexture2D("resources/textures/map.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
