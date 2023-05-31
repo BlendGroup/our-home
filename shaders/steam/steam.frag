@@ -72,7 +72,7 @@ void main(void) {
     vec2 coord = fs_in.pos.xy * 0.8 - vec2(0.0, time);
     float n = fbm(coord);
     n *= n * n;
-	fragColor.rgb = pow(n, 0.8) * 1.3 * normalize(vec3(1.0)) + vec3(n * 0.25);
+    fragColor.rgb = pow(n, 0.8) * 1.3 * normalize(vec3(1.0)) + vec3(n * 0.25);
     emissiveColor = vec4(0.0, 0.0, 0.0, 1.0);
     occlusionColor = vec4(0.0, 0.0, 0.0, 1.0);
 }
