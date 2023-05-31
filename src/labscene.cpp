@@ -75,6 +75,7 @@ enum tvalues {
 
 static eventmanager* labevents;
 static GLfloat hologramT	= 0.0f;
+static GLfloat steamT		= 0.0f;
 
 extern GLuint texTitleSceneFinal;
 GLuint texLabSceneFinal;
@@ -282,23 +283,9 @@ void labscene::render() {
 		modelLab->draw(programStaticPBR);
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(mix(vec3(-3.3, -0.4f, 2.8f), vec3(-4.62f, -0.4f, 2.8f), (*labevents)[DOOR_T])));
 		modelDoor->draw(programStaticPBR);
-		mat4 mugTransform = translate(-1.20599f, -0.41f, -1.363f);
+		static const mat4 mugTransform = translate(-1.20599f, -0.41f, -1.363f);
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, mugTransform * scale(0.08f));
 		modelMug->draw(programStaticPBR);
-
-		// a cheap cylindrical billboard for mug steam quad
-		static const float STEAM_UPDATE_SPEED = 0.5f;
-		programMugSteam->use();
-		mat4 mugSteamQuadMVTransform = programglobal::currentCamera->matrix() * translate(-0.04f, 0.15f, 0.0f) * mugTransform;
-		mugSteamQuadMVTransform[0][0] = 1.0f;
-		mugSteamQuadMVTransform[0][1] = 0.0f;
-		mugSteamQuadMVTransform[0][2] = 0.0f;
-		mugSteamQuadMVTransform[2][0] = 0.0f;
-		mugSteamQuadMVTransform[2][1] = 0.0f;
-		mugSteamQuadMVTransform[2][2] = 1.0f;
-		glUniformMatrix4fv(programMugSteam->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * mugSteamQuadMVTransform * scale(0.07f));
-		glUniform1f(programMugSteam->getUniformLocation("time"), programglobal::deltaTime * STEAM_UPDATE_SPEED);
-		programglobal::shapeRenderer->renderQuad();
 
 		programDynamicPBR->use();
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"), 1,GL_FALSE, programglobal::perspective);
@@ -345,9 +332,23 @@ void labscene::render() {
 		// glUniform1f(programHologram->getUniformLocation("GlowSpeed"),1.0f);
 		// glUniform1f(programHologram->getUniformLocation("GlowDistance"),1.0f);
 		modelBLEND->draw(programHologram,1,false);
-		glDisable(GL_BLEND);
 		glDepthMask(GL_TRUE);
 
+		// a cheap cylindrical billboard for mug steam quad
+		programMugSteam->use();
+		mat4 mugSteamQuadMVTransform = programglobal::currentCamera->matrix() * translate(-0.04f, 0.15f, 0.0f) * mugTransform;
+		mugSteamQuadMVTransform[0][0] = 1.0f;
+		mugSteamQuadMVTransform[0][1] = 0.0f;
+		mugSteamQuadMVTransform[0][2] = 0.0f;
+		mugSteamQuadMVTransform[2][0] = 0.0f;
+		mugSteamQuadMVTransform[2][1] = 0.0f;
+		mugSteamQuadMVTransform[2][2] = 1.0f;
+		glUniformMatrix4fv(programMugSteam->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * mugSteamQuadMVTransform * scale(0.07f));
+		glUniform1f(programMugSteam->getUniformLocation("time"), steamT);
+		programglobal::shapeRenderer->renderQuad();
+		
+		glDisable(GL_BLEND);
+		
 		programColor->use();
 		glUniformMatrix4fv(programColor->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * programglobal::currentCamera->matrix() * translate(-3.45f, -0.3f, 2.828f));
 		glUniform4f(programColor->getUniformLocation("color"), 1.0f, 1.0f, 1.0f, 1.0f);
@@ -393,11 +394,13 @@ void labscene::update() {
 	static const float ROBOT_ANIM_SPEED = 0.99f;
 	static const float ASTRO_ANIM_SPEED = 0.1f;
 	static const float HOLOGRAM_UPDATE_SPEED = 0.5f;
+	static const float STEAM_UPDATE_SPEED = 0.5f;
 	
 	if((*labevents)[ROBOT_T] >= 0.00001f && (*labevents)[ROBOT_T] <= 0.99999f) {
 		modelRobot->update(ROBOT_ANIM_SPEED * programglobal::deltaTime, 0);
 	}
 	hologramT += HOLOGRAM_UPDATE_SPEED * programglobal::deltaTime;
+	steamT += STEAM_UPDATE_SPEED * programglobal::deltaTime;
 	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 0);
 
 	if((*labevents)[CROSSOUT_T] >= 1.0f) {
