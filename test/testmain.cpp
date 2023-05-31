@@ -21,6 +21,7 @@
 #include<testcubemap.h>
 #include<testPBR.h>
 #include<testLab.h>
+#include<testAtmospericScatter.h>
 #include<testnoise.h>
 #include<testaudio.h>
 
@@ -50,6 +51,9 @@ static bool isAudioPlaying = true;
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
 camera* programglobal::currentCamera;
+bool programglobal::isAnimating = false;
+HDR* programglobal::hdr;
+double programglobal::deltaTime;
 
 extern vector<vec3> positionKeyFrames;
 extern vector<vec3> frontKeyFrames;
