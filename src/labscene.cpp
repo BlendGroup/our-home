@@ -280,8 +280,24 @@ void labscene::render() {
 		modelLab->draw(programStaticPBR);
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(mix(vec3(-3.3, -0.4f, 2.8f), vec3(-4.62f, -0.4f, 2.8f), (*labevents)[DOOR_T])));
 		modelDoor->draw(programStaticPBR);
-		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-1.20599f, -0.41f, -1.363f) * scale(0.08f));
+		mat4 mugTransform = translate(-1.20599f, -0.41f, -1.363f);
+		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, mugTransform * scale(0.08f));
 		modelMug->draw(programStaticPBR);
+
+		programColor->use();
+		// a cheap cylindrical billboard for mug smoke quad
+		mat4 mugSteamQuadMVTransform = programglobal::currentCamera->matrix() * translate(-0.04f, 0.15f, 0.0f) * mugTransform;
+		mugSteamQuadMVTransform[0][0] = 1.0f;
+		mugSteamQuadMVTransform[0][1] = 0.0f;
+		mugSteamQuadMVTransform[0][2] = 0.0f;
+		mugSteamQuadMVTransform[2][0] = 0.0f;
+		mugSteamQuadMVTransform[2][1] = 0.0f;
+		mugSteamQuadMVTransform[2][2] = 1.0f;
+		glUniformMatrix4fv(programColor->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * mugSteamQuadMVTransform * scale(0.07f));
+		glUniform4f(programColor->getUniformLocation("color"), 1.0f, 1.0f, 1.0f, 1.0f);
+		glUniform4fv(programColor->getUniformLocation("emissive"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
+		glUniform4fv(programColor->getUniformLocation("occlusion"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
+		programglobal::shapeRenderer->renderQuad();
 
 		programDynamicPBR->use();
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"), 1,GL_FALSE, programglobal::perspective);
