@@ -80,6 +80,9 @@ vector<texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, textur
 
 texture loadPBRTextures(textureTypes typeString,string directory,string matName) {
 	texture tex;
+	#ifdef DEBUG
+	cout<<directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".jpg"<<endl;
+	#endif
 	if(isTexturePresent(directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".jpg")) {
 		tex.id = createTexture2D(directory + "/textures/" + matName+"_"+textureTypeMap[typeString]+".jpg",GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
 		tex.type = typeString;
@@ -417,7 +420,7 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 		cout<<a.bones.size()<<endl;
 		cout<<a.rootNode.name<<endl<<endl;
 	}
-
+*/
 	cout<<"material count"<<this->materials.size()<<endl;
 	for(auto m : materials)
 	{
@@ -432,7 +435,7 @@ glmodel::glmodel(string path, unsigned flags, bool isPbr) {
 			cout<<t.id<<textureTypeMap[t.type]<<endl;
 		}
 	}
-*/
+
 	importer.FreeScene();
 }
 void calculateBoneTransformBlended(glmodel* model, 

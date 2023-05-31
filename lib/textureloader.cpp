@@ -40,6 +40,7 @@ GLuint createTexture2D(string filename, GLint minFilter, GLint magFilter, GLint 
 		if(formatMap.count(channels) == 0) {
 			throwErr("error: Unknown Number of Channels");
 		}
+		cout<<"channels "<<channels<<endl;
 		format = formatMap[channels];
 	
 		GLuint texId;
