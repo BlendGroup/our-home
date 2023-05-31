@@ -99,6 +99,7 @@ void dayscene::init() {
 
 #ifdef DEBUG
 	// lakePlacer = new modelplacer(vec3(0.0f, 10.0f, 0.0f), vec3(0.0f, 0.0f, 0.0f), 10.0f);
+	// vec3(1f, -1.7f, -73f), vec3(0f, 0f, 0f), 0.8f
 	lakePlacer = new modelplacer(vec3(-49.0f, -6.0f, -72.0f), vec3(0.0f, 0.0f, 0.0f), 38.0f);
 #endif
 }
