@@ -32,6 +32,9 @@ static terrain* land2;
 static lake* lake1;
 
 static glmodel* modelLab;
+static glmodel* modelRover;
+
+static SceneLight* lightManager;
 
 static debugCamera* tempCam;
 
@@ -52,6 +55,8 @@ extern GLuint texLabSceneFinal;
 
 static int currentTex = 0;
 
+// -87.6205f, 16.1124f, -116.891f
+// vec3(58.9965f, 0.88727f, -77.5934f)
 enum tvalues {
 	CROSSIN_T,
 	CAMERAMOVE_T
@@ -86,7 +91,11 @@ void dayscene::init() {
 	land = new terrain(valleyHeightMap, 256, true, 5.0f, 16.0f);
 	land2 = new terrain(mountainHeightMap, 256, true, 5.0f, 16.0f);
 
-	modelLab = new glmodel("resources/models/spaceship/LabOut.glb", 0, true);
+	modelLab = new glmodel("resources/models/spaceship/LabOut.glb", aiProcess_FlipUVs, true);
+	modelRover = new glmodel("resources/models/rover/rover.glb", aiProcess_FlipUVs, true);
+
+	lightManager = new SceneLight();
+	lightManager->addPointLight(PointLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, 100.0f, 0.0f), 2.0f));
 
 	texTerrainMap = createTexture2D("resources/textures/map.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -99,8 +108,9 @@ void dayscene::init() {
 
 #ifdef DEBUG
 	// lakePlacer = new modelplacer(vec3(0.0f, 10.0f, 0.0f), vec3(0.0f, 0.0f, 0.0f), 10.0f);
-	// vec3(1f, -1.7f, -73f), vec3(0f, 0f, 0f), 0.8f
-	lakePlacer = new modelplacer(vec3(-49.0f, -6.0f, -72.0f), vec3(0.0f, 0.0f, 0.0f), 38.0f);
+	// vec3(-49.0f, -6.0f, -72.0f), vec3(0.0f, 0.0f, 0.0f), 38.0f -> Lake
+	// vec3(53.1005f, -3.23743f, -56.8485f), vec3(0f, 0f, 0f), 0.00910002f -> Rover
+	lakePlacer = new modelplacer(vec3(61.0f, -6.7f, -67.0f), vec3(0.0f, 0.0f, 0.0f), 0.8f);
 #endif
 }
 
@@ -161,12 +171,16 @@ void dayscene::render() {
 	programStaticPBR->use();
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, lakePlacer->getModelMatrix());
 	glUniform3fv(programStaticPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
-
 	glUniform1i(programStaticPBR->getUniformLocation("specularGloss"), GL_FALSE);
+	lightManager->setLightUniform(programStaticPBR, false);
+
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(61.8599f, -6.7f, -69.4705f) * scale(0.87f));
 	modelLab->draw(programStaticPBR);
 
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(53.1005f, -3.23743f, -56.8485f) * scale(0.00910002f));
+	modelRover->draw(programStaticPBR);
+	
 	programLake->use();
 	glUniformMatrix4fv(programLake->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(programLake->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
@@ -181,18 +195,17 @@ void dayscene::render() {
 	glBindTextureUnit(2, texLakeDuDVMap);
 	lake1->render();
 
-	glDisable(GL_DEPTH_TEST);
-	drawTexQuad->use();
-	glUniformMatrix4fv(drawTexQuad->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	glUniformMatrix4fv(drawTexQuad->getUniformLocation("vMat"), 1, GL_FALSE, mat4::identity());
-	glUniformMatrix4fv(drawTexQuad->getUniformLocation("mMat"), 1, GL_FALSE, translate(-0.36f, 0.181f, -0.7f) * scale(0.1f));
-	glUniform1i(drawTexQuad->getUniformLocation("texture_diffuse"), currentTex);
-	glBindTextureUnit(0, lake1->getReflectionTexture());
-	glBindTextureUnit(1, lake1->getRefractionTexture());
-	glBindTextureUnit(2, lake1->getDepthTexture());
-
-	programglobal::shapeRenderer->renderQuad();
-	glEnable(GL_DEPTH_TEST);
+	// glDisable(GL_DEPTH_TEST);
+	// drawTexQuad->use();
+	// glUniformMatrix4fv(drawTexQuad->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	// glUniformMatrix4fv(drawTexQuad->getUniformLocation("vMat"), 1, GL_FALSE, mat4::identity());
+	// glUniformMatrix4fv(drawTexQuad->getUniformLocation("mMat"), 1, GL_FALSE, translate(-0.36f, 0.181f, -0.7f) * scale(0.1f));
+	// glUniform1i(drawTexQuad->getUniformLocation("texture_diffuse"), currentTex);
+	// glBindTextureUnit(0, lake1->getReflectionTexture());
+	// glBindTextureUnit(1, lake1->getRefractionTexture());
+	// glBindTextureUnit(2, lake1->getDepthTexture());
+	// programglobal::shapeRenderer->renderQuad();
+	// glEnable(GL_DEPTH_TEST);
 }
 
 void dayscene::update() {
