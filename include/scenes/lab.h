@@ -15,6 +15,7 @@ public:
 	void uninit() override;
 	void keyboardfunc(int key) override;
 	camera* getCamera() override;
+	void crossfade() override;
 };
 
 #endif

@@ -28,7 +28,6 @@ using namespace std;
 using namespace vmath;
 
 static bool hdrEnabled = true;
-static HDR* hdr;
 static debugCamera* debugcamera;
 static bool isDebugCameraOn = false;
 static vector<basescene*> sceneList;
@@ -41,12 +40,12 @@ double programglobal::deltaTime;
 debugMode_t programglobal::debugMode = NONE;
 clglcontext* programglobal::oclContext;
 shaperenderer* programglobal::shapeRenderer;
-godrays* programglobal::godrayObject;
 bool programglobal::isAnimating = false;
+HDR* programglobal::hdr;
 
 void setupProgram(void) {
 	try {
-		hdr->setupProgram();
+		programglobal::hdr->setupProgram();
 		for(basescene* b : sceneList) {
 			b->setupProgram();
 		}
@@ -57,7 +56,7 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 20.0f, 5.0f), -90.0f, 0.0f);
+		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 2.0f), -90.0f, 0.0f);
 		for(basescene* b : sceneList) {
 			b->setupCamera();
 		}
@@ -69,7 +68,7 @@ void setupSceneCamera(void) {
 void init(void) {
 	try {
 		//Object Creation
-		hdr = new HDR(1.5f, 1.0f, 2048);
+		programglobal::hdr = new HDR(1.5f, 1.0f, 2048);
 		programglobal::oclContext = new clglcontext(1);
 		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
 		programglobal::shapeRenderer = new shaperenderer();
@@ -83,15 +82,15 @@ void init(void) {
 		//Inititalize
 		alutInit(0, NULL);
 		initTextureLoader();
-		hdr->init();
-		hdr->setBloom(true);
+		programglobal::hdr->init();
+		programglobal::hdr->setBloom(true);
 		for(basescene* b : sceneList) {
 			b->init();
-		}
+		} 
 
 		playNextScene();
-		playNextScene();
-		playNextScene();
+		// playNextScene();
+		// playNextScene();
 
 		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);
@@ -107,8 +106,8 @@ void render(glwindow* window) {
 		programglobal::currentCamera = isDebugCameraOn ? dynamic_cast<camera*>(debugcamera) : dynamic_cast<camera*>(currentScene->getCamera());
 
 		if(hdrEnabled) {
-			glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
-			glViewport(0, 0, hdr->getSize(), hdr->getSize());
+			glBindFramebuffer(GL_FRAMEBUFFER, programglobal::hdr->getFBO());
+			glViewport(0, 0, programglobal::hdr->getSize(), programglobal::hdr->getSize());
 			glClearBufferfv(GL_COLOR, 1, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 			glClearBufferfv(GL_COLOR, 2, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		} else {
@@ -126,10 +125,8 @@ void render(glwindow* window) {
 			glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 			glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
-			hdr->render();
-			if(programglobal::godrayObject) {
-				programglobal::godrayObject->renderRays(hdr);
-			}
+			programglobal::hdr->render();
+			currentScene->crossfade();
 		}
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -138,8 +135,8 @@ void render(glwindow* window) {
 
 void resetFBO() {
 	if(hdrEnabled) {
-		glBindFramebuffer(GL_FRAMEBUFFER, hdr->getFBO());
-		glViewport(0, 0, hdr->getSize(), hdr->getSize());
+		glBindFramebuffer(GL_FRAMEBUFFER, programglobal::hdr->getFBO());
+		glViewport(0, 0, programglobal::hdr->getSize(), programglobal::hdr->getSize());
 	} else {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, window->getSize().width, window->getSize().height);
@@ -206,14 +203,14 @@ void mouse(glwindow* window, int button, int action, int x, int y) {
 }
 
 void uninit(void) {
-	hdr->uninit();
+	programglobal::hdr->uninit();
 	for(basescene* b : sceneList) {
 		b->uninit();
 		delete b;
 	}
 	crossfader::uninit();
 	delete programglobal::oclContext;
-	delete hdr;
+	delete programglobal::hdr;
 	delete debugcamera;
 }
 

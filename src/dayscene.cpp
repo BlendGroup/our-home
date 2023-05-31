@@ -174,12 +174,7 @@ void dayscene::render() {
 	glBindTextureUnit(2, lake1->getDepthTexture());
 
 	programglobal::shapeRenderer->renderQuad();
-
 	glEnable(GL_DEPTH_TEST);
-
-	if((*dayevents)[CROSSIN_T] < 1.0f) {
-		crossfader::render(texLabSceneFinal, (*dayevents)[CROSSIN_T]);
-	}
 }
 
 void dayscene::update() {
@@ -220,4 +215,10 @@ void dayscene::keyboardfunc(int key) {
 
 camera* dayscene::getCamera() {
 	return tempCam;
+}
+
+void dayscene::crossfade() {
+	if((*dayevents)[CROSSIN_T] < 1.0f) {
+		crossfader::render(texLabSceneFinal, (*dayevents)[CROSSIN_T]);
+	}
 }
