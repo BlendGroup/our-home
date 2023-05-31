@@ -49,8 +49,8 @@ class Atmosphere {
 
         // Earth presets in [km]
         inline static const float e_I_sun = 20.f;
-        inline static const float e_R_e = 6360.;       // 6360e3
-        inline static const float e_R_a = 6420.;       // 6420e3;
+        inline static const float e_R_e = 50.;       // 6360e3
+        inline static const float e_R_a = 55.;       // 6420e3;
         inline static const vmath::vec3 e_beta_R = vmath::vec3(5.8e-3f, 13.5e-3f, 33.1e-3f);
         //(3.8e-6f, 13.5e-6f, 33.1e-6f);    // scrathapixel implementation
         //(5.8e-6f, 13.5e-6f, 33.1e-6f);    // scrathapixel web

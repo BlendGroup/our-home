@@ -28,7 +28,7 @@ void Atmosphere::SetDefaults(){
 
 void Atmosphere::SetSunDefaults(){
 
-    animateSun = false;
+    animateSun = true;
     sunDir = defSunDir;
     setSunAngle(defSunAngle);
     I_Sun = e_I_sun;
@@ -65,14 +65,14 @@ void Atmosphere::render(float dt){
         glUniform1i(atmosphereProgram->getUniformLocation("viewSamples"),viewSamples);
         glUniform1i(atmosphereProgram->getUniformLocation("lightSamples"),lightSamples);
 
-        glUniform1f(atmosphereProgram->getUniformLocation("I_sun"),I_Sun);
+        //glUniform1f(atmosphereProgram->getUniformLocation("I_sun"),I_Sun);
         glUniform1f(atmosphereProgram->getUniformLocation("R_e"),R_e);
         glUniform1f(atmosphereProgram->getUniformLocation("R_a"),R_a);
-        glUniform3fv(atmosphereProgram->getUniformLocation("beta_R"),1,beta_R);
-        glUniform1f(atmosphereProgram->getUniformLocation("beta_M"),beta_M);
-        glUniform1f(atmosphereProgram->getUniformLocation("H_R"),H_R);
-        glUniform1f(atmosphereProgram->getUniformLocation("H_M"),H_M);
-        glUniform1f(atmosphereProgram->getUniformLocation("g"),g);
+        //glUniform3fv(atmosphereProgram->getUniformLocation("beta_R"),1,beta_R);
+        //glUniform1f(atmosphereProgram->getUniformLocation("beta_M"),beta_M);
+        //glUniform1f(atmosphereProgram->getUniformLocation("H_R"),H_R);
+        //glUniform1f(atmosphereProgram->getUniformLocation("H_M"),H_M);
+        //glUniform1f(atmosphereProgram->getUniformLocation("g"),g);
 
         if(animateSun){
             double pp = M_PI + vmath::radians(20.0f);
