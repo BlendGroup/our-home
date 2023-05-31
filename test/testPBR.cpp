@@ -15,7 +15,7 @@
 #include <testPBR.h>
 #include <global.h>
 
-#define DYNAMIC 0
+#define DYNAMIC 1
 
 using namespace std;
 using namespace vmath;
@@ -43,9 +43,9 @@ void setupProgramTestPbr(){
 void initTestPbr(){
     try {       
         #if DYNAMIC  
-        model = new glmodel("resources/models/astronaut/MCAnim.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
+        model = new glmodel("resources/models/drone/drone.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
         #else
-        model = new glmodel("resources/models/spaceship/LabOut.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
+        model = new glmodel("resources/models/drone/drone.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,true);
         
         //model = new glmodel("resources/models/door/door.fbx",aiProcessPreset_TargetRealtime_Quality | aiProcess_RemoveRedundantMaterials | aiProcess_FlipUVs,true);
         #endif
@@ -69,11 +69,11 @@ void renderTestPbr(camera *cam,vec3 camPos){
         glUniformMatrix4fv(program->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
         glUniformMatrix4fv(program->getUniformLocation("vMat"),1,GL_FALSE,cam->matrix()); 
         #if DYNAMIC
-        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) * scale(0.1f,0.1f,0.1f));
-        model->update(0.005f, 0);
+        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) * scale(1.0f,1.0f,1.0f));
+        model->update(0.005f, 1);
         model->setBoneMatrixUniform(program->getUniformLocation("bMat[0]"), 0);
         #else
-        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) * scale(0.5f,0.5f,0.5f));
+        glUniformMatrix4fv(program->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,0.0f,0.0f) * scale(1.0f,1.0f,1.0f));
         #endif
         glUniform3fv(program->getUniformLocation("viewPos"),1,camPos);
         // pbr data
