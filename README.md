@@ -20,6 +20,7 @@ Music and SFX								(TBA)
 Camera Setup								(Deep)
 
 Scene 3:
+Flower models								(Rushikesh)
 Scene Setup									(Deep and Isha)
 Integrate Boids								(Kaivalya)
 Ocean render								(TBA)
