@@ -384,6 +384,7 @@ void labscene::update() {
 	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 0);
 
 	if((*labevents)[CROSSOUT_T] >= 1.0f) {
+		cout<<"Lab Scene Duration: "<<labevents->getT()<<endl;
 		playNextScene();
 	}
 }
