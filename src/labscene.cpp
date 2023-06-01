@@ -54,6 +54,8 @@ static GLuint emptyvao;
 
 static audioplayer *playerBkgnd;
 static audioplayer *playerRobotThump;
+static audioplayer *playerOpeningDoor;
+static audioplayer *playerHologramBeeps;
 
 static godrays* godraysDoor;
 
@@ -65,6 +67,7 @@ static SplineAdjuster* robotSpline;
 
 enum tvalues {
 	ROBOT_T,
+	SFX_ROBOT_THUMP_T,
 	ASTRONAUT_T,
 	CAMERA_T,
 	DOOR_T,
@@ -136,12 +139,15 @@ void labscene::init() {
 		{CROSSIN_T, { 0.0f, 3.36f }},
 		{CAMERA_T, { 3.36f, 40.0f }},
 		{ROBOT_T, { 20.5f, 16.5f }},
+		{SFX_ROBOT_THUMP_T, { 20.5f, 16.5f }},
 		{DOOR_T, { 41.0f, 9.0f }},
 		{CROSSOUT_T, { 48.2f, 4.0f }},
 	});
 
 	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKai.wav");
 	playerRobotThump = new audioplayer("resources/audio/MetallicThumps.wav");
+	playerOpeningDoor = new audioplayer("resources/audio/OpeningDoor.wav");
+	playerHologramBeeps = new audioplayer("resources/audio/HologramAndBeeps.wav");
 
 	// modelLab = new glmodel("resources/models/spaceship/SpaceLab.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	// modelDoor = new glmodel("resources/models/spaceship/door.fbx", aiProcessPreset_TargetRealtime_Quality, true);
@@ -399,9 +405,22 @@ void labscene::update() {
 	if(labevents->getT() >= 34.0f) {
 		playerBkgnd->play();
 	}
+	if(labevents->getT() > 41.0f && labevents->getT() < 54.0f) {
+		playerOpeningDoor->play();
+	} else {
+		playerOpeningDoor->pause();
+	}
+	if(labevents->getT() > 0.00001f && labevents->getT() < 25.0f) {
+		playerHologramBeeps->play();
+	} else {
+		playerHologramBeeps->pause();
+	}
 
 	if((*labevents)[ROBOT_T] >= 0.00001f && (*labevents)[ROBOT_T] <= 0.99999f) {
 		modelRobot->update(ROBOT_ANIM_SPEED * programglobal::deltaTime, 0);
+		playerRobotThump->play();
+	} else {
+		playerRobotThump->pause();
 	}
 	hologramT += HOLOGRAM_UPDATE_SPEED * programglobal::deltaTime;
 	steamT += STEAM_UPDATE_SPEED * programglobal::deltaTime;
