@@ -26,6 +26,7 @@ using namespace vmath;
 static glshaderprogram* programTerrain;
 static glshaderprogram* programLake;
 static glshaderprogram* programStaticPBR;
+static glshaderprogram* programColor;
 
 static terrain* land;
 static terrain* land2;
@@ -66,6 +67,7 @@ void dayscene::setupProgram() {
 		programTerrain = new glshaderprogram({"shaders/terrain/render.vert", "shaders/terrain/render.tesc", "shaders/terrain/render.tese", "shaders/terrain/render.frag"});
 		programLake = new glshaderprogram({"shaders/lake/render.vert", "shaders/lake/render.frag"});
 		programStaticPBR = new glshaderprogram({"shaders/pbr.vert", "shaders/pbrMain.frag"});
+		programColor = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
 #ifdef DEBUG
 		drawTexQuad = new glshaderprogram({"shaders/debug/basictex.vert", "shaders/debug/basictex.frag"});
 #endif
@@ -138,7 +140,7 @@ void dayscene::init() {
 	// lakePlacer = new modelplacer(vec3(0.0f, 10.0f, 0.0f), vec3(0.0f, 0.0f, 0.0f), 10.0f);
 	// vec3(-49.0f, -6.0f, -72.0f), vec3(0.0f, 0.0f, 0.0f), 38.0f -> Lake
 	// vec3(53.1005f, -3.23743f, -56.8485f), vec3(0f, 0f, 0f), 0.00910002f -> Rover
-	lakePlacer = new modelplacer(vec3(61.0f, -6.7f, -67.0f), vec3(0.0f, 0.0f, 0.0f), 0.8f);
+	lakePlacer = new modelplacer();
 #endif
 }
 
@@ -174,6 +176,17 @@ void dayscene::renderScene(bool cameraFlip) {
 	glBindTextureUnit(7, texDiffuseMountain);
 	glBindTextureUnit(8, texLakeMap);
 	land->render();
+
+	programColor->use();
+	mat4 mvp = 
+		programglobal::perspective * 
+		cameraFlip ? programglobal::currentCamera->matrixYFlippedOnPlane(lake1->getLakeHeight()) : programglobal::currentCamera->matrix() *
+		lakePlacer->getModelMatrix();
+	glUniformMatrix4fv(programColor->getUniformLocation("mvpMatrix"), 1, GL_FALSE, mvp);
+	glUniform4f(programColor->getUniformLocation("color"), 0.8f, 0.3f, 0.1f, 1.0f);
+	glUniform4f(programColor->getUniformLocation("emissive"), 0.8f, 0.3f, 0.1f, 1.0f);
+	glUniform4f(programColor->getUniformLocation("occlusion"), 0.0f, 0.0f, 0.0f, 1.0f);
+	programglobal::shapeRenderer->renderCircle();
 }
 
 void dayscene::render() {

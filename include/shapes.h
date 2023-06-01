@@ -3,17 +3,20 @@
 
 #include<GL/glew.h>
 
-struct quad {
+struct buffer {
 	GLuint vao;
 	GLuint vbo;
+	unsigned vertexCount;
 };
 
 class shaperenderer{
 private:
-	quad q;
+	buffer quad;
+	buffer circle;
 public:
 	shaperenderer(void);
 	void renderQuad(void);
+	void renderCircle(void);
 	~shaperenderer();
 };
 
