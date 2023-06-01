@@ -133,19 +133,19 @@ void labscene::init() {
 		{CROSSIN_T, { 0.0f, 3.36f }},
 		{CAMERA_T, { 3.36f, 40.0f }},
 		{ROBOT_T, { 20.5f, 16.5f }},
-		{DOOR_T, { 41.0f, 13.5f }},
-		{CROSSOUT_T, { 53.8f, 4.0f }},
+		{DOOR_T, { 41.0f, 9.0f }},
+		{CROSSOUT_T, { 48.2f, 4.0f }},
 	});
 
 	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKai.wav");
 	playerRobotThump = new audioplayer("resources/audio/MetallicThumps.wav");
 
-	// modelLab = new glmodel("resources/models/spaceship/SpaceLab.fbx", aiProcessPreset_TargetRealtime_Quality, true);
-	// modelDoor = new glmodel("resources/models/spaceship/door.fbx", aiProcessPreset_TargetRealtime_Quality, true);
-	// modelMug = new glmodel("resources/models/mug/mug.glb", aiProcessPreset_TargetRealtime_Quality, true);
-	// modelRobot = new glmodel("resources/models/robot/robot.fbx", aiProcessPreset_TargetRealtime_Quality, true);
-	// modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
-	// modelBLEND = new glmodel("resources/models/blendlogo/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
+	modelLab = new glmodel("resources/models/spaceship/SpaceLab.fbx", aiProcessPreset_TargetRealtime_Quality, true);
+	modelDoor = new glmodel("resources/models/spaceship/door.fbx", aiProcessPreset_TargetRealtime_Quality, true);
+	modelMug = new glmodel("resources/models/mug/mug.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelRobot = new glmodel("resources/models/robot/robot.fbx", aiProcessPreset_TargetRealtime_Quality, true);
+	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelBLEND = new glmodel("resources/models/blendlogo/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
 
 	godraysDoor = new godrays();
 	godraysDoor->setDecay(0.98f);
@@ -258,7 +258,7 @@ void labscene::init() {
 		// Lights data
 		glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
 		sceneLightManager->setLightUniform(programStaticPBR, false);
-		// modelLab->draw(programStaticPBR,1);
+		modelLab->draw(programStaticPBR,1);
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
 	sceneLightManager->setEnvmap(envMapper->cubemap_texture);
@@ -377,6 +377,10 @@ void labscene::update() {
 	static const float ASTRO_ANIM_SPEED = 0.1f;
 	static const float HOLOGRAM_UPDATE_SPEED = 0.5f;
 	
+	if(labevents->getT() >= 34.0f) {
+		playerBkgnd->play();
+	}
+
 	if((*labevents)[ROBOT_T] >= 0.00001f && (*labevents)[ROBOT_T] <= 0.99999f) {
 		modelRobot->update(ROBOT_ANIM_SPEED * programglobal::deltaTime, 0);
 	}

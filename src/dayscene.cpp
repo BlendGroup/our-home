@@ -108,8 +108,8 @@ void dayscene::setupCamera() {
 
 void dayscene::init() {
 	dayevents = new eventmanager({
-		{CROSSIN_T, { 0.0f, 4.0f }},
-		{CAMERAMOVE_T, { 4.0f, 23.0f }}
+		{CROSSIN_T, { 0.0f, 2.6f }},
+		{CAMERAMOVE_T, { 2.6f, 23.0f }}
 	});
 
 	ivec2 dim = ivec2(2048, 2048);
