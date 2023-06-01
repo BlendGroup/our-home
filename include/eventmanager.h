@@ -22,6 +22,7 @@ public:
 	void increment();
 	friend eventmanager& operator+=(eventmanager& e1, float f);
 	friend eventmanager& operator-=(eventmanager& e1, float f);
+	float getT();
 	~eventmanager();
 };
 

@@ -33,6 +33,10 @@ void eventmanager::increment() {
 	}
 }
 
+float eventmanager::getT() {
+	return this->t;
+}
+
 eventmanager& operator+=(eventmanager&e, float t) {
 	e.t += t;
 	e.recalculateTs();

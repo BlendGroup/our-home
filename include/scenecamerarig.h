@@ -11,10 +11,6 @@
 #include <splinerenderer.h>
 #include <global.h>
 
-#ifndef CAMERA_RIG_SCALER
-#define CAMERA_RIG_SCALER 0.01f
-#endif
-
 class sceneCameraRig
 {
 private:
