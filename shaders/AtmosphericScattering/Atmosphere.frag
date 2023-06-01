@@ -4,7 +4,9 @@
 
 in vec3 fsPosition;
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
+layout(location = 1) out vec4 emmisiveColor;
+layout(location = 2) out vec4 occlusionColor;
 
 // TODO other constants
 uniform vec3 viewPos;   // Position of the viewer
@@ -151,4 +153,6 @@ void main(void)
 { 
 	vec3 acolor = computeSkyColor(normalize(fsPosition - viewPos),viewPos);
 	fragColor = vec4(acolor,1.0);
+    emmisiveColor = vec4(0.0);
+    occlusionColor = vec4(0.0);
 }

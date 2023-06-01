@@ -77,7 +77,7 @@ void Atmosphere::render(float dt){
             //sunAngle = modf(sunAngle + 0.5 * dt,&pp);
             sunDir[1] = sinf(sunAngle);
             sunDir[2] = -cosf(sunAngle);
-            std::cout<<"Sun Dir "<<sunDir<<std::endl;
+            //std::cout<<"Sun Dir "<<sunDir<<std::endl;
         }
         glUniform3fv(atmosphereProgram->getUniformLocation("sunPos"),1,sunDir);
         sphereModel->draw(atmosphereProgram,1,false);
