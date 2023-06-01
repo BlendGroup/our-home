@@ -136,8 +136,8 @@ void labscene::init() {
 		{CROSSIN_T, { 0.0f, 3.36f }},
 		{CAMERA_T, { 3.36f, 40.0f }},
 		{ROBOT_T, { 20.5f, 16.5f }},
-		{DOOR_T, { 41.0f, 13.5f }},
-		{CROSSOUT_T, { 53.8f, 4.0f }},
+		{DOOR_T, { 41.0f, 9.0f }},
+		{CROSSOUT_T, { 48.2f, 4.0f }},
 	});
 
 	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKai.wav");
@@ -396,6 +396,10 @@ void labscene::update() {
 	static const float HOLOGRAM_UPDATE_SPEED = 0.5f;
 	static const float STEAM_UPDATE_SPEED = 0.5f;
 	
+	if(labevents->getT() >= 34.0f) {
+		playerBkgnd->play();
+	}
+
 	if((*labevents)[ROBOT_T] >= 0.00001f && (*labevents)[ROBOT_T] <= 0.99999f) {
 		modelRobot->update(ROBOT_ANIM_SPEED * programglobal::deltaTime, 0);
 	}
@@ -404,6 +408,7 @@ void labscene::update() {
 	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 0);
 
 	if((*labevents)[CROSSOUT_T] >= 1.0f) {
+		cout<<"Lab Scene Duration: "<<labevents->getT()<<endl;
 		playNextScene();
 	}
 }

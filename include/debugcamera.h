@@ -3,6 +3,7 @@
 
 #include<camera.h>
 #include<vmath.h>
+#include<ostream>
 
 class debugCamera : public camera {
 private:
@@ -18,6 +19,7 @@ public:
 	vmath::vec3 position(void) const override;
 	void keyboardFunc(unsigned int key);
 	void mouseFunc(int action, int x, int y);
+	friend std::ostream& operator<<(std::ostream& out, debugCamera* d);
 	~debugCamera();
 };
 

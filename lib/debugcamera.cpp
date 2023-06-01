@@ -83,6 +83,11 @@ vec3 debugCamera::position() const {
 	return this->pos;
 }
 
+ostream& operator<<(ostream& out, debugCamera* d) {
+	out<<"("<<d->pos<<", "<<d->pitch<<", "<<d->yaw<<")";
+	return out;
+}
+
 debugCamera::~debugCamera() {
 
 }

@@ -89,7 +89,7 @@ void init(void) {
 		} 
 
 		playNextScene();
-		// playNextScene();
+		playNextScene();
 		// playNextScene();
 
 		glDepthFunc(GL_LEQUAL);
@@ -153,6 +153,9 @@ void resetScene(void) {
 
 void keyboard(glwindow* window, int key) {
 	switch(key) {
+	case XK_Tab:
+		cout<<debugcamera<<endl;
+		break;
 	case XK_Escape:
 		window->close();
 		break;
@@ -223,7 +226,6 @@ double getDeltaTime(glwindow *win) {
 }
 
 int main(int argc, char **argv) {
-#define SPEED_MULTIPLIER 1
 	try {
 		window = new glwindow("Our Planet", 0, 0, 1920, 1080, 460);
 		auto initstart = chrono::steady_clock::now();
@@ -240,9 +242,6 @@ int main(int argc, char **argv) {
 			window->processEvents();
 			render(window);
 			programglobal::deltaTime = getDeltaTime(window);
-			#ifdef DEBUG
-			programglobal::deltaTime *= SPEED_MULTIPLIER;
-			#endif
 			update();
 			window->swapBuffers();
 		}
