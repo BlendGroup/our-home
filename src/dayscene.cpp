@@ -5,6 +5,7 @@
 #include<iostream>
 #include<vmath.h>
 #include<scenecamera.h>
+#include<scenecamerarig.h>
 #include<modelplacer.h>
 #include<X11/keysym.h>
 #include<interpolators.h>
@@ -15,7 +16,6 @@
 #include<assimp/postprocess.h>
 #include<global.h>
 #include<opensimplexnoise.h>
-#include<debugcamera.h>
 #include<crossfade.h>
 #include<lake.h>
 #include<eventmanager.h>
@@ -36,11 +36,13 @@ static glmodel* modelRover;
 
 static SceneLight* lightManager;
 
-static debugCamera* tempCam;
+static sceneCamera* camera1;
 
 #ifdef DEBUG
 static modelplacer* lakePlacer;
 static glshaderprogram* drawTexQuad;
+static sceneCameraRig* camRig1;
+static bool renderPath = false;
 #endif
 
 static GLfloat lakeT = 0.0f;
@@ -53,10 +55,6 @@ static GLuint texLakeMap;
 static GLuint texLakeDuDVMap;
 extern GLuint texLabSceneFinal;
 
-static int currentTex = 0;
-
-// -87.6205f, 16.1124f, -116.891f
-// vec3(58.9965f, 0.88727f, -77.5934f)
 enum tvalues {
 	CROSSIN_T,
 	CAMERAMOVE_T
@@ -77,12 +75,41 @@ void dayscene::setupProgram() {
 }
 
 void dayscene::setupCamera() {
-	tempCam = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
+	vector<vec3> positionVector = {
+		vec3(62.1965f, -0.31273f, -77.7934f),
+		vec3(47.2794f, 4.3124f, -89.3915f),
+		vec3(26.8796f, 9.6124f, -105.691f),
+		vec3(-0.720439f, 14.7124f, -116.891f),
+		vec3(-36.3205f, 14.7124f, -130.091f),
+		vec3(-73.0202f, 11.8124f, -130.791f),
+		vec3(-88.8205f, 16.1124f, -123.691f),
+		vec3(-84.0206f, 16.1124f, -106.191f)
+	};
+	vector<vec3> frontVector = {
+		vec3(61.8794f, -0.287602f, -82.8909f),
+		vec3(36.4794f, 5.61237f, -95.9913f),
+		vec3(7.27934f, 12.2124f, -101.591f),
+		vec3(-23.5207f, 9.81237f, -113.391f),
+		vec3(-52.021f, 1.51237f, -106.091f),
+		vec3(-70.3207f, 4.01237f, -105.991f),
+		vec3(-81.8206f, 13.7124f, -104.691f),
+		vec3(-74.3207f, 15.9124f, -89.1912f)
+	};
+	camera1 = new sceneCamera(positionVector, frontVector);
+
+	camRig1 = new sceneCameraRig(camera1);
+	camRig1->setRenderFront(true);
+	camRig1->setRenderFrontPoints(true);
+	camRig1->setRenderPath(true);
+	camRig1->setRenderPathPoints(true);
+	camRig1->setRenderPathToFront(true);
+	camRig1->setScalingFactor(0.1f);
 }
 
 void dayscene::init() {
 	dayevents = new eventmanager({
-		{CROSSIN_T, { 0.0f, 4.0f }}
+		{CROSSIN_T, { 0.0f, 4.0f }},
+		{CAMERAMOVE_T, { 4.0f, 23.0f }}
 	});
 
 	ivec2 dim = ivec2(2048, 2048);
@@ -90,6 +117,7 @@ void dayscene::init() {
 	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 6, 0.11f, 543);
 	land = new terrain(valleyHeightMap, 256, true, 5.0f, 16.0f);
 	land2 = new terrain(mountainHeightMap, 256, true, 5.0f, 16.0f);
+	CLErr(clhelpererr = clFinish(programglobal::oclContext->getCommandQueue()));
 
 	modelLab = new glmodel("resources/models/spaceship/LabOut.glb", aiProcess_FlipUVs, true);
 	modelRover = new glmodel("resources/models/rover/rover.glb", aiProcess_FlipUVs, true);
@@ -149,6 +177,8 @@ void dayscene::renderScene(bool cameraFlip) {
 }
 
 void dayscene::render() {
+	camera1->setT((*dayevents)[CAMERAMOVE_T]);
+
 	float distance = 2.0f * (programglobal::currentCamera->position()[1] - lake1->getLakeHeight());
 	glEnable(GL_CLIP_DISTANCE0);
 	lake1->setReflectionFBO();
@@ -195,6 +225,10 @@ void dayscene::render() {
 	glBindTextureUnit(2, texLakeDuDVMap);
 	lake1->render();
 
+	if(programglobal::debugMode == CAMERA) {
+		camRig1->render();
+	}
+
 	// glDisable(GL_DEPTH_TEST);
 	// drawTexQuad->use();
 	// glUniformMatrix4fv(drawTexQuad->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
@@ -225,13 +259,23 @@ void dayscene::uninit() {
 void dayscene::keyboardfunc(int key) {
 	if(programglobal::debugMode == MODEL) {
 		lakePlacer->keyboardfunc(key);
+	} else if(programglobal::debugMode == CAMERA) {
+		camRig1->keyboardfunc(key);
 	}
 	switch(key) {
+	case XK_Up:
+		(*dayevents) += 0.4f;
+		break;
+	case XK_Down:
+		(*dayevents) -= 0.4f;
+	case XK_F2:
+		renderPath = !renderPath;
+		camRig1->setRenderPathToFront(renderPath);
+		break;
 	case XK_Tab:
-		//cout << doorPlacer;
-		// if(programglobal::debugMode == CAMERA) {
-		// 	cout<<cameraRig->getCamera()<<endl;
-		// }	
+		if(programglobal::debugMode == CAMERA) {
+			cout<<camRig1->getCamera()<<endl;
+		} else 
 		// if(programglobal::debugMode == SPLINE) {
 		// 	cout<<robotSpline->getSpline()<<endl;
 		// }
@@ -239,13 +283,11 @@ void dayscene::keyboardfunc(int key) {
 			cout<<lakePlacer<<endl;
 		}
 		break;
-	case XK_1: case XK_2: case XK_3:
-		currentTex = key - XK_1;
 	}
 }
 
 camera* dayscene::getCamera() {
-	return tempCam;
+	return camera1;
 }
 
 void dayscene::crossfade() {
