@@ -45,16 +45,16 @@ class Atmosphere {
         inline static const int defLightSamples = 8;
         inline static const int defSunAngle = vmath::radians(1.0f);
 
-        inline static const vmath::vec3 defSunDir = vmath::vec3(0.0,1.0,0.0);
+        inline static const vmath::vec3 defSunDir = vmath::vec3(0.0f,0.017f,-1.0f);
 
         // Earth presets in [km]
         inline static const float e_I_sun = 20.f;
-        inline static const float e_R_e = 50.;       // 6360e3
-        inline static const float e_R_a = 55.;       // 6420e3;
-        inline static const vmath::vec3 e_beta_R = vmath::vec3(5.8e-3f, 13.5e-3f, 33.1e-3f);
+        inline static const float e_R_e = 6360.00;       // 6360e3
+        inline static const float e_R_a = 6420.00;       // 6420e3;
+        inline static const vmath::vec3 e_beta_R = vmath::vec3(0.0058f, 0.0135f, 0.0331f);
         //(3.8e-6f, 13.5e-6f, 33.1e-6f);    // scrathapixel implementation
         //(5.8e-6f, 13.5e-6f, 33.1e-6f);    // scrathapixel web
-        inline static const float e_beta_M = 21e-3f;          // 21e-6f
+        inline static const float e_beta_M = 0.0210f;          // 21e-6f
         inline static const float e_H_R = 7.994;            // 7994, 100
         inline static const float e_H_M = 1.200;            // 1200, 20
         inline static const float e_g = 0.888;
@@ -76,6 +76,7 @@ class Atmosphere {
         // Getters
 
         const vmath::vec3& getViewPos(){return viewPos;}
+        const vmath::mat4& getModelEarth() {return modelEarth;}
         int getViewSamples() {return viewSamples;}
         int getLightSamples() {return lightSamples;}
 

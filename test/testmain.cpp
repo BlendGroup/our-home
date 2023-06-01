@@ -40,14 +40,14 @@ static bool isAudioPlaying = true;
 #define SHOW_TEST_SCENE 		0
 #define SHOW_MODEL_SCENE 		0
 #define SHOW_CAMERA_SCENE 		0
-#define SHOW_PBR_SCENE			1
+#define SHOW_PBR_SCENE			0
 #define SHOW_LAB_SCENE			0
 #define SHOW_CAMERA_RIG			0
 #define SHOW_TERRAIN_SCENE 		0
 #define SHOW_CUBEMAP_SCENE		0
 #define SHOW_NOISE_SCENE 		0
 #define SHOW_AUDIO_SCENE		0
-#define SHOW_ATMOSPERIC_SCATTER 0
+#define SHOW_ATMOSPERIC_SCATTER 1
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
@@ -90,7 +90,7 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
+		debugcamera = new debugCamera(vec3(0.0f, 6359.0f, 30.0f), 270.0f, 20.0f);
 		setupSceneCameraTestCamera(scenecamera);
 		setupSceneCameraRigTestCamera(scenecamerarig, scenecamera);
 	} catch(string errorString) {

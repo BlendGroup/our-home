@@ -170,14 +170,14 @@ void renderAS(camera *cam,vec3 camPos){
         // draw sphere
 
         color->use();
-        glUniformMatrix4fv(color->getUniformLocation("mvpMatrix"),1,GL_FALSE,programglobal::perspective * cam->matrix() * translate(0.0f,0.0f,0.0f));
+        glUniformMatrix4fv(color->getUniformLocation("mvpMatrix"),1,GL_FALSE,programglobal::perspective * cam->matrix() * translate(0.0f,6359.0f,0.0f));
         glUniform4fv(color->getUniformLocation("color"),1,vec4(1.0f,0.0f,0.0f,1.0f));
         sun->draw(color,1,false);
 
         atmosphere->setProjView(programglobal::perspective, cam->matrix());
         atmosphere->setViewPos(camPos);
         atmosphere->render(dt);
-        dt += 0.001f;
+        dt += 0.00001f;
 /*
         sky->use();
         glUniformMatrix4fv(sky->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);

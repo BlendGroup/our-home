@@ -1,5 +1,6 @@
 #include <atmosphere.h>
 #include <cmath>
+#include <iostream>
 
 Atmosphere::Atmosphere(glmodel* tsphereModel)
 :sphereModel(tsphereModel)
@@ -13,9 +14,7 @@ void Atmosphere::SetDefaults(){
     viewSamples = defViewSamples;
     lightSamples = defLightSamples;
 
-    sunDir = defSunDir;
-    setSunAngle(defSunAngle);
-    I_Sun = e_I_sun;
+    SetSunDefaults();
     setEarthRadius(e_R_e);
     setAtmosRadius(e_R_a);
     beta_R = e_beta_R;
@@ -53,9 +52,6 @@ void Atmosphere::SetsizeDefaults(){
 void Atmosphere::render(float dt){
 
     try{
-
-
-
         // 1 Set Properties of the atmosphere
         atmosphereProgram->use();
         glUniformMatrix4fv(atmosphereProgram->getUniformLocation("M"),1,GL_FALSE,modelAtmos);
@@ -65,22 +61,24 @@ void Atmosphere::render(float dt){
         glUniform1i(atmosphereProgram->getUniformLocation("viewSamples"),viewSamples);
         glUniform1i(atmosphereProgram->getUniformLocation("lightSamples"),lightSamples);
 
-        //glUniform1f(atmosphereProgram->getUniformLocation("I_sun"),I_Sun);
+        glUniform1f(atmosphereProgram->getUniformLocation("I_sun"),I_Sun);
         glUniform1f(atmosphereProgram->getUniformLocation("R_e"),R_e);
         glUniform1f(atmosphereProgram->getUniformLocation("R_a"),R_a);
-        //glUniform3fv(atmosphereProgram->getUniformLocation("beta_R"),1,beta_R);
-        //glUniform1f(atmosphereProgram->getUniformLocation("beta_M"),beta_M);
-        //glUniform1f(atmosphereProgram->getUniformLocation("H_R"),H_R);
-        //glUniform1f(atmosphereProgram->getUniformLocation("H_M"),H_M);
-        //glUniform1f(atmosphereProgram->getUniformLocation("g"),g);
+        glUniform3fv(atmosphereProgram->getUniformLocation("beta_R"),1,beta_R);
+        glUniform1f(atmosphereProgram->getUniformLocation("beta_M"),beta_M);
+        glUniform1f(atmosphereProgram->getUniformLocation("H_R"),H_R);
+        glUniform1f(atmosphereProgram->getUniformLocation("H_M"),H_M);
+        glUniform1f(atmosphereProgram->getUniformLocation("g"),g);
 
         if(animateSun){
             double pp = M_PI + vmath::radians(20.0f);
-            sunAngle = modf(sunAngle + 0.5 * dt,&pp);
+            //std::mod(sunAngle);
+            sunAngle = (sunAngle + 0.5 * dt) - (M_PI + vmath::radians(20.0f)) * std::floor((sunAngle + 0.5 * dt) / (M_PI + vmath::radians(20.0f)));
+            //sunAngle = modf(sunAngle + 0.5 * dt,&pp);
             sunDir[1] = sinf(sunAngle);
-            sunDir[2] = cosf(sunAngle);
+            sunDir[2] = -cosf(sunAngle);
+            std::cout<<"Sun Dir "<<sunDir<<std::endl;
         }
-
         glUniform3fv(atmosphereProgram->getUniformLocation("sunPos"),1,sunDir);
         sphereModel->draw(atmosphereProgram,1,false);
 
