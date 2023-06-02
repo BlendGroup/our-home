@@ -119,10 +119,10 @@ void dayscene::init() {
 	});
 
 	ivec2 dim = ivec2(2048, 2048);
-	GLuint valleyHeightMap;// = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 3, 1234);
-	GLuint mountainHeightMap;// = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 6, 0.11f, 543);
-	land = new terrain(valleyHeightMap, 256, false, 5.0f, 16.0f);
-	land2 = new terrain(mountainHeightMap, 256, false, 5.0f, 16.0f);
+	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 3, 1234);
+	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 6, 0.11f, 543);
+	land = new terrain(valleyHeightMap, 256, true, 5.0f, 16.0f);
+	land2 = new terrain(mountainHeightMap, 256, true, 5.0f, 16.0f);
 	CLErr(clhelpererr = clFinish(programglobal::oclContext->getCommandQueue()));
 
 	modelLab = new glmodel("resources/models/spaceship/LabOut.glb", aiProcess_FlipUVs, true);
