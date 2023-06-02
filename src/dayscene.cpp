@@ -37,6 +37,7 @@ static glmodel* modelRover;
 static glmodel* modelTreePine;
 static glmodel* modelTreeRed;
 static glmodel* modelTreePurple;
+static glmodel* modelDrone;
 
 static SceneLight* lightManager;
 
@@ -129,6 +130,7 @@ void dayscene::init() {
 	modelTreePine = new glmodel("resources/models/tree/pine.glb", 0, true);
 	modelTreeRed = new glmodel("resources/models/tree/redtree.fbx", 0, true);
 	modelTreePurple = new glmodel("resources/models/tree/purpletree.glb", 0, true);
+	modelDrone = new glmodel("resources/models/drone/drone.glb", 0, true);
 
 	lightManager = new SceneLight();
 	//lightManager->addPointLight(PointLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, 100.0f, 0.0f), 2.0f));
@@ -241,6 +243,9 @@ void dayscene::render() {
 
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(48.0f, -5.0f, -34.0f) * scale(2.0f));
 	modelTreePurple->draw(programStaticPBR);
+
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, lakePlacer->getModelMatrix());
+	modelDrone->draw(programStaticPBR);
 
 	programLake->use();
 	glUniformMatrix4fv(programLake->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
