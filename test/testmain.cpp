@@ -89,7 +89,7 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
+		debugcamera = new debugCamera(vec3(0.0f, 6359.0f, 30.0f), 270.0f, 20.0f);
 		setupSceneCameraTestCamera(scenecamera);
 		setupSceneCameraRigTestCamera(scenecamerarig, scenecamera);
 	} catch(string errorString) {
@@ -149,7 +149,7 @@ void render(glwindow* window) {
 
 		glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.3f, 0.2f, 1.0f));
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
-		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().height, 0.1f, 1000.0f);
+		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().height, 0.001f, 2200.0f);
 
 #if SHOW_TEST_SCENE
 		renderTestEffect();
