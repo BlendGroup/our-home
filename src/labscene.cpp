@@ -99,10 +99,10 @@ void labscene::setupProgram() {
 void labscene::setupCamera() {
 	vector<vec3> positionKeyFrames = {
 		vec3(-1.96f, -0.27f, -1.13f),
-		vec3(-1.95f, -0.32f, -1.11f),
-		vec3(-1.89f, -0.37f, -1.36f),
-		vec3(-1.84f, -0.33f, -1.65f),
-		vec3(-1.47f, -0.15f, -1.82f),
+		vec3(-1.95f, -0.22f, -1.11f),
+		vec3(-1.89f, -0.27f, -1.36f),
+		vec3(-1.84f, -0.23f, -1.55f),
+		vec3(-1.27f, -0.15f, -1.72f),
 		vec3(-0.82f, 0.28f, -1.85f),
 		vec3(-1.17f, 0.06f, -1.1f),
 		vec3(-2.9f, -0.2f, -0.51f),
@@ -111,10 +111,10 @@ void labscene::setupCamera() {
     
 	vector<vec3> frontKeyFrames = {
 		vec3(-1.96f, -0.27f, -1.65f),
-		vec3(-1.74f, -0.4f, -1.53f),
-		vec3(-1.5f, -0.4f, -1.48f),
-		vec3(-1.36f, -0.38f, -1.43f),
-		vec3(-0.51f, -0.28f, -0.98f),
+		vec3(-1.74f, -0.3f, -1.53f),
+		vec3(-1.3f, -0.3f, -1.38f),
+		vec3(-0.36f, -0.38f, -1.23f),
+		vec3(0.09f, -0.28f, -0.98f),
 		vec3(-0.21f, -0.26f, -0.37f),
 		vec3(-1.67f, -0.42f, 0.45f),
 		vec3(-3.19f, -0.36f, 0.96f),
@@ -149,12 +149,12 @@ void labscene::init() {
 	playerOpeningDoor = new audioplayer("resources/audio/OpeningDoor.wav");
 	playerHologramBeeps = new audioplayer("resources/audio/HologramAndBeeps.wav");
 
-	// modelLab = new glmodel("resources/models/spaceship/SpaceLab.fbx", aiProcessPreset_TargetRealtime_Quality, true);
-	// modelDoor = new glmodel("resources/models/spaceship/door.fbx", aiProcessPreset_TargetRealtime_Quality, true);
-	// modelMug = new glmodel("resources/models/mug/mug.glb", aiProcessPreset_TargetRealtime_Quality, true);
-	// modelRobot = new glmodel("resources/models/robot/robot.fbx", aiProcessPreset_TargetRealtime_Quality, true);
-	// modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
-	// modelBLEND = new glmodel("resources/models/blendlogo/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
+	modelLab = new glmodel("resources/models/spaceship/SpaceLab.fbx", aiProcessPreset_TargetRealtime_Quality, true);
+	modelDoor = new glmodel("resources/models/spaceship/door.fbx", aiProcessPreset_TargetRealtime_Quality, true);
+	modelMug = new glmodel("resources/models/mug/mug.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelRobot = new glmodel("resources/models/robot/robot.fbx", aiProcessPreset_TargetRealtime_Quality, true);
+	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelBLEND = new glmodel("resources/models/blendlogo/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
 
 	godraysDoor = new godrays();
 	godraysDoor->setDecay(0.98f);
@@ -267,7 +267,7 @@ void labscene::init() {
 		// Lights data
 		glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
 		sceneLightManager->setLightUniform(programStaticPBR, false);
-		// modelLab->draw(programStaticPBR,1);
+		modelLab->draw(programStaticPBR,1);
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
 	sceneLightManager->setEnvmap(envMapper->cubemap_texture);
