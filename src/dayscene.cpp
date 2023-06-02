@@ -19,6 +19,7 @@
 #include<crossfade.h>
 #include<lake.h>
 #include<eventmanager.h>
+#include<splineadjuster.h>
 
 using namespace std;
 using namespace vmath;
@@ -43,10 +44,13 @@ static SceneLight* lightManager;
 
 static sceneCamera* camera1;
 
+static BsplineInterpolator* splineDrone;
+
 #ifdef DEBUG
 static modelplacer* lakePlacer;
 static glshaderprogram* drawTexQuad;
 static sceneCameraRig* camRig1;
+static SplineAdjuster* splineAdjuster;
 static bool renderPath = false;
 #endif
 
@@ -62,7 +66,8 @@ extern GLuint texLabSceneFinal;
 
 enum tvalues {
 	CROSSIN_T,
-	CAMERAMOVE_T
+	CAMERAMOVE_T,
+	DRONEMOVE_T
 };
 static eventmanager* dayevents;
 
@@ -82,23 +87,28 @@ void dayscene::setupProgram() {
 
 void dayscene::setupCamera() {
 	vector<vec3> positionVector = {
-		vec3(62.1965f, -0.31273f, -77.7934f),
-		vec3(47.2794f, 4.3124f, -89.3915f),
-		vec3(26.8796f, 9.6124f, -105.691f),
+		vec3(64.5965f, -0.71273f, -77.4934f),
+		vec3(61.9965f, -0.31273f, -82.6933f),
+		vec3(52.0967f, 1.88727f, -89.4932f),
+		vec3(36.5796f, 6.2124f, -98.2914f),
+		vec3(26.7796f, 11.2124f, -105.591f),
 		vec3(-0.720439f, 14.7124f, -116.891f),
 		vec3(-36.3205f, 14.7124f, -130.091f),
-		vec3(-73.0202f, 11.8124f, -130.791f),
-		vec3(-88.8205f, 16.1124f, -123.691f),
-		vec3(-84.0206f, 16.1124f, -106.191f)
+		vec3(-73.0202f, 18.0124f, -130.791f),
+		vec3(-82.7206f, 16.1124f, -122.591f),
+		vec3(-84.2206f, 18.4124f, -109.391f)
 	};
 	vector<vec3> frontVector = {
-		vec3(61.8794f, -0.287602f, -82.8909f),
-		vec3(36.4794f, 5.61237f, -95.9913f),
-		vec3(7.27934f, 12.2124f, -101.591f),
-		vec3(-23.5207f, 9.81237f, -113.391f),
+		vec3(63.4991f, -0.667602f, -79.8903f),
+		vec3(54.4795f, 1.3124f, -88.0908f),
+		vec3(33.2794f, 6.51237f, -98.0913f),
+		vec3(16.1794f, 5.61237f, -95.9913f),
+		vec3(7.27934f, 9.11239f, -101.591f),
+		vec3(-23.0207f, 3.11237f, -108.091f),
+		vec3(-31.8207f, 3.11237f, -111.991f),
 		vec3(-52.021f, 1.51237f, -106.091f),
-		vec3(-70.3207f, 4.01237f, -105.991f),
-		vec3(-81.8206f, 13.7124f, -104.691f),
+		vec3(-67.3207f, 4.01237f, -105.091f),
+		vec3(-71.5208f, 10.3124f, -102.791f),
 		vec3(-74.3207f, 15.9124f, -89.1912f)
 	};
 	camera1 = new sceneCamera(positionVector, frontVector);
@@ -115,8 +125,10 @@ void dayscene::setupCamera() {
 void dayscene::init() {
 	dayevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 2.6f }},
-		{CAMERAMOVE_T, { 2.6f, 23.0f }}
+		{CAMERAMOVE_T, { 2.6f, 23.0f }},
+		{DRONEMOVE_T, { 2.6f, 23.0f }}
 	});
+	(*dayevents)[DRONEMOVE_T] = 0.01f;
 
 	ivec2 dim = ivec2(2048, 2048);
 	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 3, 1234);
@@ -131,6 +143,25 @@ void dayscene::init() {
 	modelTreeRed = new glmodel("resources/models/tree/redtree.fbx", 0, true);
 	modelTreePurple = new glmodel("resources/models/tree/purpletree.glb", 0, true);
 	modelDrone = new glmodel("resources/models/drone/drone.glb", 0, true);
+
+	vector<vec3> droneVector = {
+		vec3(63.4991f, -0.667602f, -79.8903f),
+		vec3(54.4795f, 1.3124f, -88.0908f),
+		vec3(33.2794f, 6.51237f, -98.0913f),
+		vec3(16.1794f, 5.61237f, -95.9913f),
+		vec3(7.27934f, 9.11239f, -101.591f),
+		vec3(-23.0207f, 3.11237f, -108.091f),
+		vec3(-31.8207f, 3.11237f, -111.991f),
+		vec3(-52.021f, 1.51237f, -106.091f),
+		vec3(-67.3207f, 4.01237f, -105.091f),
+		vec3(-71.5208f, 10.3124f, -102.791f),
+		vec3(-74.3207f, 15.9124f, -89.1912f)
+	};
+	splineDrone = new BsplineInterpolator(droneVector);
+	splineAdjuster = new SplineAdjuster(splineDrone);
+	splineAdjuster->setRenderPath(true);
+	splineAdjuster->setRenderPoints(true);
+	splineAdjuster->setScalingFactor(0.1f);
 
 	lightManager = new SceneLight();
 	//lightManager->addPointLight(PointLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, 100.0f, 0.0f), 2.0f));
@@ -244,7 +275,7 @@ void dayscene::render() {
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(48.0f, -5.0f, -34.0f) * scale(2.0f));
 	modelTreePurple->draw(programStaticPBR);
 
-	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, lakePlacer->getModelMatrix());
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(splineDrone->interpolate((*dayevents)[CAMERAMOVE_T])) * targetat(splineDrone->interpolate((*dayevents)[CAMERAMOVE_T] - 0.01f), splineDrone->interpolate((*dayevents)[CAMERAMOVE_T]), vec3(0.0f, 1.0f, 0.0f)) * scale(10.0f));
 	modelDrone->draw(programStaticPBR);
 
 	programLake->use();
@@ -263,6 +294,8 @@ void dayscene::render() {
 
 	if(programglobal::debugMode == CAMERA) {
 		camRig1->render();
+	} else if(programglobal::debugMode == SPLINE) {
+		splineAdjuster->render(RED_PINK_COLOR);
 	}
 
 	// glDisable(GL_DEPTH_TEST);
@@ -297,6 +330,8 @@ void dayscene::keyboardfunc(int key) {
 		lakePlacer->keyboardfunc(key);
 	} else if(programglobal::debugMode == CAMERA) {
 		camRig1->keyboardfunc(key);
+	} else if(programglobal::debugMode == SPLINE) {
+		splineAdjuster->keyboardfunc(key);
 	}
 	switch(key) {
 	case XK_Up:
@@ -304,6 +339,7 @@ void dayscene::keyboardfunc(int key) {
 		break;
 	case XK_Down:
 		(*dayevents) -= 0.4f;
+		break;
 	case XK_F2:
 		renderPath = !renderPath;
 		camRig1->setRenderPathToFront(renderPath);
@@ -312,9 +348,9 @@ void dayscene::keyboardfunc(int key) {
 		if(programglobal::debugMode == CAMERA) {
 			cout<<camRig1->getCamera()<<endl;
 		} else 
-		// if(programglobal::debugMode == SPLINE) {
-		// 	cout<<robotSpline->getSpline()<<endl;
-		// }
+		if(programglobal::debugMode == SPLINE) {
+			cout<<splineAdjuster->getSpline()<<endl;
+		}
 		if(programglobal::debugMode == MODEL) {
 			cout<<lakePlacer<<endl;
 		}
