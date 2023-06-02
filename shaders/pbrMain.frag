@@ -52,11 +52,6 @@ struct SpotLight{
     float outer_angle;
 };
 
-struct light_t{
-    vec3 diffuse;
-    vec3 position;
-};
-
 //uniforms
 
 uniform vec3 viewPos;
