@@ -149,12 +149,12 @@ void labscene::init() {
 	playerOpeningDoor = new audioplayer("resources/audio/OpeningDoor.wav");
 	playerHologramBeeps = new audioplayer("resources/audio/HologramAndBeeps.wav");
 
-	modelLab = new glmodel("resources/models/spaceship/SpaceLab.fbx", aiProcessPreset_TargetRealtime_Quality, true);
-	modelDoor = new glmodel("resources/models/spaceship/door.fbx", aiProcessPreset_TargetRealtime_Quality, true);
-	modelMug = new glmodel("resources/models/mug/mug.glb", aiProcessPreset_TargetRealtime_Quality, true);
-	modelRobot = new glmodel("resources/models/robot/robot.fbx", aiProcessPreset_TargetRealtime_Quality, true);
-	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
-	modelBLEND = new glmodel("resources/models/blendlogo/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
+	// modelLab = new glmodel("resources/models/spaceship/SpaceLab.fbx", aiProcessPreset_TargetRealtime_Quality, true);
+	// modelDoor = new glmodel("resources/models/spaceship/door.fbx", aiProcessPreset_TargetRealtime_Quality, true);
+	// modelMug = new glmodel("resources/models/mug/mug.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	// modelRobot = new glmodel("resources/models/robot/robot.fbx", aiProcessPreset_TargetRealtime_Quality, true);
+	// modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	// modelBLEND = new glmodel("resources/models/blendlogo/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
 
 	godraysDoor = new godrays();
 	godraysDoor->setDecay(0.98f);
@@ -267,7 +267,7 @@ void labscene::init() {
 		// Lights data
 		glUniform1i(programStaticPBR->getUniformLocation("specularGloss"),false);
 		sceneLightManager->setLightUniform(programStaticPBR, false);
-		modelLab->draw(programStaticPBR,1);
+		// modelLab->draw(programStaticPBR,1);
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
 	sceneLightManager->setEnvmap(envMapper->cubemap_texture);

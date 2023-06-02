@@ -28,7 +28,7 @@ void initQuad(buffer &q) {
 	q.vertexCount = 4;
 }
 
-void initCircle(buffer &q, unsigned slices) {
+void initSphere(buffer &q, unsigned slices) {
 	GLfloat array[(slices + 2) * 8];
 	int k = 0;
 	for(int i = 0; i <= slices; i++) {
@@ -59,7 +59,7 @@ void initCircle(buffer &q, unsigned slices) {
 
 shaperenderer::shaperenderer(void) {
 	initQuad(this->quad);
-	initCircle(this->circle, 50);
+	initSphere(this->sphere, 50);
 }
 
 void shaperenderer::renderQuad(void) {
@@ -68,9 +68,9 @@ void shaperenderer::renderQuad(void) {
 	glBindVertexArray(0);
 }
 
-void shaperenderer::renderCircle(void) {
-	glBindVertexArray(this->circle.vao);
-	glDrawArrays(GL_TRIANGLE_FAN, 0, this->circle.vertexCount);
+void shaperenderer::renderSphere(void) {
+	glBindVertexArray(this->sphere.vao);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, this->sphere.vertexCount);
 	glBindVertexArray(0);
 }
 

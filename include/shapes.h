@@ -12,11 +12,11 @@ struct buffer {
 class shaperenderer{
 private:
 	buffer quad;
-	buffer circle;
+	buffer sphere;
 public:
 	shaperenderer(void);
 	void renderQuad(void);
-	void renderCircle(void);
+	void renderSphere(void);
 	~shaperenderer();
 };
 

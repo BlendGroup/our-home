@@ -34,6 +34,9 @@ static lake* lake1;
 
 static glmodel* modelLab;
 static glmodel* modelRover;
+static glmodel* modelTreePine;
+static glmodel* modelTreeRed;
+static glmodel* modelTreePurple;
 
 static SceneLight* lightManager;
 
@@ -123,6 +126,9 @@ void dayscene::init() {
 
 	modelLab = new glmodel("resources/models/spaceship/LabOut.glb", aiProcess_FlipUVs, true);
 	modelRover = new glmodel("resources/models/rover/rover.glb", aiProcess_FlipUVs, true);
+	modelTreePine = new glmodel("resources/models/tree/pine.glb", 0, true);
+	modelTreeRed = new glmodel("resources/models/tree/redtree.fbx", 0, true);
+	modelTreePurple = new glmodel("resources/models/tree/purpletree.glb", 0, true);
 
 	lightManager = new SceneLight();
 	lightManager->addPointLight(PointLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, 100.0f, 0.0f), 2.0f));
@@ -176,17 +182,16 @@ void dayscene::renderScene(bool cameraFlip) {
 	glBindTextureUnit(7, texDiffuseMountain);
 	glBindTextureUnit(8, texLakeMap);
 	land->render();
-
-	programColor->use();
-	mat4 mvp = 
-		programglobal::perspective * 
-		cameraFlip ? programglobal::currentCamera->matrixYFlippedOnPlane(lake1->getLakeHeight()) : programglobal::currentCamera->matrix() *
-		lakePlacer->getModelMatrix();
-	glUniformMatrix4fv(programColor->getUniformLocation("mvpMatrix"), 1, GL_FALSE, mvp);
-	glUniform4f(programColor->getUniformLocation("color"), 0.8f, 0.3f, 0.1f, 1.0f);
-	glUniform4f(programColor->getUniformLocation("emissive"), 0.8f, 0.3f, 0.1f, 1.0f);
-	glUniform4f(programColor->getUniformLocation("occlusion"), 0.0f, 0.0f, 0.0f, 1.0f);
-	programglobal::shapeRenderer->renderCircle();
+	// programColor->use();
+	// mat4 mvp = 
+	// 	programglobal::perspective * 
+	// 	cameraFlip ? programglobal::currentCamera->matrixYFlippedOnPlane(lake1->getLakeHeight()) : programglobal::currentCamera->matrix() *
+	// 	lakePlacer->getModelMatrix();
+	// glUniformMatrix4fv(programColor->getUniformLocation("mvpMatrix"), 1, GL_FALSE, mvp);
+	// glUniform4f(programColor->getUniformLocation("color"), 0.8f, 0.3f, 0.1f, 1.0f);
+	// glUniform4f(programColor->getUniformLocation("emissive"), 0.8f, 0.3f, 0.1f, 1.0f);
+	// glUniform4f(programColor->getUniformLocation("occlusion"), 0.0f, 0.0f, 0.0f, 1.0f);
+	// programglobal::shapeRenderer->renderSphere();
 }
 
 void dayscene::render() {
@@ -224,6 +229,15 @@ void dayscene::render() {
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(53.1005f, -3.23743f, -56.8485f) * scale(0.00910002f));
 	modelRover->draw(programStaticPBR);
 	
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(61.0f, 6.7f, -53.4f) * scale(0.7f));
+	modelTreePine->draw(programStaticPBR);
+	
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(54.89f, 2.2f, -45.3f) * scale(2.9f));
+	modelTreeRed->draw(programStaticPBR);
+
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(48.0f, -5.0f, -34.0f) * scale(2.0f));
+	modelTreePurple->draw(programStaticPBR);
+
 	programLake->use();
 	glUniformMatrix4fv(programLake->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(programLake->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
