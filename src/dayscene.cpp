@@ -118,10 +118,10 @@ void dayscene::init() {
 	});
 
 	ivec2 dim = ivec2(2048, 2048);
-	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 3, 1234);
-	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 6, 0.11f, 543);
-	land = new terrain(valleyHeightMap, 256, true, 5.0f, 16.0f);
-	land2 = new terrain(mountainHeightMap, 256, true, 5.0f, 16.0f);
+	GLuint valleyHeightMap;// = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 3, 1234);
+	GLuint mountainHeightMap;// = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 6, 0.11f, 543);
+	land = new terrain(valleyHeightMap, 256, false, 5.0f, 16.0f);
+	land2 = new terrain(mountainHeightMap, 256, false, 5.0f, 16.0f);
 	CLErr(clhelpererr = clFinish(programglobal::oclContext->getCommandQueue()));
 
 	modelLab = new glmodel("resources/models/spaceship/LabOut.glb", aiProcess_FlipUVs, true);
@@ -131,8 +131,9 @@ void dayscene::init() {
 	modelTreePurple = new glmodel("resources/models/tree/purpletree.glb", 0, true);
 
 	lightManager = new SceneLight();
-	lightManager->addPointLight(PointLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, 100.0f, 0.0f), 2.0f));
-
+	//lightManager->addPointLight(PointLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, 100.0f, 0.0f), 2.0f));
+	lightManager->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,0.0,-1.0f)));
+	
 	texTerrainMap = createTexture2D("resources/textures/map.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseDirt = createTexture2D("resources/textures/dirt.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -182,6 +183,9 @@ void dayscene::renderScene(bool cameraFlip) {
 	glBindTextureUnit(7, texDiffuseMountain);
 	glBindTextureUnit(8, texLakeMap);
 	land->render();
+	for(int i = 0; i < 9; i++) {
+		glBindTextureUnit(i, 0);
+	}
 	// programColor->use();
 	// mat4 mvp = 
 	// 	programglobal::perspective * 
