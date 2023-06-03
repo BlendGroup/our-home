@@ -1,17 +1,23 @@
 #ifndef __ATMOSPPHERE__
 #define __ATMOSPPHERE__
 
-#include "glmodelloader.h"
+#include<glmodelloader.h>
 #include<string>
 #include<vmath.h>
+#include<debugcamera.h>
+#include<CubeMapRenderTarget.h>
 #include<glshaderloader.h>
 #include<errorlog.h>
+
 
 class Atmosphere {
     private:
         
         glshaderprogram* atmosphereProgram;
         glmodel* sphereModel;
+
+        debugCamera *debugcamera;
+        CubeMapRenderTarget* envMapper;
 
         vmath::mat4 modelAtmos;
         vmath::mat4 modelEarth;
@@ -79,6 +85,8 @@ class Atmosphere {
         const vmath::mat4& getModelEarth() {return modelEarth;}
         int getViewSamples() {return viewSamples;}
         int getLightSamples() {return lightSamples;}
+
+        GLuint getAtmosphereTexture(){ return this->envMapper->cubemap_texture;}
 
         bool isAnimateSun() {return animateSun;}
         float getSunAngle(){return sunAngle;}
