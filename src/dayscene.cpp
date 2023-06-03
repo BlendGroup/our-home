@@ -250,7 +250,7 @@ void dayscene::renderScene(bool cameraFlip) {
 	vec3 eye = splineDrone->interpolate((*dayevents)[DRONEMOVE_T]);
 	vec3 front = splineDrone->interpolate((*dayevents)[DRONEMOVE_T] + 0.001f);
 	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, 
-		translate(eye) * translate(0.0f, -1.32f, 0.0f) * lakePlacer->getModelMatrix() *
+		translate(eye + vec3(0.0f, -1.32f, 0.0f)) *
 		targetat(eye, front, vec3(0.0f, 1.0f, 0.0f)) * 
 		rotate(-165.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 1.0f, 0.0f) * 
 		rotate(3.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 0.0f, 1.0f) * scale(10.0f));
@@ -316,17 +316,6 @@ void dayscene::render() {
 
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(48.0f, -5.0f, -34.0f) * scale(2.0f));
 	modelTreePurple->draw(programStaticPBR);
-
-	programDynamicPBR->use();
-	modelDrone->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 1);
-	vec3 eye = splineDrone->interpolate((*dayevents)[DRONEMOVE_T]);
-	vec3 front = splineDrone->interpolate((*dayevents)[DRONEMOVE_T] + 0.001f);
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, 
-		translate(eye) * translate(0.0f, -1.32f, 0.0f) *
-		targetat(eye, front, vec3(0.0f, 1.0f, 0.0f)) * 
-		rotate(-165.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 1.0f, 0.0f) * 
-		rotate(3.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 0.0f, 1.0f) * scale(10.0f));
-	modelDrone->draw(programDynamicPBR);
 
 	programLake->use();
 	glUniformMatrix4fv(programLake->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
