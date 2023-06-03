@@ -2,6 +2,8 @@
 #include<X11/keysym.h>
 #include<vmath.h>
 
+#define SPLINE_ADJUSTER_SCALER 0.1f
+
 using namespace vmath;
 
 SplineAdjuster::SplineAdjuster(BsplineInterpolator* interpolator) {
@@ -52,7 +54,7 @@ void SplineAdjuster::keyboardfunc(int key) {
 		break;
 	//Add/Remove Path Points
 	case XK_bracketleft:
-		this->splineInterpolator->m_pointsVec.insert(this->splineInterpolator->m_pointsVec.begin() + selectedPoint + 1, vec3(0.0f, 0.0f, 0.0f));
+		this->splineInterpolator->m_pointsVec.insert(this->splineInterpolator->m_pointsVec.begin() + selectedPoint + 1, this->splineInterpolator->m_pointsVec[selectedPoint]);
 		refresh = true;
 		break;
 	case XK_bracketright:

@@ -21,6 +21,7 @@
 #include<eventmanager.h>
 #include<splineadjuster.h>
 #include<audio.h>
+#include<godrays.h>
 
 using namespace std;
 using namespace vmath;
@@ -47,6 +48,8 @@ static SceneLight* lightManager;
 static sceneCamera* camera1;
 
 static BsplineInterpolator* splineDrone;
+
+static godrays* godraysDrone;
 
 #ifdef DEBUG
 static modelplacer* lakePlacer;
@@ -129,10 +132,10 @@ void dayscene::setupCamera() {
 
 void dayscene::init() {
 	dayevents = new eventmanager({
-		{CROSSIN_T, { 0.0f, 2.6f }},
-		{CAMERAMOVE_T, { 3.6f, 23.0f }},
-		{DRONETURN_T, { 2.6f, 1.0f }},
-		{DRONEMOVE_T, { 3.6f, 23.0f }}
+		{CROSSIN_T, { 0.0f, 2.0f }},
+		{CAMERAMOVE_T, { 1.5f, 23.0f }},
+		{DRONETURN_T, { 0.5f, 1.0f }},
+		{DRONEMOVE_T, { 1.5f, 25.6f }}
 	});
 
 	texTerrainMap = createTexture2D("resources/textures/map.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -160,22 +163,31 @@ void dayscene::init() {
 
 	vector<vec3> droneVector = {
 		vec3(63.4991f, -0.667602f, -79.8903f),
-		vec3(54.4795f, 1.3124f, -88.0908f),
-		vec3(33.2794f, 6.51237f, -98.0913f),
-		vec3(16.1794f, 5.61237f, -95.9913f),
-		vec3(7.27934f, 9.11239f, -101.591f),
-		vec3(-23.0207f, 3.11237f, -108.091f),
-		vec3(-31.8207f, 3.11237f, -111.991f),
-		vec3(-52.021f, 1.51237f, -106.091f),
-		vec3(-67.3207f, 4.01237f, -105.091f),
-		vec3(-71.5208f, 10.3124f, -102.791f),
-		vec3(-74.3207f, 15.9124f, -89.1912f)
+		vec3(54.4795f, 0.7124f, -87.8908f),
+		vec3(33.2794f, 7.71237f, -89.1915f),
+		vec3(21.2794f, 10.1124f, -88.9912f),
+		vec3(5.17934f, 10.5124f, -85.8913f),
+		vec3(-12.4207f, 7.91239f, -83.0913f),
+		vec3(-23.3207f, -3.88763f, -86.5912f),
+		vec3(-34.0207f, -3.98763f, -94.6911f),
+		vec3(-52.021f, -4.88763f, -98.891f),
+		vec3(-67.3207f, 4.01237f, -99.4911f),
+		vec3(-74.0208f, 12.1124f, -96.0911f),
+		vec3(-80.8206f, 16.5124f, -80.1913f),
+		vec3(-105.02f, 32.8124f, -29.092f)
 	};
 	splineDrone = new BsplineInterpolator(droneVector);
 	splineAdjuster = new SplineAdjuster(splineDrone);
 	splineAdjuster->setRenderPath(true);
 	splineAdjuster->setRenderPoints(true);
 	splineAdjuster->setScalingFactor(0.1f);
+
+	godraysDrone = new godrays();
+	godraysDrone->setDecay(0.98f);
+	godraysDrone->setDensity(1.2f);
+	godraysDrone->setExposure(1.0f);
+	godraysDrone->setSamples(125);
+	godraysDrone->setWeight(0.06f);
 
 	lightManager = new SceneLight();
 	//lightManager->addPointLight(PointLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, 100.0f, 0.0f), 2.0f));
@@ -250,12 +262,15 @@ void dayscene::renderScene(bool cameraFlip) {
 	modelDrone->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
 	vec3 eye = splineDrone->interpolate((*dayevents)[DRONEMOVE_T]);
 	vec3 front = splineDrone->interpolate((*dayevents)[DRONEMOVE_T] + 0.001f);
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, 
-		translate(eye + vec3(0.0f, -1.32f, 0.0f)) * lakePlacer->getModelMatrix() *
+	mat4 mMatrix = translate(eye + vec3(0.0f, -1.32f, 0.0f)) * lakePlacer->getModelMatrix() *
 		targetat(eye, front, vec3(0.0f, 1.0f, 0.0f)) * 
 		rotate(-165.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 1.0f, 0.0f) * 
-		rotate(3.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 0.0f, 1.0f) * scale(10.0f));
+		rotate(3.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 0.0f, 1.0f);
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, mMatrix * scale(10.0f));
+	glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 1);
 	modelDrone->draw(programDynamicPBR);
+	godraysDrone->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix() * mMatrix, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 0);
 }
 
 void dayscene::render() {
@@ -263,20 +278,20 @@ void dayscene::render() {
 
 	glEnable(GL_CLIP_DISTANCE0);
 	lake1->setReflectionFBO();
-	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.2f, 0.6f, 1.0f));
+	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.3f, 0.6f, 1.0f));
 	glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 	this->renderScene(true);
 	glDisable(GL_CLIP_DISTANCE0);
 
 	glEnable(GL_CLIP_DISTANCE1);
 	lake1->setRefractionFBO();
-	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.2f, 0.6f, 1.0f));
+	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.3f, 0.6f, 1.0f));
 	glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 	this->renderScene();
 	glDisable(GL_CLIP_DISTANCE1);
 
 	resetFBO();
-	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.2f, 0.6f, 1.0f));
+	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.3f, 0.6f, 1.0f));
 
 	this->renderScene();
 
@@ -400,6 +415,9 @@ camera* dayscene::getCamera() {
 }
 
 void dayscene::crossfade() {
+	if((*dayevents)[DRONETURN_T] < 0.7f) {
+		godraysDrone->renderRays();
+	}
 	if((*dayevents)[CROSSIN_T] < 1.0f) {
 		crossfader::render(texLabSceneFinal, (*dayevents)[CROSSIN_T]);
 	}
