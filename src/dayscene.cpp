@@ -20,6 +20,7 @@
 #include<lake.h>
 #include<eventmanager.h>
 #include<splineadjuster.h>
+#include<audio.h>
 
 using namespace std;
 using namespace vmath;
@@ -27,6 +28,7 @@ using namespace vmath;
 static glshaderprogram* programTerrain;
 static glshaderprogram* programLake;
 static glshaderprogram* programStaticPBR;
+static glshaderprogram* programDynamicPBR;
 static glshaderprogram* programColor;
 
 static terrain* land;
@@ -52,6 +54,7 @@ static glshaderprogram* drawTexQuad;
 static sceneCameraRig* camRig1;
 static SplineAdjuster* splineAdjuster;
 static bool renderPath = false;
+static audioplayer* playerBkgnd;
 #endif
 
 static GLfloat lakeT = 0.0f;
@@ -67,7 +70,8 @@ extern GLuint texLabSceneFinal;
 enum tvalues {
 	CROSSIN_T,
 	CAMERAMOVE_T,
-	DRONEMOVE_T
+	DRONETURN_T,
+	DRONEMOVE_T,
 };
 static eventmanager* dayevents;
 
@@ -76,6 +80,7 @@ void dayscene::setupProgram() {
 		programTerrain = new glshaderprogram({"shaders/terrain/render.vert", "shaders/terrain/render.tesc", "shaders/terrain/render.tese", "shaders/terrain/render.frag"});
 		programLake = new glshaderprogram({"shaders/lake/render.vert", "shaders/lake/render.frag"});
 		programStaticPBR = new glshaderprogram({"shaders/pbr.vert", "shaders/pbrMain.frag"});
+		programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
 		programColor = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
 #ifdef DEBUG
 		drawTexQuad = new glshaderprogram({"shaders/debug/basictex.vert", "shaders/debug/basictex.frag"});
@@ -125,10 +130,10 @@ void dayscene::setupCamera() {
 void dayscene::init() {
 	dayevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 2.6f }},
-		{CAMERAMOVE_T, { 2.6f, 23.0f }},
-		{DRONEMOVE_T, { 2.6f, 23.0f }}
+		{CAMERAMOVE_T, { 3.6f, 23.0f }},
+		{DRONETURN_T, { 2.6f, 1.0f }},
+		{DRONEMOVE_T, { 3.6f, 23.0f }}
 	});
-	(*dayevents)[DRONEMOVE_T] = 0.01f;
 
 	ivec2 dim = ivec2(2048, 2048);
 	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 3, 1234);
@@ -181,6 +186,7 @@ void dayscene::init() {
 	// vec3(-49.0f, -6.0f, -72.0f), vec3(0.0f, 0.0f, 0.0f), 38.0f -> Lake
 	// vec3(53.1005f, -3.23743f, -56.8485f), vec3(0f, 0f, 0f), 0.00910002f -> Rover
 	lakePlacer = new modelplacer();
+	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKaiOnlyScene2.wav");
 #endif
 }
 
@@ -234,7 +240,6 @@ void dayscene::renderScene(bool cameraFlip) {
 void dayscene::render() {
 	camera1->setT((*dayevents)[CAMERAMOVE_T]);
 
-	float distance = 2.0f * (programglobal::currentCamera->position()[1] - lake1->getLakeHeight());
 	glEnable(GL_CLIP_DISTANCE0);
 	lake1->setReflectionFBO();
 	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -253,13 +258,19 @@ void dayscene::render() {
 
 	this->renderScene();
 
+	programDynamicPBR->use();
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
+	glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"), GL_FALSE);
+	lightManager->setLightUniform(programDynamicPBR, false);
 	programStaticPBR->use();
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
 	glUniform3fv(programStaticPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
 	glUniform1i(programStaticPBR->getUniformLocation("specularGloss"), GL_FALSE);
 	lightManager->setLightUniform(programStaticPBR, false);
-
+	
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(61.8599f, -6.7f, -69.4705f) * scale(0.87f));
 	modelLab->draw(programStaticPBR);
 
@@ -275,8 +286,16 @@ void dayscene::render() {
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(48.0f, -5.0f, -34.0f) * scale(2.0f));
 	modelTreePurple->draw(programStaticPBR);
 
-	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(splineDrone->interpolate((*dayevents)[CAMERAMOVE_T])) * targetat(splineDrone->interpolate((*dayevents)[CAMERAMOVE_T] - 0.01f), splineDrone->interpolate((*dayevents)[CAMERAMOVE_T]), vec3(0.0f, 1.0f, 0.0f)) * scale(10.0f));
-	modelDrone->draw(programStaticPBR);
+	programDynamicPBR->use();
+	modelDrone->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 1);
+	vec3 eye = splineDrone->interpolate((*dayevents)[DRONEMOVE_T]);
+	vec3 front = splineDrone->interpolate((*dayevents)[DRONEMOVE_T] + 0.001f);
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, 
+		translate(eye) * translate(0.0f, -1.32f, 0.0f) *
+		targetat(eye, front, vec3(0.0f, 1.0f, 0.0f)) * 
+		rotate(-165.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 1.0f, 0.0f) * 
+		rotate(3.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 0.0f, 1.0f) * scale(10.0f));
+	modelDrone->draw(programDynamicPBR);
 
 	programLake->use();
 	glUniformMatrix4fv(programLake->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
@@ -312,9 +331,15 @@ void dayscene::render() {
 }
 
 void dayscene::update() {
+	static const float DRONE_ANIM_SPEED = 0.8f;
+	static const float LAKE_SPEED = 0.03f;
+	
 	dayevents->increment();
-	const float LAKE_SPEED = 0.05f;
-	lakeT += programglobal::deltaTime * LAKE_SPEED;
+	lakeT += LAKE_SPEED * programglobal::deltaTime;
+	if(dayevents->getT() > 0.01f) {
+		playerBkgnd->play();
+	}
+	modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
 }
 
 void dayscene::reset() {
