@@ -191,9 +191,11 @@ void dayscene::init() {
 }
 
 void dayscene::renderScene(bool cameraFlip) {
+	mat4 currentViewMatrix = cameraFlip ? programglobal::currentCamera->matrixYFlippedOnPlane(lake1->getLakeHeight()) : programglobal::currentCamera->matrix();
+
 	programTerrain->use();
 	glUniformMatrix4fv(programTerrain->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	glUniformMatrix4fv(programTerrain->getUniformLocation("vMat"), 1, GL_FALSE, cameraFlip ? programglobal::currentCamera->matrixYFlippedOnPlane(lake1->getLakeHeight()) : programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programTerrain->getUniformLocation("vMat"), 1, GL_FALSE, currentViewMatrix);
 	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, -30.0f));
 	glUniform1f(programTerrain->getUniformLocation("maxTess"), land->getMaxTess());
 	glUniform1f(programTerrain->getUniformLocation("minTess"), land->getMinTess());
@@ -225,6 +227,15 @@ void dayscene::renderScene(bool cameraFlip) {
 	for(int i = 0; i < 9; i++) {
 		glBindTextureUnit(i, 0);
 	}
+	programStaticPBR->use();
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"), 1, GL_FALSE, currentViewMatrix);
+	glUniform3fv(programStaticPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
+	glUniform1i(programStaticPBR->getUniformLocation("specularGloss"), GL_FALSE);
+	glUniform1f(programStaticPBR->getUniformLocation("clipy"), lake1->getLakeHeight());
+	lightManager->setLightUniform(programStaticPBR, false);
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, lakePlacer->getModelMatrix());
+	modelTreeRed->draw(programStaticPBR);
 	// programColor->use();
 	// mat4 mvp = 
 	// 	programglobal::perspective * 
