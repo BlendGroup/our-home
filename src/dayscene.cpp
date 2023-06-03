@@ -234,8 +234,28 @@ void dayscene::renderScene(bool cameraFlip) {
 	glUniform1i(programStaticPBR->getUniformLocation("specularGloss"), GL_FALSE);
 	glUniform1f(programStaticPBR->getUniformLocation("clipy"), lake1->getLakeHeight());
 	lightManager->setLightUniform(programStaticPBR, false);
+	
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, lakePlacer->getModelMatrix());
 	modelTreeRed->draw(programStaticPBR);
+	
+	programDynamicPBR->use();
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"), 1, GL_FALSE, currentViewMatrix);
+	glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
+	glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"), GL_FALSE);
+	glUniform1f(programDynamicPBR->getUniformLocation("clipy"), lake1->getLakeHeight());
+	lightManager->setLightUniform(programDynamicPBR, false);
+	
+	modelDrone->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 1);
+	vec3 eye = splineDrone->interpolate((*dayevents)[DRONEMOVE_T]);
+	vec3 front = splineDrone->interpolate((*dayevents)[DRONEMOVE_T] + 0.001f);
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, 
+		translate(eye) * translate(0.0f, -1.32f, 0.0f) * lakePlacer->getModelMatrix() *
+		targetat(eye, front, vec3(0.0f, 1.0f, 0.0f)) * 
+		rotate(-165.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 1.0f, 0.0f) * 
+		rotate(3.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 0.0f, 1.0f) * scale(10.0f));
+	modelDrone->draw(programDynamicPBR);
+
 	// programColor->use();
 	// mat4 mvp = 
 	// 	programglobal::perspective * 
@@ -328,17 +348,17 @@ void dayscene::render() {
 		splineAdjuster->render(RED_PINK_COLOR);
 	}
 
-	// glDisable(GL_DEPTH_TEST);
-	// drawTexQuad->use();
-	// glUniformMatrix4fv(drawTexQuad->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	// glUniformMatrix4fv(drawTexQuad->getUniformLocation("vMat"), 1, GL_FALSE, mat4::identity());
-	// glUniformMatrix4fv(drawTexQuad->getUniformLocation("mMat"), 1, GL_FALSE, translate(-0.36f, 0.181f, -0.7f) * scale(0.1f));
-	// glUniform1i(drawTexQuad->getUniformLocation("texture_diffuse"), currentTex);
-	// glBindTextureUnit(0, lake1->getReflectionTexture());
-	// glBindTextureUnit(1, lake1->getRefractionTexture());
-	// glBindTextureUnit(2, lake1->getDepthTexture());
-	// programglobal::shapeRenderer->renderQuad();
-	// glEnable(GL_DEPTH_TEST);
+	glDisable(GL_DEPTH_TEST);
+	drawTexQuad->use();
+	glUniformMatrix4fv(drawTexQuad->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(drawTexQuad->getUniformLocation("vMat"), 1, GL_FALSE, mat4::identity());
+	glUniformMatrix4fv(drawTexQuad->getUniformLocation("mMat"), 1, GL_FALSE, translate(-0.36f, 0.181f, -0.7f) * scale(0.1f));
+	glUniform1i(drawTexQuad->getUniformLocation("texture_diffuse"), 0);
+	glBindTextureUnit(0, lake1->getReflectionTexture());
+	glBindTextureUnit(1, lake1->getRefractionTexture());
+	glBindTextureUnit(2, lake1->getDepthTexture());
+	programglobal::shapeRenderer->renderQuad();
+	glEnable(GL_DEPTH_TEST);
 }
 
 void dayscene::update() {
