@@ -12,6 +12,7 @@ uniform mat4 vMat;
 uniform mat4 mMat;
 uniform float clipy;
 uniform float heightMapScale;
+uniform vec3 position;
 
 out VS_OUT {
     vec3 P;
@@ -21,9 +22,8 @@ out VS_OUT {
 } vs_out;
 
 void main(void) {
-	vec2 htex = vPos.xz * heightMapScale * 0.5 + 0.5;
-
-	vec4 newPos = vPos;
+	vec2 htex = position.xz * heightMapScale * 0.5 + 0.5;
+	vec4 newPos = vec4(vPos.xyz + position, vPos.w);
 	newPos.y += texture(heightMap, htex).r;
 
 	vec4 P = mMat * newPos;

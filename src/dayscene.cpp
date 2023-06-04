@@ -301,6 +301,8 @@ void dayscene::renderScene(bool cameraFlip) {
 	glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 0);
 }
 
+vec3 xyzVector = vec3(0.0f, 0.0f, 0.0f);
+
 void dayscene::render() {
 	camera1->setT((*dayevents)[CAMERAMOVE_T]);
 
@@ -341,8 +343,8 @@ void dayscene::render() {
 	glUniformMatrix4fv(programDrawOnTerrain->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
 	glUniform3fv(programDrawOnTerrain->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
 	glUniform1i(programDrawOnTerrain->getUniformLocation("specularGloss"), GL_FALSE);
-	// glUniform1f(programDrawOnTerrain->getUniformLocation("heightMapScale"), 128.0f);
-	// glUniform1i(programDrawOnTerrain->getUniformLocation("heightMap"), 11);
+	glUniform1f(programDrawOnTerrain->getUniformLocation("heightMapScale"), 1.0f / 128.0f);
+	glUniform1i(programDrawOnTerrain->getUniformLocation("heightMap"), 11);
 	glBindTextureUnit(11, texTerrainHeight);
 	lightManager->setLightUniform(programDrawOnTerrain, false);
 	
@@ -355,7 +357,8 @@ void dayscene::render() {
 	// glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(61.0f, 6.7f, -53.4f) * scale(0.7f));
 	// modelTreePine->draw(programStaticPBR);
 	
-	glUniformMatrix4fv(programDrawOnTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 4.91f, 0.0f) * lakePlacer->getModelMatrix() * scale(2.9f));
+	glUniform3fv(programDrawOnTerrain->getUniformLocation("position"), 1, xyzVector);
+	glUniformMatrix4fv(programDrawOnTerrain->getUniformLocation("mMat"), 1, GL_FALSE, scale(2.9f));
 	modelTreeRed->draw(programDrawOnTerrain);
 
 	// glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(48.0f, -5.0f, -34.0f) * scale(2.0f));
@@ -423,6 +426,27 @@ void dayscene::keyboardfunc(int key) {
 		camRig1->keyboardfunc(key);
 	} else if(programglobal::debugMode == SPLINE) {
 		splineAdjuster->keyboardfunc(key);
+	} else if(programglobal::debugMode == NONE) {
+		switch(key) {
+		case XK_o:
+			xyzVector[1] += 0.1f;
+			break;
+		case XK_u:
+			xyzVector[1] -= 0.1f;
+			break;
+		case XK_i:
+			xyzVector[2] += 0.1f;
+			break;
+		case XK_k:
+			xyzVector[2] -= 0.1f;
+			break;
+		case XK_l:
+			xyzVector[0] += 0.1f;
+			break;
+		case XK_j:
+			xyzVector[0] -= 0.1f;
+			break;
+		}
 	}
 	switch(key) {
 	case XK_Up:
