@@ -53,11 +53,11 @@ void SplineAdjuster::keyboardfunc(int key) {
 		refresh = true;
 		break;
 	//Add/Remove Path Points
-	case XK_bracketleft:
+	case XK_bracketright:
 		this->splineInterpolator->m_pointsVec.insert(this->splineInterpolator->m_pointsVec.begin() + selectedPoint + 1, this->splineInterpolator->m_pointsVec[selectedPoint]);
 		refresh = true;
 		break;
-	case XK_bracketright:
+	case XK_bracketleft:
 		this->splineInterpolator->m_pointsVec.erase(this->splineInterpolator->m_pointsVec.begin() + selectedPoint);
 		selectedPoint = selectedPoint % this->splineInterpolator->m_pointsVec.size();
 		refresh = true;

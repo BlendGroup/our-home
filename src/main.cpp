@@ -56,8 +56,8 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(-37.869f, 7.20367f, -50.1925f), -12.6, -104.6);
-		// debugcamera = new debugCamera(vec3(0.0f, 0.0f, 3.0f), 0.0f, -90.0f);
+		// debugcamera = new debugCamera(vec3(-37.869f, 7.20367f, -50.1925f), -12.6, -104.6);
+		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 1.0f), -90.0f, 0.0f);
 		for(basescene* b : sceneList) {
 			b->setupCamera();
 		}
@@ -76,7 +76,7 @@ void init(void) {
 		crossfader::init();
 		sceneList.insert(sceneList.begin(), {
 			new titlescene(),
-			// new labscene(),
+			new labscene(),
 			new dayscene()
 		});
 

@@ -4,7 +4,7 @@
 using namespace std;
 using namespace vmath;
 
-#define CAMERA_RIG_SCALER 0.1f
+#define CAMERA_RIG_SCALER 0.01f
 #define PATH_LINE_COLOR vec4(0.0f, 0.0f, 0.0f, 1.0f)
 #define FRONT_LINE_COLOR vec4(1.0f, 1.0f, 1.0f, 1.0f)
 #define PATH_POINT_COLOR vec4(0.0f, 1.0f, 0.0f, 1.0f)
