@@ -251,7 +251,7 @@ void labscene::init() {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, white);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	programStaticPBR = new glshaderprogram({"shaders/pbr.vert", "shaders/pbrMain.frag"});
+	programStaticPBR = new glshaderprogram({"shaders/pbrStatic.vert", "shaders/pbrMain.frag"});
 	glBindFramebuffer(GL_FRAMEBUFFER, envMapper->FBO);
 	glViewport(0, 0, envMapper->width, envMapper->height);
 
