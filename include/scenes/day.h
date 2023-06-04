@@ -6,7 +6,7 @@
 
 class dayscene : public basescene {
 private:
-	void renderScene(void);
+	void renderScene(bool cameraflipy = false);
 public:
 	void setupProgram() override;
 	void setupCamera() override;
@@ -17,6 +17,7 @@ public:
 	void uninit() override;
 	void keyboardfunc(int key) override;
 	camera* getCamera() override;
+	void crossfade() override;
 };
 
 #endif

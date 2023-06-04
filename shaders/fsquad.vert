@@ -1,10 +1,10 @@
 #version 460 core
 
 vec2 quad[4] = vec2[] (
-    vec2(-1.0f,-1.0f),
-    vec2( 1.0f,-1.0f),
-    vec2(-1.0f, 1.0f),
-    vec2( 1.0f, 1.0f)
+    vec2(-1.0,-1.0),
+    vec2( 1.0,-1.0),
+    vec2(-1.0, 1.0),
+    vec2( 1.0, 1.0)
 );
 
 out vec2 texCoord;

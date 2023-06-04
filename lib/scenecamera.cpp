@@ -53,6 +53,21 @@ mat4 sceneCamera::matrix() const
     return lookat(eye, center, up);
 }
 
+mat4 sceneCamera::matrixYFlippedOnPlane(float planey) const
+{
+    static const vec3 up = vec3(0.0f, 1.0f, 0.0f);
+    vec3 eye = m_bspPositions->interpolate(t);
+    vec3 center = m_bspFront->interpolate(t);
+	
+	float distanceEye = 2.0f * (eye[1] - planey);
+	eye[1] -= distanceEye;
+	
+	float distanceCenter = 2.0f * (center[1] - planey);
+	center[1] -= distanceCenter;
+	
+	return lookat(eye, center, up);
+}
+
 vec3 sceneCamera::position() const {
 	return this->m_bspPositions->interpolate(t);
 }

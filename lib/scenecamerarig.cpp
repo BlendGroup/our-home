@@ -4,6 +4,7 @@
 using namespace std;
 using namespace vmath;
 
+#define CAMERA_RIG_SCALER 0.01f
 #define PATH_LINE_COLOR vec4(0.0f, 0.0f, 0.0f, 1.0f)
 #define FRONT_LINE_COLOR vec4(1.0f, 1.0f, 1.0f, 1.0f)
 #define PATH_POINT_COLOR vec4(0.0f, 1.0f, 0.0f, 1.0f)
@@ -307,21 +308,21 @@ void sceneCameraRig::keyboardfunc(int key) {
 		refreshPos = true;
 		break;
 	//Add/Remove Path Points
-	case XK_bracketleft:
-		this->mountCamera->m_bspPositions->m_pointsVec.insert(this->mountCamera->m_bspPositions->m_pointsVec.begin() + selectedPathPoint + 1, vec3(0.0f, 0.0f, 0.0f));
+	case XK_bracketright:
+		this->mountCamera->m_bspPositions->m_pointsVec.insert(this->mountCamera->m_bspPositions->m_pointsVec.begin() + selectedPathPoint + 1, mountCamera->m_bspPositions->m_pointsVec[selectedPathPoint]);
 		refreshPos = true;
 		break;
-	case XK_bracketright:
+	case XK_bracketleft:
 		this->mountCamera->m_bspPositions->m_pointsVec.erase(this->mountCamera->m_bspPositions->m_pointsVec.begin() + selectedPathPoint);
 		selectedPathPoint = selectedPathPoint % this->mountCamera->m_bspPositions->m_pointsVec.size();
 		refreshPos = true;
 		break;
 	//Add/Remove Front Points
-	case XK_comma:
-		this->mountCamera->m_bspFront->m_pointsVec.insert(this->mountCamera->m_bspFront->m_pointsVec.begin() + selectedFrontPoint + 1, vec3(0.0f, 0.0f, 0.0f));
+	case XK_period:
+		this->mountCamera->m_bspFront->m_pointsVec.insert(this->mountCamera->m_bspFront->m_pointsVec.begin() + selectedFrontPoint + 1, mountCamera->m_bspFront->m_pointsVec[selectedFrontPoint]);
 		refreshFront = true;
 		break;
-	case XK_period:
+	case XK_comma:
 		this->mountCamera->m_bspFront->m_pointsVec.erase(this->mountCamera->m_bspFront->m_pointsVec.begin() + selectedFrontPoint);
 		selectedFrontPoint = selectedFrontPoint % this->mountCamera->m_bspFront->m_pointsVec.size();
 		refreshFront = true;

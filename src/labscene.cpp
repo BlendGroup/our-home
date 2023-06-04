@@ -47,12 +47,15 @@ static glshaderprogram* programSkybox;
 static glshaderprogram* programColor;
 static glshaderprogram* programHologram;
 static glshaderprogram* programCrossfade;
+static glshaderprogram* programMugSteam;
 
 static GLuint skybox_vao,vbo;
 static GLuint emptyvao;
 
 static audioplayer *playerBkgnd;
 static audioplayer *playerRobotThump;
+static audioplayer *playerOpeningDoor;
+static audioplayer *playerHologramBeeps;
 
 static godrays* godraysDoor;
 
@@ -64,6 +67,7 @@ static SplineAdjuster* robotSpline;
 
 enum tvalues {
 	ROBOT_T,
+	SFX_ROBOT_THUMP_T,
 	ASTRONAUT_T,
 	CAMERA_T,
 	DOOR_T,
@@ -74,6 +78,7 @@ enum tvalues {
 
 static eventmanager* labevents;
 static GLfloat hologramT	= 0.0f;
+static GLfloat steamT		= 0.0f;
 
 extern GLuint texTitleSceneFinal;
 GLuint texLabSceneFinal;
@@ -85,6 +90,7 @@ void labscene::setupProgram() {
 		programSkybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
 		programColor = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
 		programHologram = new glshaderprogram({"shaders/hologram/hologram.vert","shaders/hologram/hologram.frag"});
+		programMugSteam = new glshaderprogram({{"shaders/steam/steam.vert"}, {"shaders/steam/steam.frag"}});
 	} catch(string errorString)  {
 		throwErr(errorString);
 	}
@@ -93,22 +99,22 @@ void labscene::setupProgram() {
 void labscene::setupCamera() {
 	vector<vec3> positionKeyFrames = {
 		vec3(-1.96f, -0.27f, -1.13f),
-		vec3(-1.94f, -0.32f, -0.97f),
-		vec3(-1.89f, -0.37f, -1.22f),
-		vec3(-1.84f, -0.33f, -1.65f),
-		vec3(-1.47f, -0.15f, -1.82f),
+		vec3(-1.92f, -0.29f, -1.11f),
+		vec3(-1.89f, -0.27f, -1.36f),
+		vec3(-1.67f, -0.3f, -1.64f),
+		vec3(-1.27f, -0.18f, -1.79f),
 		vec3(-0.82f, 0.28f, -1.85f),
 		vec3(-1.17f, 0.06f, -1.1f),
 		vec3(-2.9f, -0.2f, -0.51f),
-		vec3(-3.49f, -0.56f, 0.05f)
+		vec3(-3.49f, -0.41f, 0.05f)
 	};
     
 	vector<vec3> frontKeyFrames = {
 		vec3(-1.96f, -0.27f, -1.65f),
-		vec3(-1.84f, -0.4f, -1.53f),
-		vec3(-1.5f, -0.4f, -1.48f),
-		vec3(-1.36f, -0.38f, -1.43f),
-		vec3(-0.51f, -0.28f, -0.98f),
+		vec3(-1.74f, -0.3f, -1.53f),
+		vec3(-1.3f, -0.3f, -1.38f),
+		vec3(-0.36f, -0.38f, -1.23f),
+		vec3(0.09f, -0.28f, -0.98f),
 		vec3(-0.21f, -0.26f, -0.37f),
 		vec3(-1.67f, -0.42f, 0.45f),
 		vec3(-3.19f, -0.36f, 0.96f),
@@ -117,6 +123,7 @@ void labscene::setupCamera() {
 
 	camera1 = new sceneCamera(positionKeyFrames, frontKeyFrames);
 
+#ifdef DEBUG
 	cameraRig = new sceneCameraRig(camera1);
 	cameraRig->setRenderFront(true);
 	cameraRig->setRenderFrontPoints(true);
@@ -124,19 +131,23 @@ void labscene::setupCamera() {
 	cameraRig->setRenderPathPoints(true);
 	cameraRig->setRenderPathToFront(true);
 	cameraRig->setScalingFactor(0.01f);
+#endif
 }
 
 void labscene::init() {
 	labevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 3.36f }},
 		{CAMERA_T, { 3.36f, 40.0f }},
-		{ROBOT_T, { 20.5f, 16.5f }},
-		{DOOR_T, { 41.0f, 13.5f }},
-		{CROSSOUT_T, { 53.8f, 4.0f }},
+		{ROBOT_T, { 20.5f, 19.5f }},
+		{SFX_ROBOT_THUMP_T, { 20.5f, 16.5f }},
+		{DOOR_T, { 41.0f, 9.0f }},
+		{CROSSOUT_T, { 48.2f, 4.0f }},
 	});
 
 	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKai.wav");
 	playerRobotThump = new audioplayer("resources/audio/MetallicThumps.wav");
+	playerOpeningDoor = new audioplayer("resources/audio/OpeningDoor.wav");
+	playerHologramBeeps = new audioplayer("resources/audio/HologramAndBeeps.wav");
 
 	modelLab = new glmodel("resources/models/spaceship/SpaceLab.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	modelDoor = new glmodel("resources/models/spaceship/door.fbx", aiProcessPreset_TargetRealtime_Quality, true);
@@ -154,9 +165,10 @@ void labscene::init() {
 
 	bspRobot = new BsplineInterpolator({
 		vec3(2.14f, -1.067f, 1.7f),
-		vec3(1.83f, -1.067f, 0.59f),
-		vec3(0.2f, -1.067f, 1.12f),
-		vec3(-2.07f, -1.067f, 1.35f),
+		vec3(1.83f, -1.067f, 0.79f),
+		vec3(0.2f, -1.067f, 0.72f),
+		vec3(-0.9f, -1.067f, 0.82f),
+		vec3(-2.07f, -1.067f, 1.05f),
 		vec3(-2.73f, -1.067f, 1.72f)
 	});
 #ifdef DEBUG
@@ -164,6 +176,8 @@ void labscene::init() {
 	robotSpline->setRenderPath(true);
 	robotSpline->setRenderPoints(true);
 	robotSpline->setScalingFactor(0.01f);
+	
+	doorPlacer = new modelplacer(vec3(-3.41f, -1.39f, 2.03f), vec3(0.0f, 0.0f, 0.0f), 1.0f);
 #endif
 
 	envMapper = new CubeMapRenderTarget(CUBEMAP_SIZE, CUBEMAP_SIZE, false);
@@ -230,10 +244,6 @@ void labscene::init() {
 	glEnableVertexAttribArray(0);
 
 	glGenVertexArrays(1, &emptyvao);
-
-#ifdef DEBUG
-	doorPlacer = new modelplacer(vec3(-1.38f, -0.41f, -1.45f), vec3(0.0f, 0.0f, 0.0f), 0.08f);
-#endif
 	
 	unsigned char white[] = {255, 255, 255, 255};
 	glGenTextures(1, &texLabSceneFinal);
@@ -241,7 +251,7 @@ void labscene::init() {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, white);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	programStaticPBR = new glshaderprogram({"shaders/pbr.vert", "shaders/pbrMain.frag"});
+	programStaticPBR = new glshaderprogram({"shaders/pbrStatic.vert", "shaders/pbrMain.frag"});
 	glBindFramebuffer(GL_FRAMEBUFFER, envMapper->FBO);
 	glViewport(0, 0, envMapper->width, envMapper->height);
 
@@ -269,8 +279,6 @@ void labscene::render() {
 	try {
 		camera1->setT((*labevents)[CAMERA_T]);
 
-		programglobal::godrayObject = godraysDoor;
-
 		programStaticPBR->use();
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"),1,GL_FALSE, programglobal::perspective);
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"),1,GL_FALSE, programglobal::currentCamera->matrix());
@@ -282,7 +290,8 @@ void labscene::render() {
 		modelLab->draw(programStaticPBR);
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(mix(vec3(-3.3, -0.4f, 2.8f), vec3(-4.62f, -0.4f, 2.8f), (*labevents)[DOOR_T])));
 		modelDoor->draw(programStaticPBR);
-		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-1.38f, -0.41f, -1.45f) * scale(0.08f));
+		static const mat4 mugTransform = translate(-1.20599f, -0.41f, -1.363f);
+		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, mugTransform * scale(0.08f));
 		modelMug->draw(programStaticPBR);
 
 		programDynamicPBR->use();
@@ -301,7 +310,7 @@ void labscene::render() {
 		programDynamicPBR->use();
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE, programglobal::currentCamera->matrix());
-		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(-3.41f, -1.39f, 2.03f) * scale(1.0f));
+		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(-3.41f, -1.39f, 2.03f) * scale(0.86f));
 		glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1, programglobal::currentCamera->position());
 		// Lights data
 		glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
@@ -315,7 +324,6 @@ void labscene::render() {
 		programHologram->use();
 		glUniformMatrix4fv(programHologram->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
         glUniformMatrix4fv(programHologram->getUniformLocation("vMat"),1,GL_FALSE, programglobal::currentCamera->matrix());
-		//translate(-1.96f, -0.27f, -1.682f) * rotate(13f, 1.0f, 0.0f, 0.0f) * rotate(-50f, 0.0f, 1.0f, 0.0f) * rotate(-1f, 0.0f, 0.0f, 1.0f) * scale(0.11f)
         glUniformMatrix4fv(programHologram->getUniformLocation("mMat"),1,GL_FALSE, translate(-1.96f, -0.27f, -1.68f) * scale(0.11f));
 		glUniform4fv(programHologram->getUniformLocation("MainColor"),1,vec4(0.0f,0.0f,1.0f,1.0f));
 		glUniform4fv(programHologram->getUniformLocation("RimColor"),1,vec4(0.0f,1.0f,1.0f,1.0f));
@@ -331,16 +339,30 @@ void labscene::render() {
 		// glUniform1f(programHologram->getUniformLocation("GlowSpeed"),1.0f);
 		// glUniform1f(programHologram->getUniformLocation("GlowDistance"),1.0f);
 		modelBLEND->draw(programHologram,1,false);
-		glDisable(GL_BLEND);
 		glDepthMask(GL_TRUE);
 
+		// a cheap cylindrical billboard for mug steam quad
+		programMugSteam->use();
+		mat4 mugSteamQuadMVTransform = programglobal::currentCamera->matrix() * translate(-0.04f, 0.15f, 0.0f) * mugTransform;
+		mugSteamQuadMVTransform[0][0] = 1.0f;
+		mugSteamQuadMVTransform[0][1] = 0.0f;
+		mugSteamQuadMVTransform[0][2] = 0.0f;
+		mugSteamQuadMVTransform[2][0] = 0.0f;
+		mugSteamQuadMVTransform[2][1] = 0.0f;
+		mugSteamQuadMVTransform[2][2] = 1.0f;
+		glUniformMatrix4fv(programMugSteam->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * mugSteamQuadMVTransform * scale(0.07f));
+		glUniform1f(programMugSteam->getUniformLocation("time"), steamT);
+		programglobal::shapeRenderer->renderQuad();
+		
+		glDisable(GL_BLEND);
+		
 		programColor->use();
 		glUniformMatrix4fv(programColor->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * programglobal::currentCamera->matrix() * translate(-3.45f, -0.3f, 2.828f));
 		glUniform4f(programColor->getUniformLocation("color"), 1.0f, 1.0f, 1.0f, 1.0f);
 		glUniform4fv(programColor->getUniformLocation("emissive"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
 		glUniform4fv(programColor->getUniformLocation("occlusion"), 1, vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		programglobal::shapeRenderer->renderQuad();
-		godraysDoor->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix(), vec4(-3.45f, -0.3f, 2.828f, 1.0f));
+		godraysDoor->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix() * translate(-3.45f, -0.3f, 2.828f), vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
 		// render light src
 		// programLight->use();
@@ -356,17 +378,14 @@ void labscene::render() {
 		// glBindTextureUnit(0,envMapper->cubemap_texture);
 		// glDrawArrays(GL_TRIANGLES, 0, 36);
 
+		if((*labevents)[CROSSIN_T] < 1.0f) {
+			crossfader::render(texTitleSceneFinal, (*labevents)[CROSSIN_T]);
+		}
+
 		if(programglobal::debugMode == CAMERA) {
 			cameraRig->render();
 		} else if(programglobal::debugMode == SPLINE) {
 			robotSpline->render(RED_PINK_COLOR);
-		}
-	
-		if((*labevents)[CROSSIN_T] < 1.0f) {
-			crossfader::render(texTitleSceneFinal, (*labevents)[CROSSIN_T]);
-		}
-		if((*labevents)[CROSSOUT_T] < 1.0f) {
-			crossfader::render(texLabSceneFinal, 1.0f - (*labevents)[CROSSOUT_T]);
 		}
 	} catch(string errString) {
 		throwErr(errString);
@@ -374,25 +393,42 @@ void labscene::render() {
 }
 
 void labscene::reset() {
-	t = 0.0f;
+	labevents->resetT();
 }
 
 void labscene::update() {
-	if(programglobal::isAnimating) {
-		t += programglobal::deltaTime;
-	}
-	labevents->updateT(t);
+	labevents->increment();
 	static const float ROBOT_ANIM_SPEED = 0.99f;
 	static const float ASTRO_ANIM_SPEED = 0.1f;
 	static const float HOLOGRAM_UPDATE_SPEED = 0.5f;
+	static const float STEAM_UPDATE_SPEED = 0.5f;
 	
+	if(labevents->getT() >= 32.0f) {
+		playerBkgnd->play();
+	}
+	if(labevents->getT() > 41.0f && labevents->getT() < 54.0f) {
+		playerOpeningDoor->play();
+	} else {
+		playerOpeningDoor->pause();
+	}
+	if(labevents->getT() > 0.00001f && labevents->getT() < 25.0f) {
+		playerHologramBeeps->play();
+	} else {
+		playerHologramBeeps->pause();
+	}
+
 	if((*labevents)[ROBOT_T] >= 0.00001f && (*labevents)[ROBOT_T] <= 0.99999f) {
 		modelRobot->update(ROBOT_ANIM_SPEED * programglobal::deltaTime, 0);
+		playerRobotThump->play();
+	} else {
+		playerRobotThump->pause();
 	}
 	hologramT += HOLOGRAM_UPDATE_SPEED * programglobal::deltaTime;
+	steamT += STEAM_UPDATE_SPEED * programglobal::deltaTime;
 	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 0);
 
 	if((*labevents)[CROSSOUT_T] >= 1.0f) {
+		cout<<"Lab Scene Duration: "<<labevents->getT()<<endl;
 		playNextScene();
 	}
 }
@@ -410,30 +446,40 @@ void labscene::keyboardfunc(int key) {
 		cameraRig->keyboardfunc(key);
 	} else if(programglobal::debugMode == SPLINE) {
 		robotSpline->keyboardfunc(key);
-	} else {
-		switch(key) {
-		case XK_Up:
-			t += 0.4f;
-			break;
-		case XK_Down:
-			t -= 0.4f;
-			break;
-		}
+	} else if(programglobal::debugMode == MODEL) {
+		doorPlacer->keyboardfunc(key);
+	} else if(programglobal::debugMode == LIGHT){
 	}
 	switch(key) {
+	case XK_Up:
+		(*labevents) += 0.4f;
+		break;
+	case XK_Down:
+		(*labevents) -= 0.4f;
+		break;
 	case XK_Tab:
-		//cout << doorPlacer;
 		if(programglobal::debugMode == CAMERA) {
 			cout<<cameraRig->getCamera()<<endl;
 		}	
 		if(programglobal::debugMode == SPLINE) {
 			cout<<robotSpline->getSpline()<<endl;
 		}
-		cout<<"Current T = "<<t<<endl;
+		if(programglobal::debugMode == MODEL) {
+			cout<<doorPlacer<<endl;
+		}
 		break;
 	}
 }
 
 camera* labscene::getCamera() {
 	return camera1;
+}
+
+void labscene::crossfade() {
+	if((*labevents)[DOOR_T] > 0.0f) {
+		godraysDoor->renderRays();
+	}
+	if((*labevents)[CROSSOUT_T] > 0.0f) {
+		crossfader::render(texLabSceneFinal, 1.0f - (*labevents)[CROSSOUT_T]);
+	}
 }

@@ -26,7 +26,7 @@ public:
 	void setExposure(GLfloat exposure);
 	void setSamples(int samples);
 	void setScreenSpaceCoords(const vmath::mat4& mvp, const vmath::vec4& pos);
-	void renderRays(HDR* hdr);
+	void renderRays();
 };
 
 #endif // __GODRAYS__

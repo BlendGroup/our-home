@@ -1,5 +1,6 @@
 #include<godrays.h>
 #include<iostream>
+#include<global.h>
 
 /***************** Render passes for calculating crepuscular or god rays ******************/
 using namespace std;
@@ -66,7 +67,7 @@ void godrays::setScreenSpaceCoords(const mat4& vp, const vec4& pos) {
 	this->sscoord = vec2(ssX, ssY);
 }
 
-void godrays::renderRays(HDR* hdr) {
+void godrays::renderRays() {
 	// enable blending and set blend func to perform additive blending
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
@@ -74,7 +75,7 @@ void godrays::renderRays(HDR* hdr) {
 	godraysProgram->use();
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, hdr->occlusionTex);
+	glBindTexture(GL_TEXTURE_2D, programglobal::hdr->occlusionTex);
 
 	glUniform1i(godraysProgram->getUniformLocation("texOcclusion"), 0);
 	glUniform2fv(godraysProgram->getUniformLocation("screenSpaceEmissiveObjectPos"), 1, this->sscoord);

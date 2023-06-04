@@ -52,11 +52,6 @@ struct SpotLight{
     float outer_angle;
 };
 
-struct light_t{
-    vec3 diffuse;
-    vec3 position;
-};
-
 //uniforms
 
 uniform vec3 viewPos;
@@ -71,6 +66,7 @@ uniform int numOfSpots;
 uniform bool specularGloss;
 uniform bool IBL;
 uniform bool isTexture;
+uniform int renderEmissiveToOcclusion = 0;
 
 layout (binding = 0)uniform sampler2D texture_diffuse;
 layout (binding = 1)uniform sampler2D texture_normal;
@@ -288,5 +284,5 @@ void main(void) {
 
     fragColor = vec4(ambient + directional + point + spot,material.opacity);
     emmitColor = vec4(texture(texture_emissive,fs_in.Tex).rgb + material.emissive,material.opacity);
-	occlusionColor = vec4(0.0);
+	occlusionColor = emmitColor * renderEmissiveToOcclusion;
 }

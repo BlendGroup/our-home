@@ -40,18 +40,20 @@ static bool isAudioPlaying = true;
 #define SHOW_TEST_SCENE 		0
 #define SHOW_MODEL_SCENE 		0
 #define SHOW_CAMERA_SCENE 		0
-#define SHOW_PBR_SCENE			0
+#define SHOW_PBR_SCENE			1
 #define SHOW_LAB_SCENE			0
 #define SHOW_CAMERA_RIG			0
 #define SHOW_TERRAIN_SCENE 		0
 #define SHOW_CUBEMAP_SCENE		0
 #define SHOW_NOISE_SCENE 		0
 #define SHOW_AUDIO_SCENE		0
-#define SHOW_ATMOSPERIC_SCATTER 1
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
 camera* programglobal::currentCamera;
+bool programglobal::isAnimating = false;
+HDR* programglobal::hdr;
+double programglobal::deltaTime;
 
 extern vector<vec3> positionKeyFrames;
 extern vector<vec3> frontKeyFrames;
@@ -78,9 +80,6 @@ void setupProgram(void) {
 #endif
 #if SHOW_LAKE_SCENE
 		setupProgramTestLake();
-#endif
-#if SHOW_ATMOSPERIC_SCATTER
-		setupProgramAS();
 #endif
 		hdr->setupProgram();
 	} catch(string errorString) {
@@ -123,9 +122,6 @@ void init(void) {
 #endif
 #if SHOW_NOISE_SCENE
 		initTestNoise();
-#endif
-#if SHOW_ATMOSPERIC_SCATTER
-		initAS();
 #endif
 #if SHOW_AUDIO_SCENE
 		alutInit(0, NULL);
@@ -173,9 +169,6 @@ void render(glwindow* window) {
 #endif
 #if SHOW_NOISE_SCENE
 		renderTestNoise();
-#endif
-#if SHOW_ATMOSPERIC_SCATTER
-		renderAS(dynamic_cast<camera*>(debugcamera), debugcamera->position());
 #endif
 #if SHOW_AUDIO_SCENE
 		renderTestAudio(isAudioPlaying);
@@ -258,9 +251,6 @@ void uninit(void) {
 #endif
 #if SHOW_CUBEMAP_SCENE
 	uninitTestRenderToCubemap();
-#endif
-#if SHOW_ATMOSPERIC_SCATTER
-	uninitAS();
 #endif
 #if SHOW_AUDIO_SCENE
 	uninitTestAudio();

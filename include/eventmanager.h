@@ -12,11 +12,17 @@ struct events_t {
 
 class eventmanager {
 private:
+	float t;
 	std::unordered_map<unsigned, events_t*> eventList;
 public:
 	eventmanager(std::vector<std::pair<unsigned, std::pair<float, float>>> events);
-	void updateT(float sceneT);
+	void recalculateTs();
+	void resetT();
 	float& operator[](unsigned index);
+	void increment();
+	friend eventmanager& operator+=(eventmanager& e1, float f);
+	friend eventmanager& operator-=(eventmanager& e1, float f);
+	float getT();
 	~eventmanager();
 };
 

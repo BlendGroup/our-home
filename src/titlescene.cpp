@@ -8,6 +8,7 @@
 #include<X11/keysymdef.h>
 #include<iostream>
 #include<debugcamera.h>
+#include<eventmanager.h>
 
 using namespace std;
 using namespace vmath;
@@ -22,6 +23,12 @@ static debugCamera* staticcamera;
 static glshaderprogram* programRender;
 static glmodel* modelTitle;
 
+enum tvalues {
+	RENDERTITLE_T
+};
+
+static eventmanager* titleevents;
+
 void titlescene::setupProgram() {
 	programRender = new glshaderprogram({"shaders/title/render.vert", "shaders/title/render.frag"});
 }
@@ -31,6 +38,10 @@ void titlescene::setupCamera() {
 }
 
 void titlescene::init() {
+	titleevents = new eventmanager({
+		{RENDERTITLE_T, { 0.0f, 2.0f }}
+	});
+
 	modelTitle = new glmodel("resources/models/blendlogo/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
 	glGenTextures(1, &texTitleSceneFinal);
 	glBindTexture(GL_TEXTURE_2D, texTitleSceneFinal);
@@ -63,10 +74,8 @@ void titlescene::render() {
 }
 
 void titlescene::update(void) {
-	if(programglobal::isAnimating) {
-		this->t += programglobal::deltaTime;
-	}
-	if(this->t >= 2.0f) {
+	titleevents->increment();
+	if((*titleevents)[RENDERTITLE_T] >= 1.0f) {
 		glBindFramebuffer(GL_FRAMEBUFFER, fboTitleSceneFinal);
 		glViewport(0, 0, tex_1k);
 		glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -78,7 +87,7 @@ void titlescene::update(void) {
 }
 
 void titlescene::reset(void) {
-	this->t = 0.0f;
+	titleevents->resetT();
 }
 
 void titlescene::uninit() {
@@ -97,4 +106,8 @@ void titlescene::keyboardfunc(int key) {
 
 camera* titlescene::getCamera() {
 	return staticcamera;
+}
+
+void titlescene::crossfade() {
+	
 }

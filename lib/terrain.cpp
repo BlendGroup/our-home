@@ -19,19 +19,9 @@ terrain::terrain(GLuint heightMap, GLint meshSize, bool calcNormal, GLfloat minT
 		glBindTexture(GL_TEXTURE_2D, this->normalMap.gl);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 		glBindTexture(GL_TEXTURE_2D, 0);
-
-		cl_kernel normalKernel = programglobal::oclContext->getKernel("calcNormal");
-
-		programglobal::oclContext->setKernelParameters(normalKernel, {param(0, this->heightMap.cl), param(1, this->normalMap.cl)});
-		size_t globalWorkSize[] = { TEXTURE_SIZE, TEXTURE_SIZE };
-		size_t localWorkSize[] = { 16, 16 };
-		if(calcNormal) {
-			programglobal::oclContext->runCLKernel(normalKernel, 2, globalWorkSize, localWorkSize, {this->heightMap, this->normalMap});
-		}
-		CLErr(clhelpererr = clFinish(programglobal::oclContext->getCommandQueue()));
 
 		struct vertex_t {
 			vec3 position;
