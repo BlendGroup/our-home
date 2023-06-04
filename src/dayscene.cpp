@@ -98,7 +98,7 @@ void dayscene::setupProgram() {
 
 void dayscene::setupCamera() {
 	vector<vec3> positionVector = {
-		vec3(64.5965f, -0.71273f, -77.4934f),
+		vec3(64.3364f, -0.71273f, -77.4934f),
 		vec3(61.9965f, -0.31273f, -82.6933f),
 		vec3(52.0967f, 1.88727f, -89.4932f),
 		vec3(36.5796f, 6.2124f, -98.2914f),
@@ -173,9 +173,9 @@ GLuint createCombinedMapTexture(GLuint texValley, GLuint texMountain, GLuint tex
 void dayscene::init() {
 	dayevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 2.0f }},
-		{CAMERAMOVE_T, { 1.5f, 23.0f }},
-		{DRONETURN_T, { 0.5f, 1.0f }},
-		{DRONEMOVE_T, { 1.5f, 25.6f }}
+		{CAMERAMOVE_T, { 100.5f, 23.0f }},
+		{DRONETURN_T, { 100.5f, 1.0f }},
+		{DRONEMOVE_T, { 100.5f, 25.6f }}
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -196,7 +196,7 @@ void dayscene::init() {
 	// modelTreePine = new glmodel("resources/models/tree/pine.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelTreeRed = new glmodel("resources/models/tree/redtree.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	// modelTreePurple = new glmodel("resources/models/tree/purpletree.glb", aiProcessPreset_TargetRealtime_Quality, true);
-	modelDrone = new glmodel("resources/models/drone/drone.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelDrone = new glmodel("resources/models/drone/drone2.glb", aiProcessPreset_TargetRealtime_Quality, true);
 
 	vector<vec3> droneVector = {
 		vec3(63.4991f, -0.667602f, -79.8903f),
@@ -290,11 +290,11 @@ void dayscene::renderScene(bool cameraFlip) {
 	modelDrone->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
 	vec3 eye = splineDrone->interpolate((*dayevents)[DRONEMOVE_T]);
 	vec3 front = splineDrone->interpolate((*dayevents)[DRONEMOVE_T] + 0.001f);
-	mat4 mMatrix = translate(eye + vec3(0.0f, -1.32f, 0.0f)) *
+	mat4 mMatrix = translate(eye + vec3(0.0f, -1.32f, 0.0f)) * lakePlacer->getModelMatrix();
 		targetat(eye, front, vec3(0.0f, 1.0f, 0.0f)) * 
 		rotate(-165.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 1.0f, 0.0f) * 
 		rotate(3.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 0.0f, 1.0f);
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, mMatrix * scale(10.0f));
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, mMatrix * scale(15.0f));
 	glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 1);
 	modelDrone->draw(programDynamicPBR);
 	godraysDrone->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix(), vec4(eye, 1.0f));
