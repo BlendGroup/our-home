@@ -71,7 +71,7 @@ void init(void) {
 		//Object Creation
 		programglobal::hdr = new HDR(1.5f, 1.0f, 2048);
 		programglobal::oclContext = new clglcontext(1);
-		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
+		programglobal::oclContext->compilePrograms({"shaders/opensimplexnoise.cl"});
 		programglobal::shapeRenderer = new shaperenderer();
 		crossfader::init();
 		sceneList.insert(sceneList.begin(), {

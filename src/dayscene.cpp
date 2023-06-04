@@ -67,10 +67,10 @@ static GLuint texTerrainMap;
 static GLuint texDiffuseGrass;
 static GLuint texDiffuseDirt;
 static GLuint texDiffuseMountain;
-static GLuint texLakeMap;
-static GLuint texLakeDuDVMap;
+static GLuint texLakeDuDvMap;
 extern GLuint texLabSceneFinal;
-
+static GLuint texTerrainHeight;
+	
 enum tvalues {
 	CROSSIN_T,
 	CAMERAMOVE_T,
@@ -131,8 +131,6 @@ void dayscene::setupCamera() {
 	camRig1->setScalingFactor(0.1f);
 }
 
-GLuint tex1;
-
 GLuint createCombinedMapTexture(GLuint texValley, GLuint texMountain, GLuint texMap, GLuint texLake) {
 	GLuint fbo;
 	GLuint tex;
@@ -151,7 +149,8 @@ GLuint createCombinedMapTexture(GLuint texValley, GLuint texMountain, GLuint tex
 	glGenFramebuffers(1, &fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
-	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	GLenum attachment[] =  {GL_COLOR_ATTACHMENT0};
+	glDrawBuffers(1, attachment);
 
 	programCombineMap->use();
 	glBindTextureUnit(0, texValley);
@@ -165,6 +164,7 @@ GLuint createCombinedMapTexture(GLuint texValley, GLuint texMountain, GLuint tex
 
 	glDeleteVertexArrays(1, &vao);
 	glDeleteFramebuffers(1, &fbo);
+
 	return tex;
 }
 
@@ -176,22 +176,18 @@ void dayscene::init() {
 		{DRONEMOVE_T, { 1.5f, 25.6f }}
 	});
 
-	texTerrainMap = createTexture2D("resources/textures/map.png", GL_NEAREST, GL_NEAREST, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseDirt = createTexture2D("resources/textures/dirt.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseMountain = createTexture2D("resources/textures/rocks2.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
-	texLakeMap = createTexture2D("resources/textures/lake.png", GL_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
-	texLakeDuDVMap = createTexture2D("resources/textures/dudv.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
+	texLakeDuDvMap = createTexture2D("resources/textures/dudv.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
 
 	ivec2 dim = ivec2(2048, 2048);
 	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 3, 1234);
-	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 6, 0.11f, 543);
-	tex1 = createCombinedMapTexture(valleyHeightMap, mountainHeightMap, texTerrainMap, texLakeMap);
-	land = new terrain(tex1, 256, true, 5.0f, 16.0f);
-	// land = new terrain(texDiffuseDirt, 256, false, 5.0f, 16.0f);
-	// land2 = new terrain(texDiffuseDirt, 256, false, 5.0f, 16.0f);
-	CLErr(clhelpererr = clFinish(programglobal::oclContext->getCommandQueue()));
-
+	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 4, 0.11f, 543);
+	GLuint texLakeMap = createTexture2D("resources/textures/lake.png", GL_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
+	texTerrainHeight = createCombinedMapTexture(valleyHeightMap, mountainHeightMap, texTerrainMap, texLakeMap);
+	texTerrainMap = createTexture2D("resources/textures/map.png", GL_NEAREST, GL_NEAREST, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
+	land = new terrain(texTerrainHeight, 256, true, 5.0f, 16.0f);
 
 	// modelLab = new glmodel("resources/models/spaceship/LabOut.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	// modelRover = new glmodel("resources/models/rover/rover.glb", aiProcessPreset_TargetRealtime_Quality, true);
@@ -254,30 +250,19 @@ void dayscene::renderScene(bool cameraFlip) {
 	glUniform1f(programTerrain->getUniformLocation("minTess"), land->getMinTess());
 	glUniform3fv(programTerrain->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
 	glUniform1i(programTerrain->getUniformLocation("texHeight"), 0);
-	glUniform1i(programTerrain->getUniformLocation("texNormal"), 1);
-	// glUniform1i(programTerrain->getUniformLocation("texHeight1"), 0);
-	// glUniform1i(programTerrain->getUniformLocation("texNormal1"), 1);
-	// glUniform1i(programTerrain->getUniformLocation("texHeight2"), 2);
-	// glUniform1i(programTerrain->getUniformLocation("texNormal2"), 3);
-	glUniform1i(programTerrain->getUniformLocation("texMap"), 4);
-	glUniform1i(programTerrain->getUniformLocation("texDiffuseGrass"), 5);
-	// glUniform1i(programTerrain->getUniformLocation("texDiffuseDirt"), 6);
-	glUniform1i(programTerrain->getUniformLocation("texDiffuseMountain"), 7);
-	// glUniform1i(programTerrain->getUniformLocation("texLake"), 8);
-	// glUniform1f(programTerrain->getUniformLocation("amplitudeMin"), 10.0f);
-	// glUniform1f(programTerrain->getUniformLocation("amplitudeMax"), 100.0f);
-	glUniform1f(programTerrain->getUniformLocation("texScale"), 10.0f);
-	// glUniform1f(programTerrain->getUniformLocation("lakeDepth"), 10.0f);
+	// glUniform1i(programTerrain->getUniformLocation("texNormal"), 1);
+	glUniform1i(programTerrain->getUniformLocation("texMap"), 2);
+	glUniform1i(programTerrain->getUniformLocation("texDiffuseGrass"), 3);
+	// glUniform1i(programTerrain->getUniformLocation("texDiffuseDirt"), 4);
+	glUniform1i(programTerrain->getUniformLocation("texDiffuseMountain"), 5);
+	glUniform1f(programTerrain->getUniformLocation("texScale"), 15.0f);
 	glUniform1f(programTerrain->getUniformLocation("clipy"), lake1->getLakeHeight());
-	glBindTextureUnit(0, tex1);
+	glBindTextureUnit(0, land->getHeightMap());
 	glBindTextureUnit(1, land->getNormalMap());
-	// glBindTextureUnit(2, land2->getHeightMap());
-	// glBindTextureUnit(3, land2->getNormalMap());
-	glBindTextureUnit(4, texTerrainMap);
-	glBindTextureUnit(5, texDiffuseGrass);
-	glBindTextureUnit(6, texDiffuseDirt);
-	glBindTextureUnit(7, texDiffuseMountain);
-	glBindTextureUnit(8, texLakeMap);
+	glBindTextureUnit(2, texTerrainMap);
+	glBindTextureUnit(3, texDiffuseGrass);
+	glBindTextureUnit(4, texDiffuseDirt);
+	glBindTextureUnit(5, texDiffuseMountain);
 	land->render();
 	for(int i = 0; i < 9; i++) {
 		glBindTextureUnit(i, 0);
@@ -373,10 +358,10 @@ void dayscene::render() {
 	glUniform1i(programLake->getUniformLocation("texDuDv"), 2);
 	glUniform1f(programLake->getUniformLocation("time"), lakeT);
 	glUniform3fv(programLake->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
-	glUniform1f(programLake->getUniformLocation("distortionScale"), 0.01f);
+	glUniform1f(programLake->getUniformLocation("distortionScale"), 0.006f);
 	glBindTextureUnit(0, lake1->getRefractionTexture());
 	glBindTextureUnit(1, lake1->getReflectionTexture());
-	glBindTextureUnit(2, texLakeDuDVMap);
+	glBindTextureUnit(2, texLakeDuDvMap);
 	lake1->render();
 
 	if(programglobal::debugMode == CAMERA) {

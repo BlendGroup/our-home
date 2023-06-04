@@ -10,9 +10,9 @@ layout(binding = 3)uniform sampler2D texLakeMap;
 in vec2 texCoord;
 
 void main(void) {
-	float valley = texture(texValley, texCoord).r * 10.0;
-	float mountain = texture(texMountain, texCoord).r * 150.0;
-	float lake = texture(texLakeMap, texCoord).r * 30.0;
-	// FragColor = texture(texValley, texCoord) * 10.0;
-	HeightMap = mix(valley, mountain, texture(texTerrainMap, texCoord).r) - lake;
+	float valleyH = texture(texValley, texCoord).r * 10.0;
+	float mountainH = texture(texMountain, texCoord).r * 150.0;
+	float lakeH = texture(texLakeMap, texCoord).r * 30.0;
+	float mapVal = texture(texTerrainMap, texCoord).r;
+	HeightMap = mix(valleyH, mountainH, mapVal) - lakeH;
 }
