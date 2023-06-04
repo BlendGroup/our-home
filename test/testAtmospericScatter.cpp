@@ -41,7 +41,7 @@ void setupProgramAS(){
 void initAS(){
     try {
         sun = new glmodel("resources/models/sphere.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,false);
-        atmosphere = new Atmosphere(sun);
+        atmosphere = new Atmosphere();
         sky = new SkyRenderSystem();
         float skybox_positions[] = {
             // positions          
@@ -116,7 +116,7 @@ void renderAS(camera *cam,vec3 camPos){
         sun->draw(color,1,false);
         
         atmosphere->setProjView(programglobal::perspective, cam->matrix());
-        atmosphere->setViewPos(cam->position());
+        //atmosphere->setViewPos(cam->position());
         atmosphere->render(dt);
         dt += 0.00001f;
         

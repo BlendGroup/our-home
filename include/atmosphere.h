@@ -17,7 +17,6 @@ class Atmosphere {
         glmodel* sphereModel;
 
         debugCamera *debugcamera;
-        CubeMapRenderTarget* envMapper;
 
         vmath::mat4 modelAtmos;
         vmath::mat4 modelEarth;
@@ -70,7 +69,8 @@ class Atmosphere {
         inline static const float KM_2_M = 1000.0; 
     public:
 
-        Atmosphere(glmodel* spphereModel);
+        Atmosphere();
+        ~Atmosphere();
         void SetDefaults();
         void SetSunDefaults();
         void SetRayLightDefaults();
@@ -85,8 +85,6 @@ class Atmosphere {
         const vmath::mat4& getModelEarth() {return modelEarth;}
         int getViewSamples() {return viewSamples;}
         int getLightSamples() {return lightSamples;}
-
-        GLuint getAtmosphereTexture(){ return this->envMapper->cubemap_texture;}
 
         bool isAnimateSun() {return animateSun;}
         float getSunAngle(){return sunAngle;}

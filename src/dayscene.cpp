@@ -22,6 +22,7 @@
 #include<splineadjuster.h>
 #include<audio.h>
 #include<godrays.h>
+#include <atmosphere.h>
 
 using namespace std;
 using namespace vmath;
@@ -51,6 +52,8 @@ static sceneCamera* camera1;
 static BsplineInterpolator* splineDrone;
 
 static godrays* godraysDrone;
+
+static Atmosphere* atmosphere;
 
 #ifdef DEBUG
 static modelplacer* lakePlacer;
@@ -231,6 +234,7 @@ void dayscene::init() {
 	
 	lake1 = new lake(-6.0f);
 
+	atmosphere = new Atmosphere();
 #ifdef DEBUG
 	// lakePlacer = new modelplacer(vec3(0.0f, 10.0f, 0.0f), vec3(0.0f, 0.0f, 0.0f), 10.0f);
 	// vec3(-49.0f, -6.0f, -72.0f), vec3(0.0f, 0.0f, 0.0f), 38.0f -> Lake
@@ -299,6 +303,12 @@ void dayscene::renderScene(bool cameraFlip) {
 	modelDrone->draw(programDynamicPBR);
 	godraysDrone->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix(), vec4(eye, 1.0f));
 	glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 0);
+
+	static float dt = 0.0f;
+    atmosphere->setProjView(programglobal::perspective, currentViewMatrix);
+    //atmosphere->setViewPos(programglobal::currentCamera->position());
+    atmosphere->render(dt);
+	dt += 0.0000001f;
 }
 
 void dayscene::render() {
@@ -414,6 +424,7 @@ void dayscene::reset() {
 
 void dayscene::uninit() {
 	delete land;
+	delete atmosphere;
 }
 
 void dayscene::keyboardfunc(int key) {
