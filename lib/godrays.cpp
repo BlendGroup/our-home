@@ -65,7 +65,6 @@ void godrays::setScreenSpaceCoords(const mat4& vp, const vec4& pos) {
 	ssX = ssX*0.5f + 0.5f;
 	ssY = ssY*0.5f + 0.5f;
 	this->sscoord = vec2(ssX, ssY);
-	cout<<this->sscoord<<endl;
 }
 
 void godrays::renderRays() {

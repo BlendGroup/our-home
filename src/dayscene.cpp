@@ -185,8 +185,8 @@ void dayscene::init() {
 	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 3, 1234);
 	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 4, 0.11f, 543);
 	GLuint texLakeMap = createTexture2D("resources/textures/lake.png", GL_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
-	texTerrainHeight = createCombinedMapTexture(valleyHeightMap, mountainHeightMap, texTerrainMap, texLakeMap);
 	texTerrainMap = createTexture2D("resources/textures/map.png", GL_NEAREST, GL_NEAREST, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
+	texTerrainHeight = createCombinedMapTexture(valleyHeightMap, mountainHeightMap, texTerrainMap, texLakeMap);
 	land = new terrain(texTerrainHeight, 256, true, 5.0f, 16.0f);
 
 	// modelLab = new glmodel("resources/models/spaceship/LabOut.glb", aiProcessPreset_TargetRealtime_Quality, true);
@@ -225,7 +225,6 @@ void dayscene::init() {
 	godraysDrone->setWeight(0.06f);
 
 	lightManager = new SceneLight();
-	//lightManager->addPointLight(PointLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, 100.0f, 0.0f), 2.0f));
 	lightManager->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,0.0,-1.0f)));
 	
 	lake1 = new lake(-6.0f);
@@ -253,7 +252,7 @@ void dayscene::renderScene(bool cameraFlip) {
 	// glUniform1i(programTerrain->getUniformLocation("texNormal"), 1);
 	glUniform1i(programTerrain->getUniformLocation("texMap"), 2);
 	glUniform1i(programTerrain->getUniformLocation("texDiffuseGrass"), 3);
-	// glUniform1i(programTerrain->getUniformLocation("texDiffuseDirt"), 4);
+	glUniform1i(programTerrain->getUniformLocation("texDiffuseDirt"), 4);
 	glUniform1i(programTerrain->getUniformLocation("texDiffuseMountain"), 5);
 	glUniform1f(programTerrain->getUniformLocation("texScale"), 15.0f);
 	glUniform1f(programTerrain->getUniformLocation("clipy"), lake1->getLakeHeight());
