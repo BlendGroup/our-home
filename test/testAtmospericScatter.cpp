@@ -15,6 +15,7 @@
 #include <vmath.h>
 #include <errorlog.h>
 #include <atmosphere.h>
+#include <skyrender.h>
 #include <testAtmospericScatter.h>
 #include <global.h>
 
@@ -23,6 +24,7 @@ using namespace vmath;
 
 static glmodel* sun;
 static Atmosphere* atmosphere;
+static SkyRenderSystem* sky;
 static glshaderprogram* color,*skybox;
 static GLuint skybox_vao,vbo;
 
@@ -40,7 +42,7 @@ void initAS(){
     try {
         sun = new glmodel("resources/models/sphere.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,false);
         atmosphere = new Atmosphere(sun);
-
+        sky = new SkyRenderSystem();
         float skybox_positions[] = {
             // positions          
             -1.0f,  1.0f, -1.0f,
@@ -101,7 +103,6 @@ void initAS(){
 void renderAS(camera *cam,vec3 camPos){
     try {
         static float dt = 0.0f;
-
         //skybox->use();
 		//glUniformMatrix4fv(skybox->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
 		//glUniformMatrix4fv(skybox->getUniformLocation("vMat"),1,GL_FALSE,cam->matrix());
@@ -115,10 +116,11 @@ void renderAS(camera *cam,vec3 camPos){
         sun->draw(color,1,false);
         
         atmosphere->setProjView(programglobal::perspective, cam->matrix());
-        atmosphere->setViewPos(camPos);
+        atmosphere->setViewPos(cam->position());
         atmosphere->render(dt);
         dt += 0.00001f;
-
+        
+        //sky->Render(programglobal::perspective, cam,dt);
         //glDepthMask(GL_TRUE);
         // render to cubemap test
     } catch (string errorString) {
@@ -128,6 +130,8 @@ void renderAS(camera *cam,vec3 camPos){
 
 void uninitAS(){
 
+    if(sky)
+        delete sky;
     if(atmosphere)
         delete atmosphere;
     if(sun)

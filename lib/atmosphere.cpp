@@ -1,4 +1,5 @@
 #include "debugcamera.h"
+#include "vmath.h"
 #include <atmosphere.h>
 #include <cmath>
 #include <iostream>
@@ -8,7 +9,7 @@ Atmosphere::Atmosphere(glmodel* tsphereModel)
 {
     this->SetDefaults();
     atmosphereProgram = new glshaderprogram({"shaders/AtmosphericScattering/Atmosphere.vert","shaders/AtmosphericScattering/Atmosphere.frag"});
-    debugcamera = new debugCamera(vmath::vec3(0.0f, 6359.0f, 30.0f), 270.0f, 20.0f);
+    debugcamera = new debugCamera(vmath::vec3(0.0f, 0.0f, 0.0f), 270.0f, 20.0f);
     envMapper = new CubeMapRenderTarget(2048, 2048, false);
 	envMapper->setPosition(vmath::vec3(0.0f, 6359.0f, 30.0f));
 }
@@ -67,11 +68,14 @@ void Atmosphere::render(float dt){
             //glClearBufferfv(GL_DEPTH, 0, vmath::vec1(1.0f));
 
             // 1 Set Properties of the atmosphere
-            atmosphereProgram->use();
-            glUniformMatrix4fv(atmosphereProgram->getUniformLocation("M"),1,GL_FALSE,modelAtmos);
-            glUniformMatrix4fv(atmosphereProgram->getUniformLocation("MVP"),1,GL_FALSE,proj * debugcamera->matrix() * modelAtmos);
+            modelAtmos = vmath::translate(0.0f, -R_e, 0.0f) * vmath::scale(vmath::vec3(R_a));
 
-            glUniform3fv(atmosphereProgram->getUniformLocation("viewPos"),1,vmath::vec3(0.0f, 6359.0f, 30.0f));
+            atmosphereProgram->use();
+            glUniformMatrix4fv(atmosphereProgram->getUniformLocation("M"),1,GL_FALSE,vmath::translate(0.0f, 0.0f, 0.0f) * vmath::scale(vmath::vec3(R_a)));            
+            glUniformMatrix4fv(atmosphereProgram->getUniformLocation("mMat"),1,GL_FALSE,modelAtmos);
+            glUniformMatrix4fv(atmosphereProgram->getUniformLocation("pMat"),1,GL_FALSE,proj);
+            glUniformMatrix4fv(atmosphereProgram->getUniformLocation("vMat"),1,GL_FALSE,debugcamera->matrix() * view);
+            glUniform3fv(atmosphereProgram->getUniformLocation("viewPos"),1,vmath::vec3(0.0f, R_e - 1.0f, 30.0f));
             glUniform1i(atmosphereProgram->getUniformLocation("viewSamples"),viewSamples);
             glUniform1i(atmosphereProgram->getUniformLocation("lightSamples"),lightSamples);
 
