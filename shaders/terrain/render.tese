@@ -15,15 +15,8 @@ out TES_OUT {
 uniform mat4 pMat;
 uniform mat4 vMat;
 uniform mat4 mMat;
-uniform sampler2D texHeight1;
-uniform sampler2D texNormal1;
-uniform sampler2D texHeight2;
-uniform sampler2D texNormal2;
-uniform sampler2D texMap;
-uniform sampler2D texLake;
-uniform float amplitudeMin;
-uniform float amplitudeMax;
-uniform float lakeDepth;
+uniform sampler2D texHeight;
+uniform sampler2D texNormal;
 uniform float clipy;
 
 void main(void) {
@@ -35,10 +28,10 @@ void main(void) {
 	vec4 p2 = mix(gl_in[2].gl_Position, gl_in[3].gl_Position, gl_TessCoord.x);
 	vec4 p = mix(p2, p1, gl_TessCoord.y);
 
-	p.y += mix(texture(texHeight1, tc).r, texture(texHeight2, tc).r, texture(texMap, tc).r) * mix(amplitudeMin, amplitudeMax, texture(texMap, tc).r) - texture(texLake, tc).r * lakeDepth;
+	p.y += texture(texHeight, tc).r;
 
 	tes_out.tc = tc;
-	tes_out.nor = mat3(mMat) * mix(texture(texNormal1, tc).rgb, texture(texNormal2, tc).rgb, texture(texMap, tc).r);
+	tes_out.nor = mat3(mMat) * texture(texNormal, tc).rgb;
 	tes_out.pos = vec3(mMat * p);
 	gl_Position = pMat * vMat * mMat * p;
 
