@@ -74,6 +74,7 @@ static GLuint texTerrainHeight;
 	
 enum tvalues {
 	CROSSIN_T,
+	GODRAYIN_T,
 	CAMERAMOVE_T,
 	DRONETURN_T,
 	DRONEMOVE_T,
@@ -172,17 +173,18 @@ GLuint createCombinedMapTexture(GLuint texValley, GLuint texMountain, GLuint tex
 
 void dayscene::init() {
 	dayevents = new eventmanager({
-		{CROSSIN_T, { 0.0f, 2.0f }},
-		{CAMERAMOVE_T, { 100.5f, 23.0f }},
-		{DRONETURN_T, { 100.5f, 1.0f }},
-		{DRONEMOVE_T, { 100.5f, 25.6f }}
+		{CROSSIN_T, { 0.0f, 1.0f }},
+		{GODRAYIN_T, { 0.0f, 2.0f }},
+		{CAMERAMOVE_T, { 1.0f, 23.0f }},
+		{DRONETURN_T, { 0.5f, 1.5f }},
+		{DRONEMOVE_T, { 1.0f, 25.6f }}
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseDirt = createTexture2D("resources/textures/dirt.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseMountain = createTexture2D("resources/textures/rocks2.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texLakeDuDvMap = createTexture2D("resources/textures/dudv.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
-
+ 
 	ivec2 dim = ivec2(2048, 2048);
 	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 3, 1234);
 	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 4, 0.11f, 543);
@@ -197,6 +199,7 @@ void dayscene::init() {
 	modelTreeRed = new glmodel("resources/models/tree/redtree.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	// modelTreePurple = new glmodel("resources/models/tree/purpletree.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelDrone = new glmodel("resources/models/drone/drone2.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelDrone->update(0.0f, 1);
 
 	vector<vec3> droneVector = {
 		vec3(63.4991f, -0.667602f, -79.8903f),
@@ -209,8 +212,8 @@ void dayscene::init() {
 		vec3(-34.0207f, -3.98763f, -94.6911f),
 		vec3(-52.021f, -4.88763f, -98.891f),
 		vec3(-67.3207f, 4.01237f, -99.4911f),
-		vec3(-74.0208f, 12.1124f, -96.0911f),
-		vec3(-80.8206f, 16.5124f, -80.1913f),
+		vec3(-80.2207f, 12.1124f, -86.7912f),
+		vec3(-87.9205f, 16.5124f, -44.2918f),
 		vec3(-105.02f, 32.8124f, -29.092f)
 	};
 	splineDrone = new BsplineInterpolator(droneVector);
@@ -220,11 +223,10 @@ void dayscene::init() {
 	splineAdjuster->setScalingFactor(0.1f);
 
 	godraysDrone = new godrays();
-	godraysDrone->setDecay(0.98f);
-	godraysDrone->setDensity(1.2f);
+	godraysDrone->setDensity(1.0f);
 	godraysDrone->setExposure(1.0f);
-	godraysDrone->setSamples(125);
-	godraysDrone->setWeight(0.06f);
+	godraysDrone->setSamples(100);
+	godraysDrone->setWeight(0.01f);
 
 	lightManager = new SceneLight();
 	lightManager->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,0.0,-1.0f)));
@@ -290,10 +292,7 @@ void dayscene::renderScene(bool cameraFlip) {
 	modelDrone->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
 	vec3 eye = splineDrone->interpolate((*dayevents)[DRONEMOVE_T]);
 	vec3 front = splineDrone->interpolate((*dayevents)[DRONEMOVE_T] + 0.001f);
-	mat4 mMatrix = translate(eye + vec3(0.0f, -1.32f, 0.0f)) * lakePlacer->getModelMatrix();
-		targetat(eye, front, vec3(0.0f, 1.0f, 0.0f)) * 
-		rotate(-165.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 1.0f, 0.0f) * 
-		rotate(3.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 0.0f, 1.0f);
+	mat4 mMatrix = translate(eye) * translate(0.1f, -1.9f, 0.1f) * rotate(170.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 1.0f, 0.0f) * targetat(eye, front, vec3(0.0f, 1.0f, 0.0f));
 	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, mMatrix * scale(15.0f));
 	glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 1);
 	modelDrone->draw(programDynamicPBR);
@@ -303,8 +302,11 @@ void dayscene::renderScene(bool cameraFlip) {
 
 vec3 xyzVector = vec3(0.0f, 0.0f, 0.0f);
 
+static float goddecay = 1.04f;
+
 void dayscene::render() {
 	camera1->setT((*dayevents)[CAMERAMOVE_T]);
+	godraysDrone->setDecay(mix(vec1(1.04f), vec1(0.95f), (*dayevents)[GODRAYIN_T])[0]);
 
 	glEnable(GL_CLIP_DISTANCE0);
 	lake1->setReflectionFBO();
@@ -408,7 +410,10 @@ void dayscene::update() {
 	if(dayevents->getT() > 0.01f) {
 		playerBkgnd->play();
 	}
-	modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
+	if((*dayevents)[DRONETURN_T] >= 0.0f) {
+		modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
+	}
+	goddecay -= 0.0003f;
 }
 
 void dayscene::reset() {
