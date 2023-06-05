@@ -32,10 +32,10 @@ static GLuint skybox_vao,vbo;
 void setupProgramTestLab(){
     try 
     {
-        programStaticPBR = new glshaderprogram({"shaders/pbr.vert", "shaders/pbrMain.frag"});
+        programStaticPBR = new glshaderprogram({"shaders/pbrStatic.vert", "shaders/pbrMain.frag"});
         programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
         lightProgram = new glshaderprogram({"shaders/debug/lightSrc.vert", "shaders/debug/lightSrc.frag"});
-        diffusePass = new glshaderprogram({"shaders/pbr.vert", "shaders/common.frag"});
+        diffusePass = new glshaderprogram({"shaders/pbrStatic.vert", "shaders/common.frag"});
         skybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
     } catch (string errorString) {
         throwErr(errorString);

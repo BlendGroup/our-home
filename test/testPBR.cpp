@@ -31,8 +31,8 @@ void setupProgramTestPbr(){
         #if DYNAMIC
             program = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
         #else
-            //program = new glshaderprogram({"src/shaders/pbr.vert", "src/shaders/pbr.frag"});
-            program = new glshaderprogram({"shaders/pbr.vert", "shaders/pbrMain.frag"});
+            //program = new glshaderprogram({"src/shaders/pbrStatic.vert", "src/shaders/pbr.frag"});
+            program = new glshaderprogram({"shaders/pbrStatic.vert", "shaders/pbrMain.frag"});
         #endif
         lightProgram = new glshaderprogram({"shaders/debug/lightSrc.vert", "shaders/debug/lightSrc.frag"});
     } catch (string errorString) {
