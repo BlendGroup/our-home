@@ -174,7 +174,7 @@ GLuint createCombinedMapTexture(GLuint texValley, GLuint texMountain, GLuint tex
 void dayscene::init() {
 	dayevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 1.0f }},
-		{GODRAYIN_T, { 0.0f, 2.0f }},
+		{GODRAYIN_T, { 0.0f, 1.5f }},
 		{CAMERAMOVE_T, { 1.0f, 23.0f }},
 		{DRONETURN_T, { 0.5f, 1.5f }},
 		{DRONEMOVE_T, { 1.0f, 25.6f }}
@@ -204,13 +204,13 @@ void dayscene::init() {
 	vector<vec3> droneVector = {
 		vec3(63.4991f, -0.667602f, -79.8903f),
 		vec3(54.4795f, 0.7124f, -87.8908f),
-		vec3(33.2794f, 7.71237f, -89.1915f),
-		vec3(21.2794f, 10.1124f, -88.9912f),
-		vec3(5.17934f, 10.5124f, -85.8913f),
-		vec3(-12.4207f, 7.91239f, -83.0913f),
+		vec3(33.3794f, 7.71237f, -91.7915f),
+		vec3(21.2794f, 8.21239f, -91.2912f),
+		vec3(0.479343f, 3.51239f, -85.9913f),
+		vec3(-12.4207f, -2.3876f, -83.0913f),
 		vec3(-23.3207f, -3.88763f, -86.5912f),
 		vec3(-34.0207f, -3.98763f, -94.6911f),
-		vec3(-52.021f, -4.88763f, -98.891f),
+		vec3(-52.021f, -2.68763f, -98.891f),
 		vec3(-67.3207f, 4.01237f, -99.4911f),
 		vec3(-80.2207f, 12.1124f, -86.7912f),
 		vec3(-87.9205f, 16.5124f, -44.2918f),
@@ -223,7 +223,7 @@ void dayscene::init() {
 	splineAdjuster->setScalingFactor(0.1f);
 
 	godraysDrone = new godrays();
-	godraysDrone->setDensity(1.0f);
+	godraysDrone->setDensity(1.1f);
 	godraysDrone->setExposure(1.0f);
 	godraysDrone->setSamples(100);
 	godraysDrone->setWeight(0.01f);
@@ -302,8 +302,6 @@ void dayscene::renderScene(bool cameraFlip) {
 
 vec3 xyzVector = vec3(0.0f, 0.0f, 0.0f);
 
-static float goddecay = 1.04f;
-
 void dayscene::render() {
 	camera1->setT((*dayevents)[CAMERAMOVE_T]);
 	godraysDrone->setDecay(mix(vec1(1.04f), vec1(0.95f), (*dayevents)[GODRAYIN_T])[0]);
@@ -375,7 +373,7 @@ void dayscene::render() {
 	glUniform1i(programLake->getUniformLocation("texDuDv"), 2);
 	glUniform1f(programLake->getUniformLocation("time"), lakeT);
 	glUniform3fv(programLake->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
-	glUniform1f(programLake->getUniformLocation("distortionScale"), 0.006f);
+	glUniform1f(programLake->getUniformLocation("distortionScale"), 0.003f);
 	glBindTextureUnit(0, lake1->getRefractionTexture());
 	glBindTextureUnit(1, lake1->getReflectionTexture());
 	glBindTextureUnit(2, texLakeDuDvMap);
@@ -403,17 +401,16 @@ void dayscene::render() {
 
 void dayscene::update() {
 	static const float DRONE_ANIM_SPEED = 0.8f;
-	static const float LAKE_SPEED = 0.03f;
+	static const float LAKE_SPEED = 0.02f;
 	
 	dayevents->increment();
 	lakeT += LAKE_SPEED * programglobal::deltaTime;
 	if(dayevents->getT() > 0.01f) {
 		playerBkgnd->play();
 	}
-	if((*dayevents)[DRONETURN_T] >= 0.0f) {
+	if((*dayevents)[DRONETURN_T] >= 0.1f) {
 		modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
 	}
-	goddecay -= 0.0003f;
 }
 
 void dayscene::reset() {
