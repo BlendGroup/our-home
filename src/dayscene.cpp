@@ -138,29 +138,34 @@ void dayscene::setupCamera() {
 	camRig2->setScalingFactor(0.1f);
 
 	vector<vec3> positionVector2 = {
-		vec3(64.3364f, -0.71273f, -77.4934f),
-		vec3(61.9965f, -0.31273f, -82.6933f),
-		vec3(52.0967f, 1.88727f, -89.4932f),
-		vec3(36.5796f, 6.2124f, -98.2914f),
-		vec3(26.7796f, 11.2124f, -105.591f),
-		vec3(-0.720439f, 14.7124f, -116.891f),
-		vec3(-36.3205f, 14.7124f, -130.091f),
-		vec3(-71.8202f, 16.6124f, -130.991f),
-		vec3(-82.7206f, 16.1124f, -122.591f),
-		vec3(-86.9206f, 18.4124f, -109.391f)
+		vec3(59.9365f, 59.4869f, 50.2058f),
+		vec3(78.9962f, 7.08727f, -86.9932f),
+		vec3(41.4969f, 12.9873f, -128.593f),
+		vec3(13.7796f, 12.8124f, -130.591f),
+		vec3(-18.6205f, 15.5124f, -135.791f),
+		vec3(-57.7201f, 12.6124f, -138.192f),
+		vec3(-87.2198f, 8.81238f, -104.491f),
+		vec3(-96.1198f, 4.61237f, -74.9917f),
+		vec3(-100.32f, 5.31237f, -30.9924f),
+		vec3(-88.5202f, 14.2124f, -8.99232f),
+		vec3(-72.7204f, 10.7124f, -25.8924f),
+		vec3(-50.3208f, -0.587627f, -61.392f),
+		vec3(-25.6214f, 2.1124f, -61.0918f),
 	};
 	vector<vec3> frontVector2 = {
-		vec3(63.4991f, -0.667602f, -79.8903f),
+		vec3(61.8991f, 1.6324f, -67.0905f),
 		vec3(53.9795f, 1.3124f, -88.0908f),
-		vec3(28.2794f, 8.21237f, -89.3914f),
-		vec3(23.3794f, 7.81237f, -93.8913f),
-		vec3(1.47934f, 5.21239f, -93.7911f),
-		vec3(-20.0207f, 3.11237f, -102.891f),
-		vec3(-29.7207f, 3.11237f, -107.491f),
-		vec3(-52.021f, 1.51237f, -106.091f),
-		vec3(-67.3207f, 4.01237f, -105.091f),
-		vec3(-71.5208f, 10.3124f, -102.791f),
-		vec3(-74.3207f, 15.9124f, -89.1912f)
+		vec3(30.6794f, 9.61237f, -108.091f),
+		vec3(9.27935f, 11.4124f, -105.291f),
+		vec3(-16.5207f, 12.5124f, -108.491f),
+		vec3(-48.1205f, 11.3124f, -105.491f),
+		vec3(-63.6203f, 6.11237f, -90.8911f),
+		vec3(-72.0207f, 5.11237f, -72.2915f),
+		vec3(-72.8207f, 3.51239f, -51.2917f),
+		vec3(-50.6211f, 1.51239f, -43.592f),
+		vec3(-39.4213f, 1.51239f, -48.3919f),
+		vec3(-31.6214f, 2.51239f, -61.2917f),
+		vec3(0.778743f, 1.01237f, -59.2916f),
 	};
 	camera2 = new sceneCamera(positionVector2, frontVector2);
 
@@ -235,7 +240,7 @@ void dayscene::init() {
 
 	modelLab = new glmodel("resources/models/spaceship/LabOut.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelRover = new glmodel("resources/models/rover/rover.glb", aiProcessPreset_TargetRealtime_Quality, true);
-	modelTreePine = new glmodel("resources/models/tree/pine.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	// modelTreePine = new glmodel("resources/models/tree/pine.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelTreeRed = new glmodel("resources/models/tree/redtree.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	// modelTreePurple = new glmodel("resources/models/tree/purpletree.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelDrone = new glmodel("resources/models/drone/drone2.glb", aiProcessPreset_TargetRealtime_Quality, true);
