@@ -128,7 +128,6 @@ void dayscene::setupCamera() {
 	};
 	camera1 = new sceneCamera(positionVector, frontVector);
 
-	// camera 2 of sceneplay
 	camRig1 = new sceneCameraRig(camera1);
 	camRig1->setRenderFront(true);
 	camRig1->setRenderFrontPoints(true);
@@ -137,6 +136,7 @@ void dayscene::setupCamera() {
 	camRig1->setRenderPathToFront(true);
 	camRig1->setScalingFactor(0.1f);
 
+	// camera 2 of sceneplay
 	vector<vec3> positionVector2 = {
 		vec3(64.3364f, -0.71273f, -77.4934f),
 		vec3(61.9965f, -0.31273f, -82.6933f),
