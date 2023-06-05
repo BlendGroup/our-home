@@ -37,7 +37,7 @@ static glwindow* window;
 vmath::mat4 programglobal::perspective;
 camera* programglobal::currentCamera;
 double programglobal::deltaTime;
-debugMode_t programglobal::debugMode = NONE;
+debugMode_t programglobal::debugMode = CAMERA;
 clglcontext* programglobal::oclContext;
 shaperenderer* programglobal::shapeRenderer;
 bool programglobal::isAnimating = false;
