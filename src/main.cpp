@@ -37,7 +37,7 @@ static glwindow* window;
 vmath::mat4 programglobal::perspective;
 camera* programglobal::currentCamera;
 double programglobal::deltaTime;
-debugMode_t programglobal::debugMode = NONE;
+debugMode_t programglobal::debugMode = CAMERA;
 clglcontext* programglobal::oclContext;
 shaperenderer* programglobal::shapeRenderer;
 bool programglobal::isAnimating = false;
@@ -76,7 +76,7 @@ void init(void) {
 		crossfader::init();
 		sceneList.insert(sceneList.begin(), {
 			new titlescene(),
-			// new labscene(),
+			new labscene(),
 			new dayscene()
 		});
 
@@ -90,7 +90,7 @@ void init(void) {
 		} 
 
 		playNextScene();
-		playNextScene();
+		// playNextScene();
 		// playNextScene();
 
 		glDepthFunc(GL_LEQUAL);
