@@ -707,10 +707,10 @@ void BlendTwoAnimations(glmodel* model,glanimator* baseAnimation,glanimator* lay
 }
 
 
-void glmodel::setBoneMatrixUniform(GLuint uniformLocation, unsigned i) {
+void glmodel::setBoneMatrixUniform(GLuint uniformLocation, unsigned index) {
 	vector<mat4> m;
-	if(i < this->animator.size() && i >= 0) {
-		m = this->animator[i].finalBoneMatrices;
+	if(index < this->animator.size() && index >= 0) {
+		m = this->animator[index].finalBoneMatrices;
 	} else {
 		if(boneArrayDefault.empty()) {
 			for(int i = 0; i < MAX_BONE_COUNT; i++) {

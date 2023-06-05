@@ -12,6 +12,7 @@ uniform mat4 pMat;
 uniform mat4 vMat;
 uniform mat4 mMat;
 uniform mat4 bMat[100];
+uniform float clipy;
 
 out VS_OUT {
     vec3 P;
@@ -39,4 +40,10 @@ void main(void) {
 	vs_out.N = mat3(mvMat) * totalNormal;
 	vs_out.TBN = mat3(mMat) * mat3(vTangent,vBitangent,vNor);
 	vs_out.Tex = vTex;
+
+	vec4 clipingPlaneReflection = vec4(0.0, 1.0, 0.0, -clipy);
+	vec4 clipingPlaneRefraction = vec4(0.0, -1.0, 0.0, clipy);
+
+	gl_ClipDistance[0] = dot(P, clipingPlaneReflection);
+	gl_ClipDistance[1] = dot(P, clipingPlaneRefraction);
 }

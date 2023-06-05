@@ -9,6 +9,7 @@ uniform sampler2D texRefraction;
 uniform sampler2D texReflection;
 uniform sampler2D texDuDv;
 uniform float time;
+uniform float distortionScale;
 
 layout(location = 0)out vec4 FragColor;
 layout(location = 1)out vec4 EmissionColor;
@@ -17,8 +18,8 @@ void main(void) {
 	vec2 refractionCoords = (clipPos.xy / clipPos.w) * 0.5 + 0.5;
 	vec2 reflectionCoords = vec2(refractionCoords.x, -refractionCoords.y);
 
-	vec2 distortion1 = (texture(texDuDv, texCoord * 3.0 + vec2(time, -time)).rg * 2.0 - 1.0) * 0.015;
-	vec2 distortion2 = (texture(texDuDv, texCoord * 3.0 + vec2(-time, time)).rg * 2.0 - 1.0) * 0.015;
+	vec2 distortion1 = (texture(texDuDv, texCoord + vec2(time, -time)).rg * 2.0 - 1.0) * distortionScale;
+	vec2 distortion2 = (texture(texDuDv, texCoord + vec2(-time, time)).rg * 2.0 - 1.0) * distortionScale;
 
 	refractionCoords += distortion1 + distortion2;
 	reflectionCoords += distortion1 + distortion2;

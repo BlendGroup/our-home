@@ -99,10 +99,10 @@ void labscene::setupProgram() {
 void labscene::setupCamera() {
 	vector<vec3> positionKeyFrames = {
 		vec3(-1.96f, -0.27f, -1.13f),
-		vec3(-1.95f, -0.22f, -1.11f),
+		vec3(-1.92f, -0.29f, -1.11f),
 		vec3(-1.89f, -0.27f, -1.36f),
-		vec3(-1.84f, -0.23f, -1.55f),
-		vec3(-1.27f, -0.15f, -1.72f),
+		vec3(-1.67f, -0.3f, -1.64f),
+		vec3(-1.27f, -0.18f, -1.79f),
 		vec3(-0.82f, 0.28f, -1.85f),
 		vec3(-1.17f, 0.06f, -1.1f),
 		vec3(-2.9f, -0.2f, -0.51f),
@@ -138,7 +138,7 @@ void labscene::init() {
 	labevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 3.36f }},
 		{CAMERA_T, { 3.36f, 40.0f }},
-		{ROBOT_T, { 20.5f, 16.5f }},
+		{ROBOT_T, { 20.5f, 19.5f }},
 		{SFX_ROBOT_THUMP_T, { 20.5f, 16.5f }},
 		{DOOR_T, { 41.0f, 9.0f }},
 		{CROSSOUT_T, { 48.2f, 4.0f }},
@@ -165,9 +165,10 @@ void labscene::init() {
 
 	bspRobot = new BsplineInterpolator({
 		vec3(2.14f, -1.067f, 1.7f),
-		vec3(1.83f, -1.067f, 0.59f),
-		vec3(0.2f, -1.067f, 1.12f),
-		vec3(-2.07f, -1.067f, 1.35f),
+		vec3(1.83f, -1.067f, 0.79f),
+		vec3(0.2f, -1.067f, 0.72f),
+		vec3(-0.9f, -1.067f, 0.82f),
+		vec3(-2.07f, -1.067f, 1.05f),
 		vec3(-2.73f, -1.067f, 1.72f)
 	});
 #ifdef DEBUG
@@ -250,7 +251,7 @@ void labscene::init() {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, white);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	programStaticPBR = new glshaderprogram({"shaders/pbr.vert", "shaders/pbrMain.frag"});
+	programStaticPBR = new glshaderprogram({"shaders/pbrStatic.vert", "shaders/pbrMain.frag"});
 	glBindFramebuffer(GL_FRAMEBUFFER, envMapper->FBO);
 	glViewport(0, 0, envMapper->width, envMapper->height);
 
@@ -361,7 +362,7 @@ void labscene::render() {
 		glUniform4fv(programColor->getUniformLocation("emissive"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
 		glUniform4fv(programColor->getUniformLocation("occlusion"), 1, vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		programglobal::shapeRenderer->renderQuad();
-		godraysDoor->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix(), vec4(-3.45f, -0.3f, 2.828f, 1.0f));
+		godraysDoor->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix() * translate(-3.45f, -0.3f, 2.828f), vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
 		// render light src
 		// programLight->use();

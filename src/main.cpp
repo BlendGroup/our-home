@@ -37,7 +37,7 @@ static glwindow* window;
 vmath::mat4 programglobal::perspective;
 camera* programglobal::currentCamera;
 double programglobal::deltaTime;
-debugMode_t programglobal::debugMode = NONE;
+debugMode_t programglobal::debugMode = CAMERA;
 clglcontext* programglobal::oclContext;
 shaperenderer* programglobal::shapeRenderer;
 bool programglobal::isAnimating = false;
@@ -56,7 +56,8 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 2.0f), -90.0f, 0.0f);
+		// debugcamera = new debugCamera(vec3(-37.869f, 7.20367f, -50.1925f), -12.6, -104.6);
+		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 1.0f), -90.0f, 0.0f);
 		for(basescene* b : sceneList) {
 			b->setupCamera();
 		}
@@ -70,7 +71,7 @@ void init(void) {
 		//Object Creation
 		programglobal::hdr = new HDR(1.5f, 1.0f, 2048);
 		programglobal::oclContext = new clglcontext(1);
-		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
+		programglobal::oclContext->compilePrograms({"shaders/opensimplexnoise.cl"});
 		programglobal::shapeRenderer = new shaperenderer();
 		crossfader::init();
 		sceneList.insert(sceneList.begin(), {
@@ -89,8 +90,8 @@ void init(void) {
 		} 
 
 		playNextScene();
-		playNextScene();
-		playNextScene();
+		// playNextScene();
+		// playNextScene();
 
 		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);
