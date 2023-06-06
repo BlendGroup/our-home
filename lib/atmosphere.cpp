@@ -11,112 +11,71 @@
 using namespace std;
 using namespace vmath;
 
-static debugCamera* staticcam;
+static mat4 localViewMat;
+static const int defViewSamples = 16;
+static const int defLightSamples = 8;
+static const int defSunAngle = radians(1.0f);
+static const vec3 defSunDir = vec3(0.0f, 0.017f,-1.0f);
+static const float e_I_sun = 20.f;
+static const float e_R_e = 6360.00;
+static const float e_R_a = 6420.00;
+static const vec3 e_beta_R = vec3(0.0058f, 0.0135f, 0.0331f);
+static const float e_beta_M = 0.0210f;
+static const float e_H_R = 7.994;
+static const float e_H_M = 1.200;
+static const float e_g = 0.888;
+static const float M_2_KM = 0.001;
+static const float KM_2_M = 1000.0; 
 
-Atmosphere::Atmosphere()
-{
-    this->SetDefaults();
-    sphereModel = new glmodel("resources/models/sphere.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,false);
-    atmosphereProgram = new glshaderprogram({"shaders/AtmosphericScattering/Atmosphere.vert","shaders/AtmosphericScattering/Atmosphere.frag"});
-    staticcam = new debugCamera(vec3(0.0f, 0.0f, 0.0f), 270.0f, 20.0f);
+Atmosphere::Atmosphere() {
+	sphereModel = new glmodel("resources/models/sphere.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,false);
+	atmosphereProgram = new glshaderprogram({"shaders/AtmosphericScattering/Atmosphere.vert","shaders/AtmosphericScattering/Atmosphere.frag"});
+	debugCamera cam(vec3(0.0f, 0.0f, 0.0f), 270.0f, 20.0f);
+	localViewMat = cam.matrix();
 }
 
-Atmosphere::~Atmosphere(){
-    if(sphereModel)
-        delete sphereModel;
-    
-    if(atmosphereProgram)
-        delete  atmosphereProgram;
-
-    if(staticcam)
-        delete staticcam;
+Atmosphere::~Atmosphere() {
+	if(sphereModel)
+		delete sphereModel;
+	
+	if(atmosphereProgram)
+		delete  atmosphereProgram;
 }
 
-void Atmosphere::SetDefaults(){
+void Atmosphere::render(const mat4& viewMatrix, float sunAngle){
 
-    viewSamples = defViewSamples;
-    lightSamples = defLightSamples;
+	try{
+		mat4 modelAtmos = translate(0.0f, -6260.0f, 0.0f) * rotate(-134.0f, 0.0f, 1.0f, 0.0f) * scale(6420.0f);
 
-    SetSunDefaults();
-    setEarthRadius(e_R_e);
-    setAtmosRadius(e_R_a);
-    beta_R = e_beta_R;
-    beta_M = e_beta_M;
-
-    H_R = e_H_R;
-    H_M = e_H_M;
-    g = e_g;
-}
-
-void Atmosphere::SetSunDefaults(){
-    animateSun = true;
-    sunDir = defSunDir;
-    setSunAngle(defSunAngle);
-    I_Sun = e_I_sun;
-}
-
-void Atmosphere::SetRayLightDefaults(){
-    beta_R = e_beta_R;
-    H_R = e_H_R;
-}
-
-void Atmosphere::SetMieDefaults(){
-    beta_M = e_beta_M;
-    H_M = e_H_M;
-    g = e_g;
-}
-
-void Atmosphere::SetsizeDefaults(){
-    setEarthRadius(e_R_e);
-    setAtmosRadius(e_R_a);
-}
-
-float keyangle = 0.0f;
-
-void Atmosphere::render(const mat4& viewMatrix, float dt){
-
-    try{
-            // 1 Set Properties of the atmosphere
-        modelAtmos = translate(0.0f, -6260.0f, 0.0f) * rotate(-134.0f, 0.0f, 1.0f, 0.0f) * scale(6420.0f);
-
-        atmosphereProgram->use();
-        glUniformMatrix4fv(atmosphereProgram->getUniformLocation("M"),1,GL_FALSE, scale(R_a));
-        glUniformMatrix4fv(atmosphereProgram->getUniformLocation("mMat"),1,GL_FALSE, modelAtmos);
-        glUniformMatrix4fv(atmosphereProgram->getUniformLocation("pMat"),1,GL_FALSE, programglobal::perspective);
-        glUniformMatrix4fv(atmosphereProgram->getUniformLocation("vMat"),1,GL_FALSE, staticcam->matrix() * viewMatrix);
-        glUniform3fv(atmosphereProgram->getUniformLocation("viewPos"), 1, vec3(0.0f, R_e, 30.0f));
-        glUniform1i(atmosphereProgram->getUniformLocation("viewSamples"), viewSamples);
-        glUniform1i(atmosphereProgram->getUniformLocation("lightSamples"), lightSamples);
-
-        glUniform1f(atmosphereProgram->getUniformLocation("I_sun"), I_Sun);
-        glUniform1f(atmosphereProgram->getUniformLocation("R_e"), R_e);
-        glUniform1f(atmosphereProgram->getUniformLocation("R_a"), R_a);
-        glUniform3fv(atmosphereProgram->getUniformLocation("beta_R"),1, beta_R);
-        glUniform1f(atmosphereProgram->getUniformLocation("beta_M"), beta_M);
-        glUniform1f(atmosphereProgram->getUniformLocation("H_R"), H_R);
-        glUniform1f(atmosphereProgram->getUniformLocation("H_M"), H_M);
-        glUniform1f(atmosphereProgram->getUniformLocation("g"), g);
-        glUniform3fv(atmosphereProgram->getUniformLocation("sunPos"), 1, sunDir);
-        sphereModel->draw(atmosphereProgram,1,false);
-        if(animateSun){
-            sunAngle = dt;
-            sunDir[1] = sinf(sunAngle);
-            sunDir[2] = -cosf(sunAngle);
-        }
-    }
-    catch(string errorString){
-        throwErr(errorString);
-    }
+		atmosphereProgram->use();
+		glUniformMatrix4fv(atmosphereProgram->getUniformLocation("M"),1,GL_FALSE, scale(e_R_a));
+		glUniformMatrix4fv(atmosphereProgram->getUniformLocation("mMat"),1,GL_FALSE, modelAtmos);
+		glUniformMatrix4fv(atmosphereProgram->getUniformLocation("pMat"),1,GL_FALSE, programglobal::perspective);
+		glUniformMatrix4fv(atmosphereProgram->getUniformLocation("vMat"),1,GL_FALSE, localViewMat * viewMatrix);
+		glUniform3fv(atmosphereProgram->getUniformLocation("viewPos"), 1, vec3(0.0f, e_R_e, 30.0f));
+		glUniform1i(atmosphereProgram->getUniformLocation("viewSamples"), defViewSamples);
+		glUniform1i(atmosphereProgram->getUniformLocation("lightSamples"), defLightSamples);
+		glUniform1f(atmosphereProgram->getUniformLocation("I_sun"), e_I_sun);
+		glUniform1f(atmosphereProgram->getUniformLocation("R_e"), e_R_e);
+		glUniform1f(atmosphereProgram->getUniformLocation("R_a"), e_R_a);
+		glUniform3fv(atmosphereProgram->getUniformLocation("beta_R"),1, e_beta_R);
+		glUniform1f(atmosphereProgram->getUniformLocation("beta_M"), e_beta_M);
+		glUniform1f(atmosphereProgram->getUniformLocation("H_R"), e_H_R);
+		glUniform1f(atmosphereProgram->getUniformLocation("H_M"), e_H_M);
+		glUniform1f(atmosphereProgram->getUniformLocation("g"), e_g);
+		glUniform3fv(atmosphereProgram->getUniformLocation("sunPos"), 1, vec3(0.0f, sinf(sunAngle), -cosf(sunAngle)));
+		sphereModel->draw(atmosphereProgram, 1, false);
+	}
+	catch(string errorString){
+		throwErr(errorString);
+	}
 }
 
 void Atmosphere::keyboardfunc(int key) {
 	switch(key) {
 	case XK_period:
-		keyangle += 1.0f;
 		break;
 	case XK_comma:
-		keyangle -= 1.0f;
 		break;
 	}
-	cout<<keyangle<<endl;
 }
