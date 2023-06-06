@@ -24,16 +24,12 @@ static const float e_H_M = 1.200;
 static const float e_g = 0.888;
 
 Atmosphere::Atmosphere() {
-	sphereModel = new glmodel("resources/models/sphere.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,false);
 	atmosphereProgram = new glshaderprogram({"shaders/AtmosphericScattering/Atmosphere.vert","shaders/AtmosphericScattering/Atmosphere.frag"});
 	debugCamera cam(vec3(0.0f, 0.0f, 0.0f), 270.0f, 20.0f);
 	localViewMat = cam.matrix();
 }
 
 Atmosphere::~Atmosphere() {
-	if(sphereModel)
-		delete sphereModel;
-	
 	if(atmosphereProgram)
 		delete  atmosphereProgram;
 }
@@ -60,7 +56,7 @@ void Atmosphere::render(const mat4& viewMatrix, float sunAngle){
 		glUniform1f(atmosphereProgram->getUniformLocation("H_M"), e_H_M);
 		glUniform1f(atmosphereProgram->getUniformLocation("g"), e_g);
 		glUniform3fv(atmosphereProgram->getUniformLocation("sunPos"), 1, vec3(0.0f, sinf(sunAngle), -cosf(sunAngle)));
-		sphereModel->draw(atmosphereProgram, 1, false);
+		programglobal::shapeRenderer->renderSphere();
 	}
 	catch(string errorString){
 		throwErr(errorString);

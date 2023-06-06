@@ -7,6 +7,7 @@ struct buffer {
 	GLuint vao;
 	GLuint vbo;
 	unsigned vertexCount;
+	GLuint eabo;
 };
 
 class shaperenderer{
