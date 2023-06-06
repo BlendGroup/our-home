@@ -106,10 +106,15 @@ void dayscene::setupProgram() {
 
 void dayscene::setupCamera() {
 	vector<vec3> positionVector = {
-		vec3(64.3364f, -0.71273f, -77.4934f),
-		vec3(61.9965f, -0.31273f, -82.6933f),
+		vec3(64.1364f, -0.71273f, -77.6934f),
+		vec3(75.3362f, -0.71273f, -81.4933f),
+		vec3(83.8363f, 1.78727f, -79.9933f),
+		vec3(90.436f, 7.68726f, -67.6938f),
+		vec3(91.536f, 9.18727f, -53.694f),
+		vec3(88.036f, 7.58727f, -34.5943f),
+		vec3(74.7363f, 7.58727f, -30.0943f),
+		vec3(49.9967f, -0.31273f, -52.2937f),
 		vec3(52.0967f, 1.88727f, -89.4932f),
-		vec3(36.5796f, 6.2124f, -98.2914f),
 		vec3(26.7796f, 11.2124f, -105.591f),
 		vec3(-0.720439f, 14.7124f, -116.891f),
 		vec3(-36.3205f, 14.7124f, -130.091f),
@@ -118,10 +123,16 @@ void dayscene::setupCamera() {
 		vec3(-86.9206f, 18.4124f, -109.391f)
 	};
 	vector<vec3> frontVector = {
-		vec3(63.4991f, -0.667602f, -79.8903f),
-		vec3(53.9795f, 1.3124f, -88.0908f),
-		vec3(28.2794f, 8.21237f, -89.3914f),
-		vec3(23.3794f, 7.81237f, -93.8913f),
+		vec3(64.4991f, -0.167602f, -80.1903f),
+		vec3(75.4994f, -1.1676f, -79.8903f),
+		vec3(77.7994f, -1.3676f, -70.8904f),
+		vec3(83.2992f, 1.5324f, -62.2905f),
+		vec3(83.6992f, 2.9324f, -54.091f),
+		vec3(81.6993f, 2.7324f, -45.3912f),
+		vec3(69.8995f, 1.1324f, -46.2911f),
+		vec3(50.0998f, 0.2324f, -59.1909f),
+		vec3(47.4796f, 1.3124f, -92.8907f),
+		vec3(15.4794f, 7.81237f, -90.7913f),
 		vec3(1.47934f, 5.21239f, -93.7911f),
 		vec3(-20.0207f, 3.11237f, -102.891f),
 		vec3(-29.7207f, 3.11237f, -107.491f),
@@ -140,41 +151,45 @@ void dayscene::setupCamera() {
 	camRig1->setRenderPathToFront(true);
 	camRig1->setScalingFactor(0.1f);
 
-	// camera 2 of sceneplay
-	vector<vec3> positionVector2 = {
-		vec3(64.3364f, -0.71273f, -77.4934f),
-		vec3(61.9965f, -0.31273f, -82.6933f),
-		vec3(52.0967f, 1.88727f, -89.4932f),
-		vec3(36.5796f, 6.2124f, -98.2914f),
-		vec3(26.7796f, 11.2124f, -105.591f),
-		vec3(-0.720439f, 14.7124f, -116.891f),
-		vec3(-36.3205f, 14.7124f, -130.091f),
-		vec3(-71.8202f, 16.6124f, -130.991f),
-		vec3(-82.7206f, 16.1124f, -122.591f),
-		vec3(-86.9206f, 18.4124f, -109.391f)
-	};
-	vector<vec3> frontVector2 = {
-		vec3(63.4991f, -0.667602f, -79.8903f),
-		vec3(53.9795f, 1.3124f, -88.0908f),
-		vec3(28.2794f, 8.21237f, -89.3914f),
-		vec3(23.3794f, 7.81237f, -93.8913f),
-		vec3(1.47934f, 5.21239f, -93.7911f),
-		vec3(-20.0207f, 3.11237f, -102.891f),
-		vec3(-29.7207f, 3.11237f, -107.491f),
-		vec3(-52.021f, 1.51237f, -106.091f),
-		vec3(-67.3207f, 4.01237f, -105.091f),
-		vec3(-71.5208f, 10.3124f, -102.791f),
-		vec3(-74.3207f, 15.9124f, -89.1912f)
-	};
-	camera2 = new sceneCamera(positionVector2, frontVector2);
+	// // camera 2 of sceneplay
+	// vector<vec3> positionVector2 = {
+	// 	vec3(64.3364f, -0.71273f, -77.4934f),
+	// 	vec3(100.336f, 1.78727f, -81.3933f),
+	// 	vec3(97.7359f, 1.78727f, -119.393f),
+	// 	vec3(61.3965f, -0.31273f, -93.7931f),
+	// 	vec3(52.0967f, 1.88727f, -89.4932f),
+	// 	vec3(36.5796f, 6.2124f, -98.2914f),
+	// 	vec3(26.7796f, 11.2124f, -105.591f),
+	// 	vec3(-0.720439f, 14.7124f, -116.891f),
+	// 	vec3(-36.3205f, 14.7124f, -130.091f),
+	// 	vec3(-71.8202f, 16.6124f, -130.991f),
+	// 	vec3(-82.7206f, 16.1124f, -122.591f),
+	// 	vec3(-86.9206f, 18.4124f, -109.391f),
+	// };
+	// vector<vec3> frontVector2 = {
+	// 	vec3(63.4991f, -0.667602f, -79.8903f),
+	// 	vec3(100.299f, 1.3324f, -83.7902f),
+	// 	vec3(100.699f, 1.3324f, -120.89f),
+	// 	vec3(53.9795f, 1.3124f, -88.0908f),
+	// 	vec3(28.2794f, 8.21237f, -89.3914f),
+	// 	vec3(23.3794f, 7.81237f, -93.8913f),
+	// 	vec3(1.47934f, 5.21239f, -93.7911f),
+	// 	vec3(-20.0207f, 3.11237f, -102.891f),
+	// 	vec3(-29.7207f, 3.11237f, -107.491f),
+	// 	vec3(-52.021f, 1.51237f, -106.091f),
+	// 	vec3(-67.3207f, 4.01237f, -105.091f),
+	// 	vec3(-71.5208f, 10.3124f, -102.791f),
+	// 	vec3(-74.3207f, 15.9124f, -89.1912f)
+	// };
+	// camera2 = new sceneCamera(positionVector2, frontVector2);
 
-	camRig2 = new sceneCameraRig(camera2);
-	camRig2->setRenderFront(true);
-	camRig2->setRenderFrontPoints(true);
-	camRig2->setRenderPath(true);
-	camRig2->setRenderPathPoints(true);
-	camRig2->setRenderPathToFront(true);
-	camRig2->setScalingFactor(0.1f);
+	// camRig2 = new sceneCameraRig(camera2);
+	// camRig2->setRenderFront(true);
+	// camRig2->setRenderFrontPoints(true);
+	// camRig2->setRenderPath(true);
+	// camRig2->setRenderPathPoints(true);
+	// camRig2->setRenderPathToFront(true);
+	// camRig2->setScalingFactor(0.1f);
 }
 
 GLuint createCombinedMapTexture(GLuint texValley, GLuint texMountain, GLuint texMap, GLuint texLake) {
@@ -218,10 +233,10 @@ void dayscene::init() {
 	dayevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 1.0f }},
 		{GODRAYIN_T, { 0.0f, 1.5f }},
-		{CAMERA1MOVE_T, { 1.0f, 23.0f }},
+		{CAMERA1MOVE_T, { 1.0f, 42.0f }},
 		{CAMERA2MOVE_T, { 1.0f, 46.0f }},
 		{DRONETURN_T, { 0.5f, 1.5f }},
-		{DRONEMOVE_T, { 1.0f, 25.6f }},
+		{DRONEMOVE_T, { 1.0f, 40.6f }},
 		{SUNRISE_T, {24.5f, 55.0f}}
 	});
 
@@ -354,7 +369,7 @@ vec3 xyzVector = vec3(0.0f, 0.0f, 0.0f);
 
 void dayscene::render() {
 	camera1->setT((*dayevents)[CAMERA1MOVE_T]);
-	camera2->setT((*dayevents)[CAMERA2MOVE_T]);
+	// camera2->setT((*dayevents)[CAMERA2MOVE_T]);
 
 	godraysDrone->setDecay(mix(vec1(1.04f), vec1(0.95f), (*dayevents)[GODRAYIN_T])[0]);
 
@@ -433,8 +448,8 @@ void dayscene::render() {
 	lake1->render();
 
 	if(programglobal::debugMode == CAMERA) {
-		// camRig1->render();
-		camRig2->render();
+		camRig1->render();
+		// camRig2->render();
 	} else if(programglobal::debugMode == SPLINE) {
 		splineAdjuster->render(RED_PINK_COLOR);
 	}
@@ -480,8 +495,8 @@ void dayscene::keyboardfunc(int key) {
 	if(programglobal::debugMode == MODEL) {
 		lakePlacer->keyboardfunc(key);
 	} else if(programglobal::debugMode == CAMERA) {
-		// camRig1->keyboardfunc(key);
-		camRig2->keyboardfunc(key);
+		camRig1->keyboardfunc(key);
+		// camRig2->keyboardfunc(key);
 	} else if(programglobal::debugMode == SPLINE) {
 		splineAdjuster->keyboardfunc(key);
 	} else if(programglobal::debugMode == NONE) {
@@ -516,13 +531,13 @@ void dayscene::keyboardfunc(int key) {
 		break;
 	case XK_F2:
 		renderPath = !renderPath;
-		// camRig1->setRenderPathToFront(renderPath);
-		camRig2->setRenderPathToFront(renderPath);
+		camRig1->setRenderPathToFront(renderPath);
+		// camRig2->setRenderPathToFront(renderPath);
 		break;
 	case XK_Tab:
 		if(programglobal::debugMode == CAMERA) {
-			// cout<<camRig1->getCamera()<<endl;
-			cout<<camRig2->getCamera()<<endl;
+			cout<<camRig1->getCamera()<<endl;
+			// cout<<camRig2->getCamera()<<endl;
 		} else 
 		if(programglobal::debugMode == SPLINE) {
 			cout<<splineAdjuster->getSpline()<<endl;
