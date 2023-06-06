@@ -16,15 +16,9 @@ class Atmosphere {
         glshaderprogram* atmosphereProgram;
         glmodel* sphereModel;
 
-        debugCamera *debugcamera;
-
         vmath::mat4 modelAtmos;
         vmath::mat4 modelEarth;
 
-        vmath::mat4 proj;
-        vmath::mat4 view;
-
-        vmath::vec3 viewPos;
         int viewSamples;
         int lightSamples;
 
@@ -45,7 +39,6 @@ class Atmosphere {
         float g; // Mie Scattering direction - anisotropy of the medium
 
         // Defaults
-
         inline static const int defViewSamples = 16;
         inline static const int defLightSamples = 8;
         inline static const int defSunAngle = vmath::radians(1.0f);
@@ -77,11 +70,11 @@ class Atmosphere {
         void SetMieDefaults();
         void SetsizeDefaults();
 
-        void render(float delta);
+        void render(const vmath::mat4& viewMatrix, float delta);
+		void keyboardfunc(int key);
 
         // Getters
 
-        const vmath::vec3& getViewPos(){return viewPos;}
         const vmath::mat4& getModelEarth() {return modelEarth;}
         int getViewSamples() {return viewSamples;}
         int getLightSamples() {return lightSamples;}
@@ -100,15 +93,6 @@ class Atmosphere {
         float getMieScatteringDir() { return g; }
 
         // Setters
-
-        void setProjView(const vmath::mat4& tproj, const vmath::mat4& tview){
-            proj = tproj;
-            view = tview;
-        }
-
-        void setViewPos(const vmath::vec3& camPos){
-            viewPos = camPos;
-        }
 
         void setViewSamples(int samples){viewSamples = samples;}
         void setLightSamples(int samples){lightSamples = samples;}

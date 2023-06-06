@@ -345,10 +345,8 @@ void dayscene::renderScene(bool cameraFlip) {
 	glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 0);
 
 	static float dt = 0.0f;
-    atmosphere->setProjView(programglobal::perspective, currentViewMatrix);
-    //atmosphere->setViewPos(programglobal::currentCamera->position());
-    atmosphere->render(dt);
-	dt += 0.0000001f;
+    atmosphere->render(currentViewMatrix, dt);
+	dt += 0.001f;
 }
 
 vec3 xyzVector = vec3(0.0f, 0.0f, 0.0f);
@@ -506,6 +504,7 @@ void dayscene::keyboardfunc(int key) {
 			xyzVector[0] -= 0.1f;
 			break;
 		}
+		atmosphere->keyboardfunc(key);
 	}
 	switch(key) {
 	case XK_Up:
