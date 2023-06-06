@@ -12,7 +12,6 @@
 class Atmosphere {
 private:  
 	glshaderprogram* atmosphereProgram;
-	glmodel* sphereModel;
 public:
 	Atmosphere();
 	~Atmosphere();

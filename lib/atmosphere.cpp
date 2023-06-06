@@ -7,10 +7,15 @@
 #include <iostream>
 #include <X11/keysym.h>
 #include <global.h>
+#include <sphere.h>
 
 using namespace std;
 using namespace vmath;
 
+static GLuint vao;
+static GLuint eabo;
+
+static sphere* sphereObj;
 static mat4 localViewMat;
 static const int defViewSamples = 16;
 static const int defLightSamples = 8;
@@ -24,22 +29,21 @@ static const float e_H_M = 1.200;
 static const float e_g = 0.888;
 
 Atmosphere::Atmosphere() {
-	sphereModel = new glmodel("resources/models/sphere.glb",aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs,false);
+	sphereObj = new sphere(25, 25, 1.0f);
 	atmosphereProgram = new glshaderprogram({"shaders/AtmosphericScattering/Atmosphere.vert","shaders/AtmosphericScattering/Atmosphere.frag"});
 	debugCamera cam(vec3(0.0f, 0.0f, 0.0f), 270.0f, 20.0f);
 	localViewMat = cam.matrix();
 }
 
 Atmosphere::~Atmosphere() {
-	if(sphereModel)
-		delete sphereModel;
+	if(sphereObj)
+		delete sphereObj;
 	
 	if(atmosphereProgram)
 		delete  atmosphereProgram;
 }
 
 void Atmosphere::render(const mat4& viewMatrix, float sunAngle){
-
 	try{
 		mat4 modelAtmos = translate(0.0f, -6260.0f, 0.0f) * rotate(-134.0f, 0.0f, 1.0f, 0.0f) * scale(6420.0f);
 
@@ -60,7 +64,7 @@ void Atmosphere::render(const mat4& viewMatrix, float sunAngle){
 		glUniform1f(atmosphereProgram->getUniformLocation("H_M"), e_H_M);
 		glUniform1f(atmosphereProgram->getUniformLocation("g"), e_g);
 		glUniform3fv(atmosphereProgram->getUniformLocation("sunPos"), 1, vec3(0.0f, sinf(sunAngle), -cosf(sunAngle)));
-		sphereModel->draw(atmosphereProgram, 1, false);
+		sphereObj->render();
 	}
 	catch(string errorString){
 		throwErr(errorString);
