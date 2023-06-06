@@ -477,10 +477,6 @@ void SceneLight::SceneLightKeyBoardFunc(int key){
             else
                 spots[selectedLight].intensity += 1.0f;
         break;
-        case XK_P:
-        case XK_p:
-            // std::cout<<this;
-        break;
 	}
 }
 
