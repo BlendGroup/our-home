@@ -128,7 +128,7 @@ void dayscene::setupCamera() {
 		vec3(77.7994f, -1.3676f, -70.8904f),
 		vec3(83.2992f, 1.5324f, -62.2905f),
 		vec3(83.6992f, 2.9324f, -54.091f),
-		vec3(81.6993f, 2.7324f, -45.3912f),
+		vec3(78.2994f, 2.7324f, -45.3912f),
 		vec3(69.8995f, 1.1324f, -46.2911f),
 		vec3(50.0998f, 0.2324f, -59.1909f),
 		vec3(47.4796f, 1.3124f, -92.8907f),
@@ -140,7 +140,7 @@ void dayscene::setupCamera() {
 		vec3(-67.3207f, 4.01237f, -105.091f),
 		vec3(-71.5208f, 10.3124f, -102.791f),
 		vec3(-74.3207f, 15.9124f, -89.1912f)
-	};
+	}; 
 	camera1 = new sceneCamera(positionVector, frontVector);
 
 	camRig1 = new sceneCameraRig(camera1);
@@ -262,8 +262,19 @@ void dayscene::init() {
 	modelDrone->update(0.0f, 1);
 
 	vector<vec3> droneVector = {
-		vec3(63.4991f, -0.667602f, -79.8903f),
-		vec3(54.4795f, 0.7124f, -87.8908f),
+		vec3(64.1991f, -0.667602f, -79.8903f),
+		vec3(78.5989f, -0.667602f, -81.6903f),
+		vec3(77.5989f, -0.667602f, -70.4904f),
+		vec3(83.0988f, 1.9324f, -62.3906f),
+		vec3(83.5988f, 3.1324f, -53.8907f),
+		vec3(83.0988f, 2.9324f, -46.0908f),
+		vec3(82.2988f, 2.9324f, -39.6909f),
+		vec3(79.0989f, 2.9324f, -35.491f),
+		vec3(74.099f, 2.9324f, -36.7909f),
+		vec3(65.2991f, 2.9324f, -42.5909f),
+		vec3(50.0993f, 0.232398f, -59.2906f),
+		vec3(49.1993f, 0.232398f, -80.6903f),
+		vec3(44.9796f, 0.7124f, -92.4907f),
 		vec3(33.3794f, 7.71237f, -91.7915f),
 		vec3(21.2794f, 8.21239f, -91.2912f),
 		vec3(0.479343f, 3.51239f, -85.9913f),
@@ -446,6 +457,7 @@ void dayscene::render() {
 	glBindTextureUnit(1, lake1->getReflectionTexture());
 	glBindTextureUnit(2, texLakeDuDvMap);
 	lake1->render();
+	camRig1->render();
 
 	if(programglobal::debugMode == CAMERA) {
 		camRig1->render();
