@@ -84,6 +84,7 @@ enum tvalues {
 	CAMERA2MOVE_T,
 	DRONETURN_T,
 	DRONEMOVE_T,
+	SUNRISE_T,
 };
 static eventmanager* dayevents;
 
@@ -220,7 +221,8 @@ void dayscene::init() {
 		{CAMERA1MOVE_T, { 1.0f, 23.0f }},
 		{CAMERA2MOVE_T, { 1.0f, 46.0f }},
 		{DRONETURN_T, { 0.5f, 1.5f }},
-		{DRONEMOVE_T, { 1.0f, 25.6f }}
+		{DRONEMOVE_T, { 1.0f, 25.6f }},
+		{SUNRISE_T, {24.5f, 55.0f}}
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -345,9 +347,7 @@ void dayscene::renderScene(bool cameraFlip) {
 	godraysDrone->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix(), vec4(eye, 1.0f));
 	glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 0);
 
-	static float dt = 0.0f;
-    atmosphere->render(currentViewMatrix, dt);
-	dt += 0.001f;
+    atmosphere->render(currentViewMatrix, mix(vec1(radians(-1.0f)), vec1(radians(35.0f)), (*dayevents)[SUNRISE_T])[0]);
 }
 
 vec3 xyzVector = vec3(0.0f, 0.0f, 0.0f);
