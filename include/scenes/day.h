@@ -2,7 +2,6 @@
 #define __DAY_SCENE__
 
 #include<scenes/base.h>
-#include<scenecamera.h>
 
 class dayscene : public basescene {
 private:

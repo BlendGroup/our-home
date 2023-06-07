@@ -1,3 +1,4 @@
+#define DEBUG
 #include<scenes/day.h>
 #include<glmodelloader.h>
 #include<glshaderloader.h>
@@ -22,7 +23,8 @@
 #include<splineadjuster.h>
 #include<audio.h>
 #include<godrays.h>
-#include <atmosphere.h>
+#include<atmosphere.h>
+#include<scenecamera.h>
 
 using namespace std;
 using namespace vmath;

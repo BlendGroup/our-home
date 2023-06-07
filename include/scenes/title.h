@@ -2,7 +2,6 @@
 #define __TITLE_SCENE__
 
 #include<scenes/base.h>
-#include<scenecamera.h>
 
 class titlescene : public basescene {
 public:
