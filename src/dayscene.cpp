@@ -200,7 +200,7 @@ void dayscene::setupCamera() {
 	// camRig2->setScalingFactor(0.1f);
 }
 
-GLuint createCombinedMapTexture(GLuint texValley, GLuint texMountain, GLuint texMap, GLuint texLake) {
+GLuint createCombinedMapTexture(GLuint texValley, GLuint texMountain, GLuint texMap, GLuint texLake, GLuint texRoad) {
 	GLuint fbo;
 	GLuint tex;
 	GLuint vao;
@@ -226,6 +226,7 @@ GLuint createCombinedMapTexture(GLuint texValley, GLuint texMountain, GLuint tex
 	glBindTextureUnit(1, texMountain);
 	glBindTextureUnit(2, texMap);
 	glBindTextureUnit(3, texLake);
+	glBindTextureUnit(4, texRoad);
 	glViewport(0, 0, tex_1k);
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
@@ -259,8 +260,9 @@ void dayscene::init() {
 	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 3, 1234);
 	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 4, 0.11f, 111);
 	GLuint texLakeMap = createTexture2D("resources/textures/lake.png", GL_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
+	GLuint texRoadMap = createTexture2D("resources/textures/road.png", GL_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texTerrainMap = createTexture2D("resources/textures/map.png", GL_NEAREST, GL_NEAREST, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
-	texTerrainHeight = createCombinedMapTexture(valleyHeightMap, mountainHeightMap, texTerrainMap, texLakeMap);
+	texTerrainHeight = createCombinedMapTexture(valleyHeightMap, mountainHeightMap, texTerrainMap, texLakeMap, texRoadMap);
 	land = new terrain(texTerrainHeight, 256, true, 5.0f, 16.0f);
 
 	modelLab = new glmodel("resources/models/spaceship/LabOut.glb", aiProcessPreset_TargetRealtime_Quality, true);
