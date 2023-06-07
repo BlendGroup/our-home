@@ -84,7 +84,9 @@ enum tvalues {
 	CAMERA2MOVE_T,
 	DRONETURN_T,
 	DRONEMOVE_T,
-	SUNRISE_T,
+	SUNRISEINIT_T,
+	SUNRISEMID_T,
+	SUNRISEEND_T,
 };
 static eventmanager* dayevents;
 
@@ -154,7 +156,7 @@ void dayscene::setupCamera() {
 	camRig1->setRenderFrontPoints(true);
 	camRig1->setRenderPath(true);
 	camRig1->setRenderPathPoints(true);
-	camRig1->setRenderPathToFront(true);
+	camRig1->setRenderPathToFront(renderPath);
 	camRig1->setScalingFactor(0.1f);
 
 	// // camera 2 of sceneplay
@@ -241,9 +243,11 @@ void dayscene::init() {
 		{GODRAYIN_T, { 0.0f, 1.5f }},
 		{CAMERA1MOVE_T, { 1.0f, 42.0f }},
 		{CAMERA2MOVE_T, { 1.0f, 46.0f }},
-		{DRONETURN_T, { 0.5f, 1.5f }},
-		{DRONEMOVE_T, { 1.0f, 40.6f }},
-		{SUNRISE_T, {24.5f, 55.0f}}
+		{DRONETURN_T, { 0.5f, 0.5f }},
+		{DRONEMOVE_T, { 0.75f, 40.6f }},
+		{SUNRISEINIT_T, {43.0f, 5.0f}},
+		{SUNRISEMID_T, {48.0f, 3.0f}},
+		{SUNRISEEND_T, {51.0f, 3.0f}}
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -321,7 +325,8 @@ void dayscene::init() {
 	// vec3(53.1005f, -3.23743f, -56.8485f), vec3(0f, 0f, 0f), 0.00910002f -> Rover
 	// vec3(-49.0f, -6.0f, -72.0f), vec3(0.0f), 38.0f
 	// lakePlacer = new modelplacer(vec3(-30.4f, -0.2f, -58.0f), vec3(0.0f, 27.0f, 0.0f), 1.0f);
-	lakePlacer = new modelplacer(vec3(62.3101f, 0.6f, -74.39f), vec3(0.0f, -90.0f, 0.0f), 0.92f);
+	// lakePlacer = new modelplacer(vec3(62.3101f, 0.6f, -74.39f), vec3(0.0f, -90.0f, 0.0f), 0.92f);
+	lakePlacer = new modelplacer();
 	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKaiOnlyScene2.wav");
 #endif
 }
@@ -376,14 +381,22 @@ void dayscene::renderScene(bool cameraFlip) {
 	modelDrone->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
 	vec3 eye = splineDrone->interpolate((*dayevents)[DRONEMOVE_T]);
 	vec3 front = splineDrone->interpolate((*dayevents)[DRONEMOVE_T] + 0.001f);
-	mat4 mMatrix = translate(eye) * translate(0.1f, -1.9f, 0.1f) * rotate(170.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 1.0f, 0.0f) * targetat(eye, front, vec3(0.0f, 1.0f, 0.0f));
+	mat4 mMatrix = translate(eye) * translate(0.0f, -1.9f, 0.0f) * rotate(-103.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 1.0f, 0.0f) * targetat(eye, front, vec3(0.0f, 1.0f, 0.0f));
 	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, mMatrix * scale(15.0f));
 	glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 1);
 	modelDrone->draw(programDynamicPBR);
 	godraysDrone->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix(), vec4(eye, 1.0f));
 	glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 0);
 
-    atmosphere->render(currentViewMatrix, mix(vec1(radians(-1.0f)), vec1(radians(35.0f)), (*dayevents)[SUNRISE_T])[0]);
+	if((*dayevents)[SUNRISEINIT_T] <= 0.0f) {
+    	atmosphere->render(currentViewMatrix, mix(vec1(radians(-10.0f)), vec1(radians(0.0f)), (*dayevents)[CAMERA1MOVE_T])[0]);
+	} else if((*dayevents)[SUNRISEMID_T] <= 0.0f) {
+    	atmosphere->render(currentViewMatrix, mix(vec1(radians(0.0f)), vec1(radians(3.0f)), (*dayevents)[SUNRISEINIT_T])[0]);
+	} else if((*dayevents)[SUNRISEEND_T] <= 0.0f) {
+    	atmosphere->render(currentViewMatrix, mix(vec1(radians(3.0f)), vec1(radians(10.0f)), (*dayevents)[SUNRISEMID_T])[0]);
+	} else {
+    	atmosphere->render(currentViewMatrix, mix(vec1(radians(10.0f)), vec1(radians(35.0f)), (*dayevents)[SUNRISEEND_T])[0]);
+	}
 }
 
 vec3 xyzVector = vec3(0.0f, 0.0f, 0.0f);
@@ -467,7 +480,6 @@ void dayscene::render() {
 	glBindTextureUnit(1, lake1->getReflectionTexture());
 	glBindTextureUnit(2, texLakeDuDvMap);
 	lake1->render();
-	camRig1->render();
 
 	if(programglobal::debugMode == CAMERA) {
 		camRig1->render();
