@@ -151,15 +151,14 @@ void dayscene::setupCamera() {
 		// vec3(-72.7204f, 10.7124f, -25.8924f),
 		// vec3(-50.3208f, -0.587627f, -61.392f),
 		// vec3(-25.6214f, 2.1124f, -61.0918f),
-		vec3(59.5365f, 59.4869f, 50.6058f),
-		vec3(78.9962f, 7.08727f, -86.9932f),
-		vec3(32.697f, 12.3873f, -118.093f),
-		vec3(6.77958f, 14.4124f, -118.591f),
-		vec3(-13.3205f, 10.2124f, -112.691f),
-		vec3(-45.1203f, -0.687612f, -95.2919f),
-		vec3(-40.7204f, 1.31239f, -53.5925f),
-		vec3(-2.32041f, 1.81239f, -60.3924f),
-		vec3(40.6794f, 1.01238f, -60.9917f),
+		vec3(92.9367f, 9.78723f, -66.594f),
+		vec3(12.4962f, -1.91273f, -56.9932f),
+		vec3(-12.303f, -4.1127f, -29.093f),
+		vec3(-58.2204f, 1.4124f, -47.591f),
+		vec3(-30.8205f, 6.7124f, -77.691f),
+		vec3(-3.1203f, 6.31239f, -85.7919f),
+		vec3(43.7796f, 33.8124f, -123.092f),
+		vec3(53.6794f, 5.51238f, -73.9917f),
 	};
 	vector<vec3> frontVector2 = {
 		// vec3(61.8991f, 1.6324f, -67.0905f),
@@ -175,14 +174,13 @@ void dayscene::setupCamera() {
 		// vec3(-39.4213f, 1.51239f, -48.3919f),
 		// vec3(-31.6214f, 2.51239f, -61.2917f),
 		// vec3(0.778743f, 1.01237f, -59.2916f),
-		vec3(61.8991f, 1.6324f, -67.0905f),
-		vec3(53.9795f, 1.3124f, -88.0908f),
-		vec3(16.8793f, 13.6124f, -107.991f),
-		vec3(-0.220681f, 13.3124f, -100.591f),
-		vec3(-30.7207f, 3.71239f, -93.7912f),
-		vec3(-37.6207f, -0.887612f, -64.0917f),
-		vec3(23.7794f, 1.31239f, -73.1915f),
-		vec3(42.5792f, 1.71237f, -63.8915f),
+		vec3(36.8991f, 4.1324f, -64.0905f),
+		vec3(-11.0205f, -1.6876f, -58.5908f),
+		vec3(-24.1207f, -2.8876f, -52.491f),
+		vec3(-34.7207f, -4.1876f, -59.091f),
+		vec3(13.7793f, 0.712391f, -59.7912f),
+		vec3(42.3793f, 6.61239f, -66.0917f),
+		vec3(53.0792f, -0.78763f, -61.8915f),
 	};
 	camera2 = new sceneCamera(positionVector2, frontVector2);
 
@@ -301,7 +299,8 @@ void dayscene::init() {
 	// vec3(53.1005f, -3.23743f, -56.8485f), vec3(0f, 0f, 0f), 0.00910002f -> Rover
 	// vec3(-49.0f, -6.0f, -72.0f), vec3(0.0f), 38.0f
 	lakePlacer = new modelplacer();
-	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKaiOnlyScene2.wav");
+	// playerBkgnd = new audioplayer("resources/audio/TheLegendOfKaiOnlyScene2.wav");`
+	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKaiCamera2.wav");
 #endif
 }
 
