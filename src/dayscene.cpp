@@ -241,13 +241,13 @@ void dayscene::init() {
 	dayevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 1.0f }},
 		{GODRAYIN_T, { 0.0f, 1.5f }},
-		{CAMERA1MOVE_T, { 1.0f, 42.0f }},
+		{CAMERA1MOVE_T, { 1.0f, 40.0f }},
 		{CAMERA2MOVE_T, { 1.0f, 46.0f }},
 		{DRONETURN_T, { 0.5f, 0.5f }},
 		{DRONEMOVE_T, { 0.75f, 40.6f }},
-		{SUNRISEINIT_T, {43.0f, 5.0f}},
-		{SUNRISEMID_T, {48.0f, 3.0f}},
-		{SUNRISEEND_T, {51.0f, 3.0f}}
+		{SUNRISEINIT_T, {41.0f, 5.0f}},
+		{SUNRISEMID_T, {46.0f, 3.0f}},
+		{SUNRISEEND_T, {49.0f, 3.0f}}
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
