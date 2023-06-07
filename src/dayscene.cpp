@@ -33,6 +33,7 @@ static glshaderprogram* programStaticPBR;
 static glshaderprogram* programDynamicPBR;
 static glshaderprogram* programColor;
 static glshaderprogram* programCombineMap;
+static glshaderprogram* programLight;
 
 static terrain* land;
 static terrain* land2;
@@ -97,6 +98,7 @@ void dayscene::setupProgram() {
 		programStaticPBR = new glshaderprogram({"shaders/pbrStatic.vert", "shaders/pbrMain.frag"});
 		programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
 		programColor = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
+		programLight = new glshaderprogram({"shaders/debug/lightSrc.vert", "shaders/debug/lightSrc.frag"});
 #ifdef DEBUG
 		programDrawOnTerrain = new glshaderprogram({"shaders/debug/pbrOnTerrain.vert", "shaders/pbrMain.frag"});
 		drawTexQuad = new glshaderprogram({"shaders/debug/basictex.vert", "shaders/debug/basictex.frag"});
@@ -317,7 +319,8 @@ void dayscene::init() {
 
 	lightManager = new SceneLight();
 	lightManager->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,0.0,-1.0f)));
-	
+	lightManager->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,0.0,1.0f)));
+
 	lake1 = new lake(-6.0f);
 
 	atmosphere = new Atmosphere();
@@ -357,6 +360,7 @@ void dayscene::renderScene(bool cameraFlip) {
 	glBindTextureUnit(3, texDiffuseGrass);
 	glBindTextureUnit(4, texDiffuseDirt);
 	glBindTextureUnit(5, texDiffuseMountain);
+	lightManager->setLightUniform(programTerrain, false);
 	land->render();
 	for(int i = 0; i < 9; i++) {
 		glBindTextureUnit(i, 0);
@@ -490,6 +494,12 @@ void dayscene::render() {
 		splineAdjuster->render(RED_PINK_COLOR);
 	}
 
+	// render light src
+	programLight->use();
+	glUniformMatrix4fv(programLight->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
+	glUniformMatrix4fv(programLight->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix()); 
+	lightManager->renderSceneLights(programLight);
+
 	// glDisable(GL_DEPTH_TEST);
 	// drawTexQuad->use();
 	// glUniformMatrix4fv(drawTexQuad->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
@@ -583,6 +593,7 @@ void dayscene::keyboardfunc(int key) {
 		}
 		break;
 	}
+	lightManager->SceneLightKeyBoardFunc(key);
 }
 
 camera* dayscene::getCamera() {
