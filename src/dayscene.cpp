@@ -511,7 +511,7 @@ void dayscene::update() {
 	dayevents->increment();
 	lakeT += LAKE_SPEED * programglobal::deltaTime;
 	if(dayevents->getT() > 0.01f) {
-		playerBkgnd->play();
+		// playerBkgnd->play();
 	}
 	if((*dayevents)[DRONETURN_T] >= 0.1f) {
 		modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
