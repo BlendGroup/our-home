@@ -238,7 +238,7 @@ void dayscene::init() {
 		{DRONEMOVE_T, { 0.75f, 40.6f }},
 		{SUNRISEINIT_T, {41.0f, 5.0f}},
 		{SUNRISEMID_T, {46.0f, 4.0f}},
-		{SUNRISEEND_T, {49.0f, 4.0f}},
+		{SUNRISEEND_T, {50.0f, 4.0f}},
 		{CAMERA2MOVE_T, { 54.0f, 30.0f }},
 	});
 
