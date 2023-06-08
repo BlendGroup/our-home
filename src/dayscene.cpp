@@ -234,12 +234,12 @@ void dayscene::init() {
 		{CROSSIN_T, { 0.0f, 1.0f }},
 		{GODRAYIN_T, { 0.0f, 1.5f }},
 		{CAMERA1MOVE_T, { 1.0f, 40.0f }},
-		{CAMERA2MOVE_T, { 1.0f, 46.0f }},
 		{DRONETURN_T, { 0.5f, 0.5f }},
 		{DRONEMOVE_T, { 0.75f, 40.6f }},
 		{SUNRISEINIT_T, {41.0f, 5.0f}},
 		{SUNRISEMID_T, {46.0f, 3.0f}},
-		{SUNRISEEND_T, {49.0f, 3.0f}}
+		{SUNRISEEND_T, {49.0f, 3.0f}},
+		{CAMERA2MOVE_T, { 52.0f, 30.0f }},
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -321,7 +321,7 @@ void dayscene::init() {
 	// lakePlacer = new modelplacer(vec3(62.3101f, 0.6f, -74.39f), vec3(0.0f, -90.0f, 0.0f), 0.92f);
 	lakePlacer = new modelplacer();
 	// playerBkgnd = new audioplayer("resources/audio/TheLegendOfKaiOnlyScene2.wav");`
-	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKaiCamera2.wav");
+	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKaiOnlyScene2.wav");
 #endif
 }
 
@@ -398,7 +398,7 @@ vec3 xyzVector = vec3(0.0f, 0.0f, 0.0f);
 
 void dayscene::render() {
 	camera1->setT((*dayevents)[CAMERA1MOVE_T]);
-	// camera2->setT((*dayevents)[CAMERA2MOVE_T]);
+	camera2->setT((*dayevents)[CAMERA2MOVE_T]);
 
 	godraysDrone->setDecay(mix(vec1(1.04f), vec1(0.95f), (*dayevents)[GODRAYIN_T])[0]);
 
@@ -510,7 +510,7 @@ void dayscene::update() {
 	dayevents->increment();
 	lakeT += LAKE_SPEED * programglobal::deltaTime;
 	if(dayevents->getT() > 0.01f) {
-		// playerBkgnd->play();
+		playerBkgnd->play();
 	}
 	if((*dayevents)[DRONETURN_T] >= 0.1f) {
 		modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
@@ -586,8 +586,11 @@ void dayscene::keyboardfunc(int key) {
 }
 
 camera* dayscene::getCamera() {
-	return camera1;
-	// return camera2;
+	if((*dayevents)[CAMERA2MOVE_T] > 0.00001f) {
+		return camera2;
+	} else {
+		return camera1;
+	}
 }
 
 void dayscene::crossfade() {
