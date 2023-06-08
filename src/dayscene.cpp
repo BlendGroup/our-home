@@ -237,9 +237,9 @@ void dayscene::init() {
 		{DRONETURN_T, { 0.5f, 0.5f }},
 		{DRONEMOVE_T, { 0.75f, 40.6f }},
 		{SUNRISEINIT_T, {41.0f, 5.0f}},
-		{SUNRISEMID_T, {46.0f, 3.0f}},
-		{SUNRISEEND_T, {49.0f, 3.0f}},
-		{CAMERA2MOVE_T, { 52.0f, 30.0f }},
+		{SUNRISEMID_T, {46.0f, 4.0f}},
+		{SUNRISEEND_T, {49.0f, 4.0f}},
+		{CAMERA2MOVE_T, { 54.0f, 30.0f }},
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -510,7 +510,7 @@ void dayscene::update() {
 	dayevents->increment();
 	lakeT += LAKE_SPEED * programglobal::deltaTime;
 	if(dayevents->getT() > 0.01f) {
-		playerBkgnd->play();
+		// playerBkgnd->play();
 	}
 	if((*dayevents)[DRONETURN_T] >= 0.1f) {
 		modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
