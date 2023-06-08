@@ -52,6 +52,7 @@ static sceneCamera* camera1;
 static sceneCamera* camera2;
 
 static BsplineInterpolator* splineDrone;
+static BsplineInterpolator* splineRover;
 
 static godrays* godraysDrone;
 
@@ -229,6 +230,11 @@ GLuint createCombinedMapTexture(GLuint texValley, GLuint texMountain, GLuint tex
 	return tex;
 }
 
+GLuint valleyHeightMap;
+GLuint mountainHeightMap;
+GLuint texLakeMap;
+GLuint texRoadMap;
+
 void dayscene::init() {
 	dayevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 1.0f }},
@@ -248,10 +254,10 @@ void dayscene::init() {
 	texLakeDuDvMap = createTexture2D("resources/textures/dudv.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
  
 	ivec2 dim = ivec2(2048, 2048);
-	GLuint valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 3, 1234);
-	GLuint mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 4, 0.11f, 111);
-	GLuint texLakeMap = createTexture2D("resources/textures/lake.png", GL_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
-	GLuint texRoadMap = createTexture2D("resources/textures/road.png", GL_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
+	valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 3, 1234);
+	mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 4, 0.11f, 111);
+	texLakeMap = createTexture2D("resources/textures/lake.png", GL_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
+	texRoadMap = createTexture2D("resources/textures/road.png", GL_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texTerrainMap = createTexture2D("resources/textures/map.png", GL_NEAREST, GL_NEAREST, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texTerrainHeight = createCombinedMapTexture(valleyHeightMap, mountainHeightMap, texTerrainMap, texLakeMap, texRoadMap);
 	land = new terrain(texTerrainHeight, 256, true, 5.0f, 16.0f);
@@ -295,7 +301,17 @@ void dayscene::init() {
 		vec3(-105.02f, 32.8124f, -29.092f)
 	};
 	splineDrone = new BsplineInterpolator(droneVector);
-	splineAdjuster = new SplineAdjuster(splineDrone);
+
+	vector<vec3> roverVector = {
+		vec3(-23.3006f, 5.86257f, -143.69f),
+		vec3(-8.20052f, 4.36257f, -135.79f),
+		vec3(7.09947f, 3.96257f, -129.69f),
+		vec3(27.2995f, 1.26257f, -117.99f),
+		vec3(48.9993f, 0.362569f, -99.5901f),
+		vec3(63.6991f, -0.237431f, -87.5903f)
+	};
+	splineRover = new BsplineInterpolator(roverVector);
+	splineAdjuster = new SplineAdjuster(splineRover);
 	splineAdjuster->setRenderPath(true);
 	splineAdjuster->setRenderPoints(true);
 	splineAdjuster->setScalingFactor(0.1f);
@@ -394,8 +410,6 @@ void dayscene::renderScene(bool cameraFlip) {
 	}
 }
 
-vec3 xyzVector = vec3(0.0f, 0.0f, 0.0f);
-
 void dayscene::render() {
 	camera1->setT((*dayevents)[CAMERA1MOVE_T]);
 	camera2->setT((*dayevents)[CAMERA2MOVE_T]);
@@ -448,7 +462,9 @@ void dayscene::render() {
 	// glUniformMatrix4fv(programDrawOnTerrain->getUniformLocation("mMat"), 1, GL_FALSE, lakePlacer->getModelMatrix());
 	modelLab->draw(programDrawOnTerrain);
 
-	glUniformMatrix4fv(programDrawOnTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(53.1005f, -3.23743f, -56.8485f) * scale(0.00910002f));
+	vec3 position = splineRover->interpolate((*dayevents)[DRONEMOVE_T]);
+	vec3 front = splineRover->interpolate((*dayevents)[DRONEMOVE_T] + 0.001f);
+	glUniformMatrix4fv(programDrawOnTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(position) * targetat(position, front, vec3(0.0f, 1.0f, 0.0f)) * scale(0.00910002f));
 	modelRover->draw(programDrawOnTerrain);
 	
 	// glUniformMatrix4fv(programDrawOnTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(61.0f, 6.7f, -53.4f) * scale(0.7f));
@@ -481,14 +497,13 @@ void dayscene::render() {
 		// camRig2->render();
 	} else if(programglobal::debugMode == SPLINE) {
 		splineAdjuster->render(RED_PINK_COLOR);
+	} else if(programglobal::debugMode == LIGHT) {
+		// render light src
+		programLight->use();
+		glUniformMatrix4fv(programLight->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
+		glUniformMatrix4fv(programLight->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix()); 
+		lightManager->renderSceneLights(programLight);
 	}
-
-	// render light src
-	programLight->use();
-	glUniformMatrix4fv(programLight->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
-	glUniformMatrix4fv(programLight->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix()); 
-	lightManager->renderSceneLights(programLight);
-
 	// glDisable(GL_DEPTH_TEST);
 	// drawTexQuad->use();
 	// glUniformMatrix4fv(drawTexQuad->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
@@ -534,25 +549,14 @@ void dayscene::keyboardfunc(int key) {
 		// camRig2->keyboardfunc(key);
 	} else if(programglobal::debugMode == SPLINE) {
 		splineAdjuster->keyboardfunc(key);
+	} else if(programglobal::debugMode == LIGHT) {
+		lightManager->SceneLightKeyBoardFunc(key);
 	} else if(programglobal::debugMode == NONE) {
 		switch(key) {
-		case XK_o:
-			xyzVector[1] += 0.1f;
-			break;
-		case XK_u:
-			xyzVector[1] -= 0.1f;
-			break;
-		case XK_i:
-			xyzVector[2] += 0.1f;
-			break;
-		case XK_k:
-			xyzVector[2] -= 0.1f;
-			break;
-		case XK_l:
-			xyzVector[0] += 0.1f;
-			break;
-		case XK_j:
-			xyzVector[0] -= 0.1f;
+		case XK_q:
+			texRoadMap = createTexture2D("resources/textures/road.png", GL_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
+			texTerrainHeight = createCombinedMapTexture(valleyHeightMap, mountainHeightMap, texTerrainMap, texLakeMap, texRoadMap);
+			cout<<"hey"<<endl;
 			break;
 		}
 		atmosphere->keyboardfunc(key);
@@ -582,7 +586,6 @@ void dayscene::keyboardfunc(int key) {
 		}
 		break;
 	}
-	lightManager->SceneLightKeyBoardFunc(key);
 }
 
 camera* dayscene::getCamera() {
