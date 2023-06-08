@@ -90,15 +90,6 @@ in TES_OUT {
 	vec3 nor;
 } fs_in;
 
-void calcPhongLightInWorld(in vec3 posInWorld, in vec3 norInWorld, in vec3 lightPos, in vec3 viewPos, in float shininess, out float diffuse, out float specular) {
-	vec3 N = normalize(norInWorld);
-	vec3 L = normalize(lightPos - posInWorld);
-	vec3 V = normalize(viewPos - posInWorld);
-	vec3 R = reflect(-L, N);
-	diffuse = max(dot(N, L), 0.0);
-	specular = pow(max(dot(V, R), 0.0), shininess);
-}
-
 vec2 blinnPhong(BaseLight base, vec3 direction, vec3 N, vec3 P)
 {
     float diffuse = max(dot(N, -direction), 0.0);
@@ -159,9 +150,8 @@ void main(void) {
     }
 
 	float diffuse, specular;
-    vec2 allLight = directional + point + specular;
+    vec2 allLight = directional + point + spot;
 
-	//calcPhongLightInWorld(fs_in.pos, fs_in.nor, vec3(0.0, 10000.0, 0.0), cameraPos, 45.0, diffuse, specular);
 	float mixVal = texture(texMap, fs_in.tc).r;
 	vec3 grassColor = mix(texture(texDiffuseGrass, fs_in.tc * texScale).rgb, texture(texDiffuseDirt, fs_in.tc * texScale).rgb, 1.0 - (noise(fs_in.tc * texScale) * 0.5 + 0.5));
 	vec3 difColor = mix(grassColor, texture(texDiffuseMountain, fs_in.tc * texScale).rgb, mixVal);

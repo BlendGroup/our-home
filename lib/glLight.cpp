@@ -355,13 +355,13 @@ void SceneLight::renderSceneLights(glshaderprogram *program){
 
 void SceneLight::SceneLightKeyBoardFunc(int key){
 	switch(key) {
-        case XK_F9: // add Directional Light
+        case XK_b: // add Directional Light
             mode = 0;
         break;
-        case XK_F10: // Add Point Light
+        case XK_n: // Add Point Light
             mode = 1;
         break;
-        case XK_F11: // Add Spot Light
+        case XK_m: // Add Spot Light
             mode = 2;        
         break;
         case XK_Up:
