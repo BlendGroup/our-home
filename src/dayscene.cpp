@@ -25,6 +25,7 @@
 #include<godrays.h>
 #include<atmosphere.h>
 #include<scenecamera.h>
+#include<boids.h>
 
 using namespace std;
 using namespace vmath;
@@ -77,7 +78,14 @@ static GLuint texDiffuseDirt;
 static GLuint texDiffuseMountain;
 static GLuint texLakeDuDvMap;
 extern GLuint texLabSceneFinal;
+GLuint texDaySceneFinal;
 static GLuint texTerrainHeight;
+
+/* all particles */
+static const int MAX_PARTICLES = 200;
+static std::vector<Boid> *boids = NULL;
+extern vec3 xyzVector;
+static vec3 &attractor = xyzVector;
 	
 enum tvalues {
 	CROSSIN_T,
@@ -323,6 +331,29 @@ void dayscene::init() {
 	lake1 = new lake(-6.0f);
 
 	atmosphere = new Atmosphere();
+
+	/* initializing particles */
+	auto randomVec3 = [] (float minLength, float maxLength) -> vec3 {
+		float x = fmodf(rand(), 100.0f);
+		x = (rand() & 1) ? x : -x;
+		float y = fmodf(rand(), 100.0f);
+		y = (rand() & 1) ? y : -y;
+		float z = fmodf(rand(), 100.0f);
+		z = (rand() & 1) ? z : -z;	
+		float t = (float)rand() / (float)RAND_MAX;
+		vec3 out = (minLength + (maxLength - minLength) * t) * normalize(vec3(x, y, z));
+		return out;
+	};
+    boids = new std::vector<Boid>();
+	srand(time(NULL));
+    for(int i = 0; i < MAX_PARTICLES; i++) {
+		srand(rand());
+        vmath::vec3 initPos = attractor + randomVec3(0.0f, 5.0f);
+		srand(rand());
+        vmath::vec3 initVel = randomVec3(0.01f, 0.02f);
+        boids->emplace_back(initPos, initVel);
+    }
+
 #ifdef DEBUG
 	// lakePlacer = new modelplacer(vec3(0.0f, 10.0f, 0.0f), vec3(0.0f, 0.0f, 0.0f), 10.0f);
 	// vec3(-49.0f, -6.0f, -72.0f), vec3(0.0f, 0.0f, 0.0f), 38.0f -> Lake
@@ -401,9 +432,44 @@ void dayscene::renderScene(bool cameraFlip) {
 	} else {
     	atmosphere->render(currentViewMatrix, mix(vec1(radians(10.0f)), vec1(radians(35.0f)), (*dayevents)[SUNRISEEND_T])[0]);
 	}
+
+	/* drawing particles */
+	programColor->use();
+	glUniform4fv(programColor->getUniformLocation("color"), 1, vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	glUniform4fv(programColor->getUniformLocation("emissive"), 1, vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	glUniform4fv(programColor->getUniformLocation("occlusion"), 1, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	for(auto boid : *boids) {
+		vmath::vec3 position = boid.position();
+		mat4 mvpMatrix = programglobal::currentCamera->matrix() * vmath::translate(position);
+		mvpMatrix[0][0] = 1.0f;
+		mvpMatrix[0][1] = 0.0f;
+		mvpMatrix[0][2] = 0.0f;
+		mvpMatrix[1][0] = 0.0f;
+		mvpMatrix[1][1] = 1.0f;
+		mvpMatrix[1][2] = 0.0f;
+		mvpMatrix[2][0] = 0.0f;
+		mvpMatrix[2][1] = 0.0f;
+		mvpMatrix[2][2] = 1.0f;
+		glUniformMatrix4fv(programColor->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * mvpMatrix * scale(0.02f));
+		programglobal::shapeRenderer->renderQuad();
+	}
+
+	/* drawing attractor */
+	mat4 mvpMatrix = programglobal::currentCamera->matrix() * translate(attractor);
+	mvpMatrix[0][0] = 1.0f;
+	mvpMatrix[0][1] = 0.0f;
+	mvpMatrix[0][2] = 0.0f;
+	mvpMatrix[1][0] = 0.0f;
+	mvpMatrix[1][1] = 1.0f;
+	mvpMatrix[1][2] = 0.0f;
+	mvpMatrix[2][0] = 0.0f;
+	mvpMatrix[2][1] = 0.0f;
+	mvpMatrix[2][2] = 1.0f;
+	glUniformMatrix4fv(programColor->getUniformLocation("mvpMatrix"), 1, GL_FALSE, programglobal::perspective * mvpMatrix * scale(0.1f));
+	programglobal::shapeRenderer->renderQuad();
 }
 
-vec3 xyzVector = vec3(0.0f, 0.0f, 0.0f);
+vec3 xyzVector = vec3(-30.4f, 10.8f, -62.8999f);
 
 void dayscene::render() {
 	camera1->setT((*dayevents)[CAMERA1MOVE_T]);
@@ -518,6 +584,9 @@ void dayscene::update() {
 	if((*dayevents)[DRONETURN_T] >= 0.1f) {
 		modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
 	}
+	for(int i = 0; i < MAX_PARTICLES; i++) {
+        boids->at(i).update(boids, attractor);
+    }
 }
 
 void dayscene::reset() {
@@ -527,6 +596,7 @@ void dayscene::reset() {
 void dayscene::uninit() {
 	delete land;
 	delete atmosphere;
+	delete boids;
 }
 
 void dayscene::keyboardfunc(int key) {
