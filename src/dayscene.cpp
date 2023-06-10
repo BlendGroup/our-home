@@ -89,6 +89,7 @@ enum tvalues {
 	SUNRISEINIT_T,
 	SUNRISEMID_T,
 	SUNRISEEND_T,
+	ROVERMOVE_T
 };
 static eventmanager* dayevents;
 
@@ -164,22 +165,24 @@ void dayscene::setupCamera() {
 
 	vector<vec3> positionVector2 = {
 		vec3(92.9367f, 9.78723f, -66.594f),
-		vec3(12.4962f, -1.91273f, -56.9932f),
+		vec3(12.4962f, -4.11273f, -56.9932f),
 		vec3(-12.303f, -4.1127f, -29.093f),
-		vec3(-58.2204f, 1.4124f, -47.591f),
-		vec3(-30.8205f, 6.7124f, -77.691f),
+		vec3(-58.2204f, -3.5876f, -47.591f),
+		vec3(-36.3204f, -5.78759f, -84.7909f),
 		vec3(-3.1203f, 6.31239f, -85.7919f),
-		vec3(43.7796f, 33.8124f, -123.092f),
-		vec3(53.6794f, 5.51238f, -73.9917f),
+		vec3(27.7798f, 33.8124f, -123.192f),
+		vec3(49.6795f, 5.41234f, -78.9927f),
+		vec3(52.1794f, 35.2124f, 23.2078f)
 	};
 	vector<vec3> frontVector2 = {
 		vec3(36.8991f, 4.1324f, -64.0905f),
 		vec3(-11.0205f, -1.6876f, -58.5908f),
 		vec3(-24.1207f, -2.8876f, -52.491f),
 		vec3(-34.7207f, -4.1876f, -59.091f),
-		vec3(13.7793f, 0.712391f, -59.7912f),
-		vec3(42.3793f, 6.61239f, -66.0917f),
-		vec3(53.0792f, -0.78763f, -61.8915f),
+		vec3(2.97928f, 0.712391f, -59.7912f),
+		vec3(26.5794f, -1.98761f, -62.4918f),
+		vec3(47.3792f, -0.887606f, -58.5918f),
+		vec3(54.8792f, 51.5122f, 64.4077f)
 	};
 	camera2 = new sceneCamera(positionVector2, frontVector2);
 
@@ -188,7 +191,7 @@ void dayscene::setupCamera() {
 	camRig2->setRenderFrontPoints(true);
 	camRig2->setRenderPath(true);
 	camRig2->setRenderPathPoints(true);
-	camRig2->setRenderPathToFront(true);
+	camRig2->setRenderPathToFront(renderPath);
 	camRig2->setScalingFactor(0.1f);
 }
 
@@ -242,6 +245,7 @@ void dayscene::init() {
 		{CAMERA1MOVE_T, { 1.0f, 40.0f }},
 		{DRONETURN_T, { 0.5f, 0.5f }},
 		{DRONEMOVE_T, { 0.75f, 40.6f }},
+		{ROVERMOVE_T, {53.0f, 8.0f}},
 		{SUNRISEINIT_T, {41.0f, 5.0f}},
 		{SUNRISEMID_T, {46.0f, 4.0f}},
 		{SUNRISEEND_T, {50.0f, 4.0f}},
@@ -301,14 +305,11 @@ void dayscene::init() {
 		vec3(-105.02f, 32.8124f, -29.092f)
 	};
 	splineDrone = new BsplineInterpolator(droneVector);
-
 	vector<vec3> roverVector = {
-		vec3(-23.3006f, 5.86257f, -143.69f),
-		vec3(-8.20052f, 4.36257f, -135.79f),
-		vec3(7.09947f, 3.96257f, -129.69f),
-		vec3(27.2995f, 1.26257f, -117.99f),
-		vec3(48.9993f, 0.362569f, -99.5901f),
-		vec3(63.6991f, -0.237431f, -87.5903f)
+		vec3(47.7993f, 1.0324f, -92.0901f),
+		vec3(48.5994f, -1.7676f, -65.7905f),
+		vec3(60.5991f, -2.3676f, -47.1907f),
+		vec3(83.0988f, -1.8676f, -47.9908f)
 	};
 	splineRover = new BsplineInterpolator(roverVector);
 	splineAdjuster = new SplineAdjuster(splineRover);
@@ -462,9 +463,13 @@ void dayscene::render() {
 	// glUniformMatrix4fv(programDrawOnTerrain->getUniformLocation("mMat"), 1, GL_FALSE, lakePlacer->getModelMatrix());
 	modelLab->draw(programDrawOnTerrain);
 
-	vec3 position = splineRover->interpolate((*dayevents)[DRONEMOVE_T]);
-	vec3 front = splineRover->interpolate((*dayevents)[DRONEMOVE_T] + 0.001f);
-	glUniformMatrix4fv(programDrawOnTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(position) * targetat(position, front, vec3(0.0f, 1.0f, 0.0f)) * scale(0.00910002f));
+	vec3 pos = splineRover->interpolate((*dayevents)[ROVERMOVE_T]);
+	vec3 front = splineRover->interpolate((*dayevents)[ROVERMOVE_T] + 0.01f);
+	if((*dayevents)[ROVERMOVE_T] >= 0.0001f) {
+		glUniformMatrix4fv(programDrawOnTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(pos) * targetat(pos, front, vec3(0.0f, 1.0f, 0.0f)) * scale(0.00910002f));
+	} else {
+		glUniformMatrix4fv(programDrawOnTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(75.0f, -1.8f, -68.0f) * rotate(8.0f, 0.0f, 0.0f, 1.0f) * scale(0.00910002f));
+	}
 	modelRover->draw(programDrawOnTerrain);
 	
 	// glUniformMatrix4fv(programDrawOnTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(61.0f, 6.7f, -53.4f) * scale(0.7f));
@@ -474,7 +479,7 @@ void dayscene::render() {
 	// glUniformMatrix4fv(programDrawOnTerrain->getUniformLocation("mMat"), 1, GL_FALSE, scale(2.9f));
 	// modelTreeRed->draw(programDrawOnTerrain);
 
-	// glUniformMatrix4fv(programDrawOnTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(48.0f, -5.0f, -34.0f) * scale(2.0f));
+  	// glUniformMatrix4fv(programDrawOnTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(48.0f, -5.0f, -34.0f) * scale(2.0f));
 	// modelTreePurple->draw(programDrawOnTerrain);
 
 	programLake->use();
@@ -493,8 +498,8 @@ void dayscene::render() {
 	lake1->render();
 
 	if(programglobal::debugMode == CAMERA) {
-		camRig1->render();
-		// camRig2->render();
+		// camRig1->render();
+		camRig2->render();
 	} else if(programglobal::debugMode == SPLINE) {
 		splineAdjuster->render(RED_PINK_COLOR);
 	} else if(programglobal::debugMode == LIGHT) {
@@ -545,20 +550,14 @@ void dayscene::keyboardfunc(int key) {
 	if(programglobal::debugMode == MODEL) {
 		lakePlacer->keyboardfunc(key);
 	} else if(programglobal::debugMode == CAMERA) {
-		camRig1->keyboardfunc(key);
-		// camRig2->keyboardfunc(key);
+		// camRig1->keyboardfunc(key);
+		camRig2->keyboardfunc(key);
 	} else if(programglobal::debugMode == SPLINE) {
 		splineAdjuster->keyboardfunc(key);
 	} else if(programglobal::debugMode == LIGHT) {
 		lightManager->SceneLightKeyBoardFunc(key);
 	} else if(programglobal::debugMode == NONE) {
-		switch(key) {
-		case XK_q:
-			texRoadMap = createTexture2D("resources/textures/road.png", GL_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
-			texTerrainHeight = createCombinedMapTexture(valleyHeightMap, mountainHeightMap, texTerrainMap, texLakeMap, texRoadMap);
-			cout<<"hey"<<endl;
-			break;
-		}
+		cout<<"Current T = "<<dayevents->getT()<<endl;
 		atmosphere->keyboardfunc(key);
 	}
 	switch(key) {
@@ -571,12 +570,12 @@ void dayscene::keyboardfunc(int key) {
 	case XK_F2:
 		renderPath = !renderPath;
 		camRig1->setRenderPathToFront(renderPath);
-		// camRig2->setRenderPathToFront(renderPath);
+		camRig2->setRenderPathToFront(renderPath);
 		break;
 	case XK_Tab:
 		if(programglobal::debugMode == CAMERA) {
 			cout<<camRig1->getCamera()<<endl;
-			// cout<<camRig2->getCamera()<<endl;
+			cout<<camRig2->getCamera()<<endl;
 		} else 
 		if(programglobal::debugMode == SPLINE) {
 			cout<<splineAdjuster->getSpline()<<endl;
