@@ -28,7 +28,7 @@ GLuint opensimplexnoise::createNoiseTexture2D(vmath::ivec2 dim, vmath::ivec2 off
 	size_t globalWorkSize = pointCount;
 	clglmem outputNoiseCLGL;
 	outputNoiseCLGL = programglobal::oclContext->createCLGLBuffer(sizeof(float) * dim[0] * dim[1], GL_MAP_WRITE_BIT | GL_MAP_READ_BIT, CL_MEM_READ_WRITE);
-	programglobal::oclContext->setKernelParameters(noiseKernel, { param(0, inputGrid), param(1, outputNoiseCLGL.cl), param(2, pointCount), param(3, amplitude) });
+	programglobal::oclContext->setKernelParameters(noiseKernel, { clhelper_param(0, inputGrid), clhelper_param(1, outputNoiseCLGL.cl), clhelper_param(2, pointCount), clhelper_param(3, amplitude) });
 	programglobal::oclContext->runCLKernel(noiseKernel, 1, &globalWorkSize, NULL, { outputNoiseCLGL });
 	glGenTextures(1, &outputNoise);
 	glBindTexture(GL_TEXTURE_2D, outputNoise);
@@ -61,7 +61,7 @@ GLuint opensimplexnoise::createFBMTexture2D(vmath::ivec2 dim, vmath::ivec2 offse
 	size_t globalWorkSize = pointCount;
 	clglmem outputNoiseCLGL;
 	outputNoiseCLGL = programglobal::oclContext->createCLGLBuffer(sizeof(float) * dim[0] * dim[1], GL_MAP_WRITE_BIT | GL_MAP_READ_BIT, CL_MEM_READ_WRITE);
-	programglobal::oclContext->setKernelParameters(noiseKernel, { param(0, inputGrid), param(1, outputNoiseCLGL.cl), param(2, pointCount), param(3, octaves) });
+	programglobal::oclContext->setKernelParameters(noiseKernel, { clhelper_param(0, inputGrid), clhelper_param(1, outputNoiseCLGL.cl), clhelper_param(2, pointCount), clhelper_param(3, octaves) });
 	programglobal::oclContext->runCLKernel(noiseKernel, 1, &globalWorkSize, NULL, { outputNoiseCLGL });
 	CLErr(clhelpererr = clFinish(programglobal::oclContext->getCommandQueue()));
 	glGenTextures(1, &outputNoise);
@@ -95,7 +95,7 @@ GLuint opensimplexnoise::createTurbulenceFBMTexture2D(vmath::ivec2 dim, vmath::i
 	size_t globalWorkSize = pointCount;
 	clglmem outputNoiseCLGL;
 	outputNoiseCLGL = programglobal::oclContext->createCLGLBuffer(sizeof(float) * dim[0] * dim[1], GL_MAP_WRITE_BIT | GL_MAP_READ_BIT, CL_MEM_READ_WRITE);
-	programglobal::oclContext->setKernelParameters(noiseKernel, { param(0, inputGrid), param(1, outputNoiseCLGL.cl), param(2, pointCount), param(3, octaves), param(4, noiseoffset) });
+	programglobal::oclContext->setKernelParameters(noiseKernel, { clhelper_param(0, inputGrid), clhelper_param(1, outputNoiseCLGL.cl), clhelper_param(2, pointCount), clhelper_param(3, octaves), clhelper_param(4, noiseoffset) });
 	programglobal::oclContext->runCLKernel(noiseKernel, 1, &globalWorkSize, NULL, { outputNoiseCLGL });
 	CLErr(clhelpererr = clFinish(programglobal::oclContext->getCommandQueue()));
 	glGenTextures(1, &outputNoise);
@@ -117,7 +117,7 @@ GLuint opensimplexnoise::combineTwoNoiseTextures(GLuint inputTex1, GLuint inputT
 	clglmem inputImage2 = programglobal::oclContext->createCLfromGLTexture(CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, inputTex2);
 	clglmem outputImage = programglobal::oclContext->createCLGLTexture(GL_TEXTURE_2D, GL_R32F, dim[0], dim[1], CL_MEM_WRITE_ONLY);
 
-	programglobal::oclContext->setKernelParameters(combineKernel, {param(0, inputImage1.cl), param(1, inputImage2.cl), param(2, outputImage.cl), param(3, offset)});
+	programglobal::oclContext->setKernelParameters(combineKernel, {clhelper_param(0, inputImage1.cl), clhelper_param(1, inputImage2.cl), clhelper_param(2, outputImage.cl), clhelper_param(3, offset)});
 	size_t globalWorkSize[] = { (size_t)dim[0], (size_t)dim[1] };
 	size_t localWorkSize[] = { 16, 16 };
 	programglobal::oclContext->runCLKernel(combineKernel, 2, globalWorkSize, localWorkSize, {inputImage1, inputImage2, outputImage});

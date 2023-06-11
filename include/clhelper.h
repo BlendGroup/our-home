@@ -12,7 +12,7 @@
 
 extern cl_int clhelpererr;
 
-#define param(pos, mem) {pos, &mem, sizeof(mem)}
+#define clhelper_param(pos, mem) {pos, &mem, sizeof(mem)}
 
 struct clglmem {
 	GLuint gl;

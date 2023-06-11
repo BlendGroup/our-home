@@ -1,32 +1,42 @@
 #ifndef __FLOCK_H__
 #define __FLOCK_H__
 
-#include<iostream>
 #include<clhelper.h>
+#include<glshaderloader.h>
 #include<vmath.h>
 #include<global.h>
+
+#define PRESET_MAX_FORCE 0.8f
+#define PRESET_MAX_SPEED 0.4f
+#define PRESET_COHESION_RADIUS 2.5f
+#define PRESET_ALIGNMENT_RADIUS 4.0f
+#define PRESET_SEPARATION_RADIUS 5.0f
+#define PRESET_MAX_DISTANCE_FROM_ATTRACTOR 50.0f
 
 class Flock {
 private:
     struct boid_t {
-        cl_float4 position;
-        cl_float4 velocity; 
+        vmath::vec4 position;
+        vmath::vec4 velocity; 
     };
-    size_t count;
+    cl_uint count;
     clglmem flockBufferCLGL;
+    vmath::vec4 attractorPosition;
+    GLuint emptyVao;
+    glshaderprogram *flockProgram;
+    glshaderprogram *colorProgram;
     float cohesionRadius;
     float alignmentRadius;
     float separationRadius;
-    vmath::vec3 attractorPosition;
     float maxDistanceFromAttractor;
     float maxSpeed;
     float maxForce;
 public:
-    Flock(size_t count);
+    Flock(size_t count, const vmath::vec4 &initAttractorPosition);
     ~Flock();
     void update(void);
-    void renderBoidsAsQuads(const vmath::mat4 &vpMatrix, float scale);
-    void renderAttractorAsQuad(const vmath::mat4 &vpMatrix, float scale);
+    void renderAsQuads(const vmath::vec4 &color, const vmath::vec4 &emissive, float scale);
+    void renderAttractorAsQuad(const vmath::vec4 &color, const vmath::vec4 &emissive, float scale);
     void setCohesionRadius(float radius) {
         this->cohesionRadius = radius;
     }
@@ -36,7 +46,7 @@ public:
     void setSeparationRadius(float radius) {
         this->separationRadius = radius;
     }
-    void setAttractorPosition(const vmath::vec3 &attractorPosition) {
+    void setAttractorPosition(const vmath::vec4 &attractorPosition) {
         this->attractorPosition = attractorPosition;
     }
     void setMaxDistanceFromAttractor(float distance) {
@@ -49,14 +59,5 @@ public:
         this->maxForce = force;
     }
 };
-
-using namespace std;
-using namespace vmath;
-
-Flock::Flock(size_t count) {
-    this->count = count;
-    this->flockBufferCLGL = programglobal::oclContext->createCLGLBuffer(count * sizeof(cl_float4), 0, CL_MEM_READ_WRITE);
-    
-}
 
 #endif  // __FLOCK_H__
