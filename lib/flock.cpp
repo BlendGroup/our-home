@@ -70,15 +70,15 @@ void Flock::update(void) {
     cl_kernel flockUpdateKernel = programglobal::oclContext->getKernel("flock_update");
     programglobal::oclContext->setKernelParameters(
         flockUpdateKernel,
-        { clhelper_param(0, this->flockBufferCLGL.cl),
-        clhelper_param(1, this->count),
-        clhelper_param(2, this->cohesionRadius),
-        clhelper_param(3, this->alignmentRadius),
-        clhelper_param(4, this->separationRadius),
-        clhelper_param(5, this->attractorPosition),
-        clhelper_param(6, this->maxDistanceFromAttractor),
-        clhelper_param(7, this->maxSpeed),
-        clhelper_param(8, this->maxForce) }
+        { clkernelparam(0, this->flockBufferCLGL.cl),
+        clkernelparam(1, this->count),
+        clkernelparam(2, this->cohesionRadius),
+        clkernelparam(3, this->alignmentRadius),
+        clkernelparam(4, this->separationRadius),
+        clkernelparam(5, this->attractorPosition),
+        clkernelparam(6, this->maxDistanceFromAttractor),
+        clkernelparam(7, this->maxSpeed),
+        clkernelparam(8, this->maxForce) }
     );
     size_t globalWorkSize = this->count;
     programglobal::oclContext->runCLKernel(flockUpdateKernel, 1, &globalWorkSize, NULL, {this->flockBufferCLGL});
