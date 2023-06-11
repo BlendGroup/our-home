@@ -23,6 +23,8 @@
 #include<audio.h>
 #include<godrays.h>
 #include<atmosphere.h>
+#include<scenecamera.h>
+#include<flock.h>
 
 using namespace std;
 using namespace vmath;
@@ -77,8 +79,15 @@ static GLuint texDiffuseDirt;
 static GLuint texDiffuseMountain;
 static GLuint texLakeDuDvMap;
 extern GLuint texLabSceneFinal;
+GLuint texDaySceneFinal;
 static GLuint texTerrainHeight;
 GLuint texDaySceneFinal;
+
+/* all particles */
+static const int MAX_PARTICLES = 512;
+static Flock *fireflies = NULL;
+extern vec4 xyzVector;
+static vec4 &attractor = xyzVector;
 	
 enum tvalues {
 	CROSSIN_T,
@@ -330,6 +339,10 @@ void dayscene::init() {
 	lake1 = new lake(-6.0f);
 
 	atmosphere = new Atmosphere();
+
+	/* fireflies flock */
+	fireflies = new Flock(MAX_PARTICLES, attractor);
+
 #ifdef DEBUG
 	// lakePlacer = new modelplacer(vec3(0.0f, 10.0f, 0.0f), vec3(0.0f, 0.0f, 0.0f), 10.0f);
 	// vec3(-49.0f, -6.0f, -72.0f), vec3(0.0f, 0.0f, 0.0f), 38.0f -> Lake
@@ -410,7 +423,13 @@ void dayscene::renderScene(bool cameraFlip) {
 	} else {
     	atmosphere->render(currentViewMatrix, mix(vec1(radians(10.0f)), vec1(radians(35.0f)), (*dayevents)[SUNRISEEND_T])[0]);
 	}
+
+	/* drawing particles */
+	fireflies->renderAsQuads(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
+	fireflies->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 }
+
+vec4 xyzVector = vec4(-30.4f, 10.8f, -62.8999f, 1.0f);
 
 void dayscene::render() {
 	camera1->setT((*dayevents)[CAMERA1MOVE_T]);
@@ -542,6 +561,8 @@ void dayscene::update() {
 		crossfader::endSnapshot();
 		playNextScene();
 	}
+	fireflies->update();
+	fireflies->setAttractorPosition(attractor);
 }
 
 void dayscene::reset() {
@@ -551,6 +572,7 @@ void dayscene::reset() {
 void dayscene::uninit() {
 	delete land;
 	delete atmosphere;
+	delete fireflies;
 }
 
 void dayscene::keyboardfunc(int key) {
