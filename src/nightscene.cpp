@@ -64,16 +64,16 @@ void nightscene::setupProgram() {
 
 void nightscene::setupCamera() {
 	vector<vec3> positionVector = {
-		vec3(-36.3205f, 14.7124f, -130.091f),
-		vec3(-71.8202f, 16.6124f, -130.991f),
-		vec3(-82.7206f, 16.1124f, -122.591f),
-		vec3(-86.9206f, 18.4124f, -109.391f)
+		vec3(0.0f, 5.61237f, -122.191f),
+		vec3(0.0f, 5.61237f, -121.891f),
+		vec3(0.0f, 5.61237f, -120.691f),
+		vec3(0.0f, 5.61237f, -109.391f)
 	};
 	vector<vec3> frontVector = {
-		vec3(-52.021f, 1.51237f, -106.091f),
-		vec3(-67.3207f, 4.01237f, -105.091f),
-		vec3(-71.5208f, 10.3124f, -102.791f),
-		vec3(-74.3207f, 15.9124f, -89.1912f)
+		vec3(0.0f, 12.21f, -109.7f),
+		vec3(0.0f, 9.21f, -105.09f),
+		vec3(0.0f, 6.0f, -98.29f),
+		vec3(0.0f, 5.5f, -89.19f)
 	}; 
 	camera1 = new sceneCamera(positionVector, frontVector);
 
@@ -88,7 +88,7 @@ void nightscene::setupCamera() {
 void nightscene::init() {
 	nightevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 1.0f }},
-		{CAMERAMOVE_T, { 100.0f, 1.0f }}
+		{CAMERAMOVE_T, { 1.0f, 8.0f }}
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -199,7 +199,7 @@ camera* nightscene::getCamera() {
 }
 
 void nightscene::crossfade() {
-	// if((*nightevents)[CROSSIN_T] < 1.0f) {
-	// 	crossfader::render(texDaySceneFinal, (*nightevents)[CROSSIN_T]);
-	// }
+	if((*nightevents)[CROSSIN_T] < 1.0f) {
+		crossfader::render(texDaySceneFinal, (*nightevents)[CROSSIN_T]);
+	}
 }
