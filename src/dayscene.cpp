@@ -78,6 +78,7 @@ static GLuint texDiffuseMountain;
 static GLuint texLakeDuDvMap;
 extern GLuint texLabSceneFinal;
 static GLuint texTerrainHeight;
+GLuint texDaySceneFinal;
 	
 enum tvalues {
 	CROSSIN_T,
@@ -534,6 +535,10 @@ void dayscene::update() {
 	}
 	if((*dayevents)[DRONETURN_T] >= 0.1f) {
 		modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
+	}
+	if((*dayevents)[CAMERA2MOVE_T] >= 1.0f) {
+		crossfader::captureSnapshot(this, texDaySceneFinal);
+		playNextScene();
 	}
 }
 
