@@ -281,7 +281,7 @@ void SceneLight::setLightUniform(glshaderprogram *program, bool useIndirectLight
     for(size_t i = 0; i < directional.size(); i++){
         
         glUniform3fv(program->getUniformLocation("dl["+std::to_string(i)+"].base.color"),1,directional[i].color);
-        glUniform3fv(program->getUniformLocation("dl["+std::to_string(i)+"].direction"),1,directional[i].direction);
+        glUniform3fv(program->getUniformLocation("dl["+std::to_string(i)+"].direction"),1, normalize(directional[i].direction));
         glUniform1f(program->getUniformLocation("dl["+std::to_string(i)+"].base.intensity"),directional[i].intensity);
     }
 
@@ -355,31 +355,31 @@ void SceneLight::renderSceneLights(glshaderprogram *program){
 
 void SceneLight::SceneLightKeyBoardFunc(int key){
 	switch(key) {
-        case XK_F9: // add Directional Light
+        case XK_b: // add Directional Light
             mode = 0;
         break;
-        case XK_F10: // Add Point Light
+        case XK_n: // Add Point Light
             mode = 1;
         break;
-        case XK_F11: // Add Spot Light
+        case XK_m: // Add Spot Light
             mode = 2;        
         break;
-        case XK_Up:
-            if(mode == 0)
-                this->addDirectionalLight(DirectionalLight(vmath::vec3(0.1f),10.0f,vmath::vec3(0.0,0.0,0.0f)));
-            else if(mode == 1)
-                this->addPointLight(PointLight(vmath::vec3(1.0f,1.0f,1.0f),100.0f,vmath::vec3(0.0f,0.0f,0.0f),10.0f));
-            else
-                this->addSpotLight(SpotLight(vmath::vec3(1.0f,1.0f,1.0f),100.0f,vmath::vec3(0.0f,0.0f,0.0f),10.0f,vmath::vec3(0.0f,0.0f,0.0f),30.0f,45.0f));
-        break;
-        case XK_Down:
-            if(mode == 0)
-                this->directional.erase(directional.begin() + selectedLight);
-            else if(mode == 1)
-                this->points.erase(points.begin() + selectedLight);
-            else
-                this->spots.erase(spots.begin() + selectedLight);
-        break;
+        // case XK_Up:
+        //     if(mode == 0)
+        //         this->addDirectionalLight(DirectionalLight(vmath::vec3(0.1f),10.0f,vmath::vec3(0.0,0.0,0.0f)));
+        //     else if(mode == 1)
+        //         this->addPointLight(PointLight(vmath::vec3(1.0f,1.0f,1.0f),100.0f,vmath::vec3(0.0f,0.0f,0.0f),10.0f));
+        //     else
+        //         this->addSpotLight(SpotLight(vmath::vec3(1.0f,1.0f,1.0f),100.0f,vmath::vec3(0.0f,0.0f,0.0f),10.0f,vmath::vec3(0.0f,0.0f,0.0f),30.0f,45.0f));
+        // break;
+        // case XK_Down:
+        //     if(mode == 0)
+        //         this->directional.erase(directional.begin() + selectedLight);
+        //     else if(mode == 1)
+        //         this->points.erase(points.begin() + selectedLight);
+        //     else
+        //         this->spots.erase(spots.begin() + selectedLight);
+        // break;
         case XK_Left:
             if(mode == 0){
                 selectedLight = (selectedLight + 1) % directional.size();

@@ -3,6 +3,39 @@
 layout(location = 0)out vec4 FragColor;
 layout(location = 1)out vec4 EmissionColor;
 
+struct BaseLight{
+
+    vec3 color;
+    float intensity;
+};
+
+struct DirectionalLight{
+    BaseLight base;
+    vec3 direction;
+};
+
+struct PointLight{
+    BaseLight base;
+    vec3 position;
+    float radius;
+};
+
+struct SpotLight{
+
+    PointLight point;
+    vec3 direction;
+    float inner_angle;
+    float outer_angle;
+};
+
+
+uniform int numOfDL;
+uniform int numOfPoints;
+uniform int numOfSpots;
+uniform DirectionalLight dl[2];
+uniform PointLight pl[10];
+uniform SpotLight sl[5];
+
 uniform vec3 cameraPos;
 uniform float texScale;
 
@@ -57,21 +90,71 @@ in TES_OUT {
 	vec3 nor;
 } fs_in;
 
-void calcPhongLightInWorld(in vec3 posInWorld, in vec3 norInWorld, in vec3 lightPos, in vec3 viewPos, in float shininess, out float diffuse, out float specular) {
-	vec3 N = normalize(norInWorld);
-	vec3 L = normalize(lightPos - posInWorld);
-	vec3 V = normalize(viewPos - posInWorld);
-	vec3 R = reflect(-L, N);
-	diffuse = max(dot(N, L), 0.0);
-	specular = pow(max(dot(V, R), 0.0), shininess);
+vec2 blinnPhong(BaseLight base, vec3 direction, vec3 N, vec3 P)
+{
+    float diffuse = max(dot(N, -direction), 0.0);
+
+    vec3 dir_to_eye  = normalize(cameraPos - P);
+    vec3 half_vector = normalize(dir_to_eye - direction);
+    float specular   = pow(max(dot(half_vector, N), 0.0), 45.0);
+    return vec2(diffuse,specular);
+}
+
+float getSquareFalloffAttenuation(vec3 pos_to_light, float light_inv_radius){
+    float distance_square = dot(pos_to_light,pos_to_light);
+    float factor = distance_square * light_inv_radius * light_inv_radius;
+    float smooth_factor = max(1.0 - factor * factor,0.0);
+    return (smooth_factor * smooth_factor) / max(distance_square,1e-5);
+}
+
+float getSpotAngleAttenuation(vec3 l, vec3 light_dir,float inner_angle,float outer_angle){
+    float cos_outer = cos(outer_angle);
+    float spot_scale = 1.0 / max(cos(inner_angle) - cos_outer,1e-5);
+    float spot_offset = -cos_outer * spot_scale;
+    float cd = dot(normalize(-light_dir),l);
+    float attenuation = clamp(cd * spot_scale + spot_offset, 0.0,1.0);
+    return attenuation;
+}
+
+vec2 calcDirectionalLight(DirectionalLight light, vec3 normal, vec3 world_pos){
+    return blinnPhong(light.base, light.direction, normal, world_pos);
+}
+
+vec2 calcPointLight(PointLight light, vec3 N, vec3 P){
+    vec3 light_direction    = light.position - P;
+    float attenuation = getSquareFalloffAttenuation(light_direction, 1.0 / max(light.radius,1e-5));
+    return blinnPhong(light.base, normalize(light_direction), N, P) * attenuation;
+}
+
+vec2 calcSpotLight(SpotLight light, vec3 N, vec3 P){
+    vec3 l = normalize(P - light.point.position);
+    float attenuation = getSpotAngleAttenuation(l,-light.direction,light.inner_angle,light.outer_angle);
+    return calcPointLight(light.point,N,P) * attenuation;
 }
 
 void main(void) {
+    
+    vec2 directional = vec2(0.0);
+    for(int i = 0; i < numOfDL; i++){
+        directional += calcDirectionalLight(dl[i],normalize(fs_in.nor),fs_in.pos);
+    }
+
+    vec2 point = vec2(0.0);
+    for(int i = 0; i < numOfPoints; i++){
+        point += calcPointLight(pl[i],normalize(fs_in.nor),fs_in.pos);
+    }
+
+    vec2 spot = vec2(0.0);
+    for(int i = 0; i < numOfSpots; i++){
+        spot += calcSpotLight(sl[i],normalize(fs_in.nor),fs_in.pos);
+    }
+
 	float diffuse, specular;
-	calcPhongLightInWorld(fs_in.pos, fs_in.nor, vec3(0.0, 10000.0, 0.0), cameraPos, 45.0, diffuse, specular);
+    vec2 allLight = directional + point + spot;
+
 	float mixVal = texture(texMap, fs_in.tc).r;
 	vec3 grassColor = mix(texture(texDiffuseGrass, fs_in.tc * texScale).rgb, texture(texDiffuseDirt, fs_in.tc * texScale).rgb, 1.0 - (noise(fs_in.tc * texScale) * 0.5 + 0.5));
 	vec3 difColor = mix(grassColor, texture(texDiffuseMountain, fs_in.tc * texScale).rgb, mixVal);
-	FragColor = vec4(diffuse * difColor + vec3(0.1, 0.1, 0.1) * specular, 1.0);
+	FragColor = vec4(allLight.x * difColor + vec3(0.1, 0.1, 0.1) * allLight.y, 1.0);
 	EmissionColor = vec4(0.0);
 }
