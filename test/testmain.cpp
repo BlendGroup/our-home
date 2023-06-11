@@ -40,13 +40,14 @@ static bool isAudioPlaying = true;
 #define SHOW_TEST_SCENE 		0
 #define SHOW_MODEL_SCENE 		0
 #define SHOW_CAMERA_SCENE 		0
-#define SHOW_PBR_SCENE			1
+#define SHOW_PBR_SCENE			0
 #define SHOW_LAB_SCENE			0
 #define SHOW_CAMERA_RIG			0
 #define SHOW_TERRAIN_SCENE 		0
 #define SHOW_CUBEMAP_SCENE		0
 #define SHOW_NOISE_SCENE 		0
 #define SHOW_AUDIO_SCENE		0
+#define SHOW_AS_SCENE			1
 
 mat4 programglobal::perspective;
 clglcontext* programglobal::oclContext;
@@ -81,6 +82,9 @@ void setupProgram(void) {
 #if SHOW_LAKE_SCENE
 		setupProgramTestLake();
 #endif
+#if SHOW_AS_SCENE
+		setupProgramAS();
+#endif
 		hdr->setupProgram();
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -89,7 +93,7 @@ void setupProgram(void) {
 
 void setupSceneCamera(void) {
 	try {
-		debugcamera = new debugCamera(vec3(0.0f, 6359.0f, 30.0f), 270.0f, 20.0f);
+		debugcamera = new debugCamera(vec3(0.0f, 0.0f, 5.0f), -90.0f, 0.0f);
 		setupSceneCameraTestCamera(scenecamera);
 		setupSceneCameraRigTestCamera(scenecamerarig, scenecamera);
 	} catch(string errorString) {
@@ -101,8 +105,8 @@ void init(void) {
 	try {
 		//Object Creation
 		hdr = new HDR(1.0f, 1.0f, 2048);
-		programglobal::oclContext = new clglcontext(1);
-		programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
+		//programglobal::oclContext = new clglcontext(1);
+		//programglobal::oclContext->compilePrograms({"shaders/terrain/calcnormals.cl", "shaders/opensimplexnoise.cl"});
 
 		//Inititalize
 #if SHOW_TEST_SCENE
@@ -126,6 +130,10 @@ void init(void) {
 #if SHOW_AUDIO_SCENE
 		alutInit(0, NULL);
 		initTestAudio();
+#endif
+#if SHOW_AS_SCENE
+		//alutInit(0, NULL);
+		initAS();
 #endif
 		hdr->init();
 
@@ -170,10 +178,12 @@ void render(glwindow* window) {
 #if SHOW_NOISE_SCENE
 		renderTestNoise();
 #endif
+#if SHOW_AS_SCENE
+		renderAS(dynamic_cast<camera*>(debugcamera),debugcamera->position());
+#endif
 #if SHOW_AUDIO_SCENE
 		renderTestAudio(isAudioPlaying);
 #endif
-
 		if(hdrEnabled) {
 			glBindFramebuffer(GL_FRAMEBUFFER,0);
 			glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
@@ -251,6 +261,9 @@ void uninit(void) {
 #endif
 #if SHOW_CUBEMAP_SCENE
 	uninitTestRenderToCubemap();
+#endif
+#if SHOW_AS_SCENE
+	uninitAS();
 #endif
 #if SHOW_AUDIO_SCENE
 	uninitTestAudio();

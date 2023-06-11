@@ -11,12 +11,14 @@ layout(location = 3)in vec3 vTangent;
 layout(location = 4)in vec3 vBitangent;
 
 uniform mat4 M;
-uniform mat4 MVP;
+uniform mat4 pMat;
+uniform mat4 vMat;
+uniform mat4 mMat;
 
 out vec3 fsPosition;
 
 void main(){
 
     fsPosition = vec3(M * vPos);
-    gl_Position = MVP * vPos;
+    gl_Position = pMat * vMat * mMat * vPos;
 }

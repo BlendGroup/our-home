@@ -6,17 +6,16 @@
 struct buffer {
 	GLuint vao;
 	GLuint vbo;
+	GLuint eabo;
 	unsigned vertexCount;
 };
 
 class shaperenderer{
 private:
 	buffer quad;
-	buffer sphere;
 public:
 	shaperenderer(void);
 	void renderQuad(void);
-	void renderSphere(void);
 	~shaperenderer();
 };
 
