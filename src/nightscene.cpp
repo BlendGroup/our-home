@@ -19,6 +19,7 @@
 #include<godrays.h>
 #include<sphere.h>
 #include<gltextureloader.h>
+#include<flock.h>
 
 using namespace std;
 using namespace vmath;
@@ -51,6 +52,12 @@ enum tvalues {
 	CAMERAMOVE_T
 };
 static eventmanager* nightevents;
+
+static const int MAX_PARTICLES = 1024;
+static Flock *fireflies1 = NULL;
+static Flock *fireflies2 = NULL;
+static vec4 attractorPosition1 =  vec4(-30.0f, 15.0f, -30.0f, 1.0f);
+static vec4 attractorPosition2 =  vec4(-30.0f, 15.0f, 30.0f, 1.0f);
 
 void nightscene::setupProgram() {
 	try {
@@ -101,6 +108,9 @@ void nightscene::init() {
 	land2 = new terrain(texJungle2, 256, true, 5, 16);
 	lightManager = new SceneLight(false);
 	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 10.0f, vec3(0.0f, -1.0f, 0.0f)));
+
+	fireflies1 = new Flock(MAX_PARTICLES, attractorPosition1);
+	fireflies2 = new Flock(MAX_PARTICLES, attractorPosition2);
 }
 
 void nightscene::render() {
@@ -146,6 +156,12 @@ void nightscene::render() {
 		glBindTextureUnit(i, 0);
 	}
 
+	fireflies1->renderAsQuads(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.08f);
+	fireflies1->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
+
+	fireflies2->renderAsQuads(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.08f);
+	fireflies2->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
+
 	if((*nightevents)[CROSSIN_T] < 1.0f) {
 		crossfader::render(texDaySceneFinal, (*nightevents)[CROSSIN_T]);
 	}
@@ -158,6 +174,10 @@ void nightscene::render() {
 
 void nightscene::update() {
 	nightevents->increment();
+	fireflies1->update();
+	fireflies1->setAttractorPosition(attractorPosition1);
+	fireflies2->update();
+	fireflies2->setAttractorPosition(attractorPosition2);
 }
 
 void nightscene::reset() {
@@ -166,6 +186,8 @@ void nightscene::reset() {
 
 void nightscene::uninit() {
 	delete land;
+	delete fireflies2;
+	delete fireflies1;
 }
 
 void nightscene::keyboardfunc(int key) {
