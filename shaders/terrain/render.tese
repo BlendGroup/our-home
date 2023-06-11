@@ -48,8 +48,8 @@ void main(void) {
 	P[3].y += texture(texHeight, TC[3]).r;
 	P[4].y += texture(texHeight, TC[4]).r;
 
-	float x = P[2].y - P[1].y;
-	float z = P[3].y - P[4].y;
+	float x = P[1].y - P[2].y;
+	float z = P[4].y - P[3].y;
 
 	tes_out.tc = TC[0];
 	// tes_out.nor = mat3(mMat) * texture(texNormal, tc).rgb;
