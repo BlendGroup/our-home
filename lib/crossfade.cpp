@@ -6,10 +6,21 @@ using namespace vmath;
 
 glshaderprogram* crossfader::programCrossFade;
 GLuint crossfader::emptyvao;
-
+GLuint fboCross;
+GLuint rboCross;
+	
 void crossfader::init() {
 	crossfader::programCrossFade = new glshaderprogram({"shaders/fsquad.vert", "shaders/crossfade.frag"});
 	glGenVertexArrays(1, &crossfader::emptyvao);
+	glGenRenderbuffers(1, &rboCross);
+	glBindRenderbuffer(GL_RENDERBUFFER, rboCross);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, tex_1k);
+
+	glGenFramebuffers(1, &fboCross);
+	glBindFramebuffer(GL_FRAMEBUFFER, fboCross);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboCross);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void crossfader::render(GLuint tex, GLfloat t) {
@@ -26,29 +37,21 @@ void crossfader::render(GLuint tex, GLfloat t) {
 		glDisable(GL_BLEND);
 }
 
-void crossfader::captureSnapshot(basescene* scenePtr, GLuint& tex) {
-	GLuint fboTitleSceneFinal;
-	GLuint rboTitleSceneFinal;
-	
+void crossfader::startSnapshot(GLuint& tex) {
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, tex_1k);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	
-	glGenRenderbuffers(1, &rboTitleSceneFinal);
-	glBindRenderbuffer(GL_RENDERBUFFER, rboTitleSceneFinal);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, tex_1k);
-
-	glGenFramebuffers(1, &fboTitleSceneFinal);
-	glBindFramebuffer(GL_FRAMEBUFFER, fboTitleSceneFinal);
+	glBindFramebuffer(GL_FRAMEBUFFER, fboCross);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboTitleSceneFinal);
-	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 	glViewport(0, 0, tex_1k);
 	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
-	scenePtr->render();
+}
+
+void crossfader::endSnapshot() {
 	resetFBO();
 }
 

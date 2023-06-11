@@ -537,7 +537,9 @@ void dayscene::update() {
 		modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
 	}
 	if((*dayevents)[CAMERA2MOVE_T] >= 1.0f) {
-		crossfader::captureSnapshot(this, texDaySceneFinal);
+		crossfader::startSnapshot(texDaySceneFinal);
+		atmosphere->render(programglobal::currentCamera->matrix(), radians(35.0f));
+		crossfader::endSnapshot();
 		playNextScene();
 	}
 }
@@ -562,7 +564,6 @@ void dayscene::keyboardfunc(int key) {
 	} else if(programglobal::debugMode == LIGHT) {
 		lightManager->SceneLightKeyBoardFunc(key);
 	} else if(programglobal::debugMode == NONE) {
-		cout<<"Current T = "<<dayevents->getT()<<endl;
 		atmosphere->keyboardfunc(key);
 	}
 	switch(key) {
@@ -588,6 +589,7 @@ void dayscene::keyboardfunc(int key) {
 		if(programglobal::debugMode == MODEL) {
 			cout<<lakePlacer<<endl;
 		}
+		cout<<"Current T = "<<dayevents->getT()<<endl;
 		break;
 	}
 }

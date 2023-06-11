@@ -58,7 +58,9 @@ void titlescene::render() {
 void titlescene::update(void) {
 	titleevents->increment();
 	if((*titleevents)[RENDERTITLE_T] >= 1.0f) {
-		crossfader::captureSnapshot(this, texTitleSceneFinal);
+		crossfader::startSnapshot(texTitleSceneFinal);
+		render();
+		crossfader::endSnapshot();
 		playNextScene();
 	}
 }

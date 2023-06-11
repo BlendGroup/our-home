@@ -77,9 +77,9 @@ void init(void) {
 		programglobal::shapeRenderer = new shaperenderer();
 		crossfader::init();
 		sceneList.insert(sceneList.begin(), {
-			// new titlescene(),
-			// new labscene(),
-			// new dayscene(),
+			new titlescene(),
+			new labscene(),
+			new dayscene(),
 			new nightscene()
 		});
 

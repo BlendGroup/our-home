@@ -87,8 +87,8 @@ void nightscene::setupCamera() {
 }
 void nightscene::init() {
 	nightevents = new eventmanager({
-		{CROSSIN_T, { 0.0f, 1.0f }},
-		{CAMERAMOVE_T, { 1.0f, 8.0f }}
+		{CROSSIN_T, { 0.0f, 10.0f }},
+		{CAMERAMOVE_T, { 10.0f, 8.0f }}
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -146,10 +146,14 @@ void nightscene::render() {
 		glBindTextureUnit(i, 0);
 	}
 
+	if((*nightevents)[CROSSIN_T] < 1.0f) {
+		crossfader::render(texDaySceneFinal, (*nightevents)[CROSSIN_T]);
+	}
+
 	if(programglobal::debugMode == CAMERA) {
 		camRig1->render();
 	} else if(programglobal::debugMode == SPLINE) {
-	}
+	}	
 }
 
 void nightscene::update() {
@@ -199,7 +203,4 @@ camera* nightscene::getCamera() {
 }
 
 void nightscene::crossfade() {
-	if((*nightevents)[CROSSIN_T] < 1.0f) {
-		crossfader::render(texDaySceneFinal, (*nightevents)[CROSSIN_T]);
-	}
 }
