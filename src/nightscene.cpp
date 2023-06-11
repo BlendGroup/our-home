@@ -1,8 +1,4 @@
-#define DEBUG
-#include<scenes/night.h>
-#include<glmodelloader.h>
-#include<glshaderloader.h>
-#include<gltextureloader.h>
+ #include<scenes/night.h>
 #include<iostream>
 #include<vmath.h>
 #include<scenecamera.h>
@@ -11,20 +7,18 @@
 #include<X11/keysym.h>
 #include<interpolators.h>
 #include<splinerenderer.h>
-#include<CubeMapRenderTarget.h>
 #include<terrain.h>
 #include<glLight.h>
 #include<assimp/postprocess.h>
 #include<global.h>
 #include<opensimplexnoise.h>
 #include<crossfade.h>
-#include<lake.h>
 #include<eventmanager.h>
 #include<splineadjuster.h>
 #include<audio.h>
 #include<godrays.h>
-#include<atmosphere.h>
-#include<scenecamera.h>
+#include<sphere.h>
+#include<gltextureloader.h>
 
 using namespace std;
 using namespace vmath;
@@ -34,10 +28,13 @@ static glshaderprogram* programStaticPBR;
 static glshaderprogram* programDynamicPBR;
 
 static terrain* land;
+static terrain* land2;
 
 static SceneLight* lightManager;
 
 static sceneCamera* camera1;
+
+static sphere* sphereMap;
 
 #ifdef DEBUG
 static sceneCameraRig* camRig1;
@@ -46,15 +43,18 @@ static audioplayer* playerBkgnd;
 #endif
 
 extern GLuint texDaySceneFinal;
+static GLuint texDiffuseGrass;
+static GLuint texDiffuseDirt;
 	
 enum tvalues {
 	CROSSIN_T,
+	CAMERAMOVE_T
 };
 static eventmanager* nightevents;
 
 void nightscene::setupProgram() {
 	try {
-		programTerrain = new glshaderprogram({"shaders/terrain/render.vert", "shaders/terrain/render.tesc", "shaders/terrain/render.tese", "shaders/terrain/render.frag"});
+		programTerrain = new glshaderprogram({"shaders/terrain/render.vert", "shaders/terrain/render.tesc", "shaders/terrain/render.tese", "shaders/terrain/renderjungle.frag"});
 		programStaticPBR = new glshaderprogram({"shaders/pbrStatic.vert", "shaders/pbrMain.frag"});
 		programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
 	} catch(string errorString)  {
@@ -88,11 +88,63 @@ void nightscene::setupCamera() {
 void nightscene::init() {
 	nightevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 1.0f }},
+		{CAMERAMOVE_T, { 100.0f, 1.0f }}
 	});
+
+	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
+	texDiffuseDirt = createTexture2D("resources/textures/dirt.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
+	GLuint texJungle = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 0), 256.0f, 5.0f, 5, 235);
+	GLuint texJungle2 = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 1024), 256.0f, 5.0f, 5, 235);
+
+	sphereMap = new sphere(25, 50, 1.0f);
+	land = new terrain(texJungle, 256, true, 5, 16);
+	land2 = new terrain(texJungle2, 256, true, 5, 16);
+	lightManager = new SceneLight(false);
+	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 10.0f, vec3(0.0f, -1.0f, 0.0f)));
 }
 
 void nightscene::render() {
-	// camera1->setT((*dayevents)[CAMERA1MOVE_T]);
+	camera1->setT((*nightevents)[CAMERAMOVE_T]);
+
+	programTerrain->use();
+	glUniformMatrix4fv(programTerrain->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programTerrain->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, mat4::identity());
+	glUniform1f(programTerrain->getUniformLocation("maxTess"), land->getMaxTess());
+	glUniform1f(programTerrain->getUniformLocation("minTess"), land->getMinTess());
+	glUniform3fv(programTerrain->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
+	glUniform1i(programTerrain->getUniformLocation("texHeight"), 0);
+	// glUniform1i(programTerrain->getUniformLocation("texNormal"), 1);
+	glUniform1i(programTerrain->getUniformLocation("texDiffuseGrass"), 3);
+	glUniform1i(programTerrain->getUniformLocation("texDiffuseDirt"), 4);
+	glUniform1f(programTerrain->getUniformLocation("texScale"), 15.0f);
+	glBindTextureUnit(0, land->getHeightMap());
+	glBindTextureUnit(1, land->getNormalMap());
+	glBindTextureUnit(3, texDiffuseGrass);
+	glBindTextureUnit(4, texDiffuseDirt);
+	lightManager->setLightUniform(programTerrain, false);
+	land->render();
+	
+	glUniformMatrix4fv(programTerrain->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programTerrain->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 256.0f));
+	glUniform1f(programTerrain->getUniformLocation("maxTess"), land->getMaxTess());
+	glUniform1f(programTerrain->getUniformLocation("minTess"), land->getMinTess());
+	glUniform3fv(programTerrain->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
+	glUniform1i(programTerrain->getUniformLocation("texHeight"), 0);
+	// glUniform1i(programTerrain->getUniformLocation("texNormal"), 1);
+	glUniform1i(programTerrain->getUniformLocation("texDiffuseGrass"), 2);
+	glUniform1i(programTerrain->getUniformLocation("texDiffuseDirt"), 3);
+	glUniform1f(programTerrain->getUniformLocation("texScale"), 15.0f);
+	glBindTextureUnit(0, land2->getHeightMap());
+	glBindTextureUnit(1, land2->getNormalMap());
+	glBindTextureUnit(2, texDiffuseGrass);
+	glBindTextureUnit(3, texDiffuseDirt);
+	lightManager->setLightUniform(programTerrain, false);
+	land2->render();
+	for(int i = 0; i < 9; i++) {
+		glBindTextureUnit(i, 0);
+	}
 
 	if(programglobal::debugMode == CAMERA) {
 		camRig1->render();
@@ -108,7 +160,6 @@ void nightscene::reset() {
 	nightevents->resetT();
 }
 
-	// }
 void nightscene::uninit() {
 	delete land;
 }
@@ -148,7 +199,7 @@ camera* nightscene::getCamera() {
 }
 
 void nightscene::crossfade() {
-	if((*nightevents)[CROSSIN_T] < 1.0f) {
-		crossfader::render(texDaySceneFinal, (*nightevents)[CROSSIN_T]);
-	}
+	// if((*nightevents)[CROSSIN_T] < 1.0f) {
+	// 	crossfader::render(texDaySceneFinal, (*nightevents)[CROSSIN_T]);
+	// }
 }

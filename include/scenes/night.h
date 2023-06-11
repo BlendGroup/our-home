@@ -1,5 +1,5 @@
-#ifndef __DAY_SCENE__
-#define __DAY_SCENE__
+#ifndef __NIGHT_SCENE__
+#define __NIGHT_SCENE__
 
 #include<scenes/base.h>
 

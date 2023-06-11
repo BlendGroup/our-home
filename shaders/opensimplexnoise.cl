@@ -54,7 +54,7 @@ kernel void noise2(global float2* input, global float* output, const uint numPoi
 	}
 }
 
-kernel void fbm2(global float2* input, global float* output, const uint numPoints, const int octaves) {
+kernel void fbm2(global float2* input, global float* output, const uint numPoints, const int octaves, const float totalamplitude) {
 	int index = get_global_id(0);
 	if(index < numPoints) {
 		// Initial values
@@ -68,7 +68,7 @@ kernel void fbm2(global float2* input, global float* output, const uint numPoint
 			st *= 2.0f;
 			amplitude *= 0.5f;
 		}
-		output[index] = value;
+		output[index] = value * totalamplitude;
 	}
 }
 

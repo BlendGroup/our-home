@@ -20,9 +20,10 @@
 #include<crossfade.h>
 
 #include<scenes/base.h>
+#include<scenes/title.h>
 #include<scenes/lab.h>
 #include<scenes/day.h>
-#include<scenes/title.h>
+#include<scenes/night.h>
 
 using namespace std;
 using namespace vmath;
@@ -76,9 +77,10 @@ void init(void) {
 		programglobal::shapeRenderer = new shaperenderer();
 		crossfader::init();
 		sceneList.insert(sceneList.begin(), {
-			new titlescene(),
-			new labscene(),
-			new dayscene()
+			// new titlescene(),
+			// new labscene(),
+			// new dayscene(),
+			new nightscene()
 		});
 
 		//Inititalize
@@ -91,6 +93,7 @@ void init(void) {
 		} 
 
 		playNextScene();
+		// playNextScene();
 		// playNextScene();
 		// playNextScene();
 
@@ -116,7 +119,7 @@ void render(glwindow* window) {
 			glViewport(0, 0, window->getSize().width, window->getSize().height);
 		}
 
-		glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+		glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 1.0f, 0.0f, 1.0f));
 		glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 		programglobal::perspective = perspective(45.0f, window->getSize().width / window->getSize().height, 0.1f, 1000.0f);
 
