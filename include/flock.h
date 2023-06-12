@@ -7,13 +7,6 @@
 #include<global.h>
 #include<sphere.h>
 
-#define PRESET_MAX_FORCE 0.8f
-#define PRESET_MAX_SPEED 0.4f
-#define PRESET_COHESION_RADIUS 2.5f
-#define PRESET_ALIGNMENT_RADIUS 4.0f
-#define PRESET_SEPARATION_RADIUS 5.0f
-#define PRESET_MAX_DISTANCE_FROM_ATTRACTOR 50.0f
-
 class Flock {
 private:
     struct boid_t {
