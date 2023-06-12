@@ -65,7 +65,8 @@ static GLuint vbo;
 
 enum tvalues {
 	CROSSIN_T,
-	CAMERAMOVE_T
+	CAMERAMOVE_T,
+	FIREFLIES1BEGIN_T
 };
 static eventmanager* nightevents;
 
@@ -74,6 +75,11 @@ static Flock *fireflies1 = NULL;
 static Flock *fireflies2 = NULL;
 static vec4 attractorPosition1 =  vec4(-30.0f, 15.0f, -30.0f, 1.0f);
 static vec4 attractorPosition2 =  vec4(-30.0f, 15.0f, 30.0f, 1.0f);
+static BsplineInterpolator *fireflies1Path = NULL;
+static SplineRenderer *path1 = NULL;
+static BsplineInterpolator *fireflies2Path = NULL;
+static SplineRenderer *path2 = NULL;
+static SplineAdjuster *pathAdjuster = NULL;
 
 void nightscene::setupProgram() {
 	try {
@@ -126,7 +132,8 @@ float randInRange(float min, float max) {
 void nightscene::init() {
 	nightevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 2.0f }},
-		{CAMERAMOVE_T, { 2.0f, 8.0f }}
+		{CAMERAMOVE_T, { 2.0f, 8.0f }},
+		{FIREFLIES1BEGIN_T, {8.0f, 30.0f}}
 	});
 
 	float startz = -105.0f;
@@ -265,6 +272,23 @@ void nightscene::init() {
 
 	fireflies1 = new Flock(MAX_PARTICLES, attractorPosition1);
 	fireflies2 = new Flock(MAX_PARTICLES, attractorPosition2);
+
+	vector<vec3> fireflies1PathPoints = vector<vec3>({
+		vec3(60.8793f, 25.5124f, 23.3078f),
+		vec3(53.5794f, 5.41234f, -78.9927f),
+		vec3(27.7798f, 14.5124f, -102.292f),
+		vec3(-4.9203f, 12.1124f, -104.392f),
+		vec3(-36.2204f, 9.6876f, -84.6909f),
+		vec3(-58.2204f, 8.5876f, -39.2911f),
+		vec3(-12.303f, 14.1127f, -28.893f),
+		vec3(-9.50299f, 16.9127f, -65.7925f),
+		vec3(-41.9029f, 30.5128f, -70.1924f),
+		vec3(-46.4029f, 32.1128f, -37.9929f),
+		vec3(-7.80381f, 49.7125f, -32.0936f)
+	});
+	fireflies1Path = new BsplineInterpolator(fireflies1PathPoints);
+	path1 = new SplineRenderer(fireflies1Path);
+	pathAdjuster = new SplineAdjuster(fireflies1Path);
 }
 
 void nightscene::render() {
@@ -330,11 +354,11 @@ void nightscene::render() {
 	glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboTreePosition);
 	// modelTreeRed->draw(programStaticInstancedPBR, 60);
 
-	fireflies1->renderAsQuads(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.08f);
+	fireflies1->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.08f);
 	fireflies1->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
-	fireflies2->renderAsQuads(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.08f);
-	fireflies2->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
+	// fireflies2->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.08f);
+	// fireflies2->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
 	if((*nightevents)[CROSSIN_T] < 1.0f) {
 		crossfader::render(texDaySceneFinal, (*nightevents)[CROSSIN_T]);
@@ -343,13 +367,16 @@ void nightscene::render() {
 	if(programglobal::debugMode == CAMERA) {
 		camRig1->render();
 	} else if(programglobal::debugMode == SPLINE) {
+		pathAdjuster->setRenderPoints(true);
+		pathAdjuster->render(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f, 0.0f, 1.0f, 1.0f), vec4(1.0f, 1.0f, 0.0f, 1.0f));
 	}
 }
 
 void nightscene::update() {
 	nightevents->increment();
-	fireflies1->update();
+	attractorPosition1 = vec4(fireflies1Path->interpolate((*nightevents)[FIREFLIES1BEGIN_T]), 1.0f);
 	fireflies1->setAttractorPosition(attractorPosition1);
+	fireflies1->update();
 	fireflies2->update();
 	fireflies2->setAttractorPosition(attractorPosition2);
 }
@@ -360,6 +387,9 @@ void nightscene::reset() {
 
 void nightscene::uninit() {
 	delete land;
+	delete pathAdjuster;
+	delete path1;
+	delete fireflies1Path;
 	delete fireflies2;
 	delete fireflies1;
 }
@@ -370,6 +400,7 @@ void nightscene::keyboardfunc(int key) {
 	} else if(programglobal::debugMode == CAMERA) {
 		camRig1->keyboardfunc(key);
 	} else if(programglobal::debugMode == SPLINE) {
+		pathAdjuster->keyboardfunc(key);
 	} else if(programglobal::debugMode == NONE) {
 	}
 	switch(key) {
@@ -387,6 +418,7 @@ void nightscene::keyboardfunc(int key) {
 		if(programglobal::debugMode == CAMERA) {
 			cout<<camRig1->getCamera()<<endl;
 		} else if(programglobal::debugMode == SPLINE) {
+			cout << pathAdjuster->getSpline() << endl;
 		} else if(programglobal::debugMode == MODEL) {
 			cout<<quickModelPlacer<<endl;
 		}

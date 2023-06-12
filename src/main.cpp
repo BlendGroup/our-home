@@ -92,9 +92,9 @@ void init(void) {
 			b->init();
 		} 
 
-		playNextScene();
-		playNextScene();
-		playNextScene();
+		// playNextScene();
+		// playNextScene();
+		// playNextScene();
 		playNextScene();
 
 		glDepthFunc(GL_LEQUAL);
