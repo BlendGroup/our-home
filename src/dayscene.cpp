@@ -22,7 +22,7 @@
 #include<splineadjuster.h>
 #include<audio.h>
 #include<godrays.h>
-#include <atmosphere.h>
+#include<atmosphere.h>
 
 using namespace std;
 using namespace vmath;
@@ -96,7 +96,7 @@ static eventmanager* dayevents;
 
 void dayscene::setupProgram() {
 	try {
-		programTerrain = new glshaderprogram({"shaders/terrain/render.vert", "shaders/terrain/render.tesc", "shaders/terrain/render.tese", "shaders/terrain/render.frag"});
+		programTerrain = new glshaderprogram({"shaders/terrain/render.vert", "shaders/terrain/render.tesc", "shaders/terrain/render.tese", "shaders/terrain/rendervalley.frag"});
 		programLake = new glshaderprogram({"shaders/lake/render.vert", "shaders/lake/render.frag"});
 		programStaticPBR = new glshaderprogram({"shaders/pbrStatic.vert", "shaders/pbrMain.frag"});
 		programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
@@ -259,7 +259,7 @@ void dayscene::init() {
 	texLakeDuDvMap = createTexture2D("resources/textures/dudv.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
  
 	ivec2 dim = ivec2(2048, 2048);
-	valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 3, 1234);
+	valleyHeightMap = opensimplexnoise::createFBMTexture2D(dim, ivec2(0, 0), 900.0f, 1.0f, 3, 1234);
 	mountainHeightMap = opensimplexnoise::createTurbulenceFBMTexture2D(dim, ivec2(0, 0), 1200.0f, 4, 0.11f, 111);
 	texLakeMap = createTexture2D("resources/textures/lake.png", GL_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texRoadMap = createTexture2D("resources/textures/road.png", GL_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -325,7 +325,7 @@ void dayscene::init() {
 	godraysDrone->setWeight(0.01f);
 
 	lightManager = new SceneLight();
-	lightManager->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,-1.0,-1.0f)));
+	lightManager->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,-1.0,0.0f)));
 
 	lake1 = new lake(-6.0f);
 
@@ -537,7 +537,9 @@ void dayscene::update() {
 		modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
 	}
 	if((*dayevents)[CAMERA2MOVE_T] >= 1.0f) {
-		crossfader::captureSnapshot(this, texDaySceneFinal);
+		crossfader::startSnapshot(texDaySceneFinal);
+		atmosphere->render(programglobal::currentCamera->matrix(), radians(35.0f));
+		crossfader::endSnapshot();
 		playNextScene();
 	}
 }
@@ -562,7 +564,6 @@ void dayscene::keyboardfunc(int key) {
 	} else if(programglobal::debugMode == LIGHT) {
 		lightManager->SceneLightKeyBoardFunc(key);
 	} else if(programglobal::debugMode == NONE) {
-		cout<<"Current T = "<<dayevents->getT()<<endl;
 		atmosphere->keyboardfunc(key);
 	}
 	switch(key) {
@@ -588,6 +589,7 @@ void dayscene::keyboardfunc(int key) {
 		if(programglobal::debugMode == MODEL) {
 			cout<<lakePlacer<<endl;
 		}
+		cout<<"Current T = "<<dayevents->getT()<<endl;
 		break;
 	}
 }

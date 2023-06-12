@@ -20,9 +20,10 @@
 #include<crossfade.h>
 
 #include<scenes/base.h>
+#include<scenes/title.h>
 #include<scenes/lab.h>
 #include<scenes/day.h>
-#include<scenes/title.h>
+#include<scenes/night.h>
 
 using namespace std;
 using namespace vmath;
@@ -78,7 +79,8 @@ void init(void) {
 		sceneList.insert(sceneList.begin(), {
 			new titlescene(),
 			new labscene(),
-			new dayscene()
+			new dayscene(),
+			new nightscene()
 		});
 
 		//Inititalize
@@ -91,6 +93,7 @@ void init(void) {
 		} 
 
 		playNextScene();
+		// playNextScene();
 		// playNextScene();
 		// playNextScene();
 

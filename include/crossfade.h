@@ -11,7 +11,8 @@ private:
 public:
 	static void init();
 	static void render(GLuint tex, GLfloat t);
-	static void captureSnapshot(basescene* scenePtr, GLuint& tex);
+	static void startSnapshot(GLuint& tex);
+	static void endSnapshot();
 	static void uninit();
 };
 
