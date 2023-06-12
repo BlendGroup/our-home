@@ -23,6 +23,5 @@ void main(void) {
         vec4(0.0, 0.0, scale, 0.0),
         flock_buffer[gl_InstanceID].position
     );
-    mat4 mvMat = vMat * mMat;
-    gl_Position = pMat * mvMat * vPos;
+    gl_Position = pMat * vMat * mMat * vPos;
 }
