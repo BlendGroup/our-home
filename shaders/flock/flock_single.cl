@@ -104,14 +104,19 @@ __kernel void flock_update (
 	__global boid_t *const current = &flock_buffer[this_id];
 
 	// update force on this boid
-	current->position += (float4)(acceleration, 0.0f);//current->velocity;
+	float4 prevPosition = current->position;
+	float4 nextPosition = prevPosition + (float4)(acceleration, 0.0f);
+	if(distance(prevPosition.xyz, nextPosition.xyz) > max_speed)
+		current->position += (float4)(normalize(nextPosition.xyz - prevPosition.xyz) * max_speed, 0.0f);
+	
+	// current->position += current->velocity;
 	// current->velocity += (float4)(acceleration, 0.0f);
 
-	// // restrict boid distance from attractor
-	// if(distance(current->position, attractor_position) > max_distance_from_attractor)
+	// restrict boid distance from attractor
+	// if(distance(current->position.xyz, attractor_position.xyz) > max_distance_from_attractor)
 	// 	current->velocity = -current->velocity;
 	
 	// // restrict boid speeds
 	// if(length(current->velocity) > max_speed)
-	// 	current->velocity = normalize(current->velocity) * max_speed;
+	// 	current->velocity = (float4)(normalize(current->velocity.xyz), 0.0) * max_speed;
 }
