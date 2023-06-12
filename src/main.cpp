@@ -18,6 +18,7 @@
 #include<shapes.h>
 #include<godrays.h>
 #include<crossfade.h>
+#include<randomgen.h>
 
 #include<scenes/base.h>
 #include<scenes/title.h>
@@ -43,6 +44,7 @@ clglcontext* programglobal::oclContext;
 shaperenderer* programglobal::shapeRenderer;
 bool programglobal::isAnimating = false;
 HDR* programglobal::hdr;
+randomgenerator* programglobal::randgen;
 
 void setupProgram(void) {
 	try {
@@ -73,8 +75,9 @@ void init(void) {
 		//Object Creation
 		programglobal::hdr = new HDR(1.5f, 1.0f, 2048);
 		programglobal::oclContext = new clglcontext(1);
-		programglobal::oclContext->compilePrograms({"shaders/opensimplexnoise.cl"});
+		programglobal::oclContext->compilePrograms({"shaders/opensimplexnoise.cl", "shaders/flock/flock_single.cl"});
 		programglobal::shapeRenderer = new shaperenderer();
+		programglobal::randgen = new randomgenerator();
 		crossfader::init();
 		sceneList.insert(sceneList.begin(), {
 			// new titlescene(),
@@ -92,10 +95,10 @@ void init(void) {
 			b->init();
 		} 
 
+		// playNextScene();
+		// playNextScene();
+		// playNextScene();
 		playNextScene();
-		// playNextScene();
-		// playNextScene();
-		// playNextScene();
 
 		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);

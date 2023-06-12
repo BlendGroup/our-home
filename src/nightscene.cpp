@@ -1,3 +1,4 @@
+#define DEBUG
 #include<scenes/night.h>
 #include<iostream>
 #include<vmath.h>
@@ -19,6 +20,7 @@
 #include<godrays.h>
 #include<sphere.h>
 #include<gltextureloader.h>
+#include<flock.h>
 #include<glmodelloader.h>
 
 using namespace std;
@@ -64,9 +66,23 @@ static GLuint vbo;
 
 enum tvalues {
 	CROSSIN_T,
-	CAMERAMOVE_T
+	CAMERAMOVE_T,
+	FIREFLIES1BEGIN_T
 };
 static eventmanager* nightevents;
+
+static const int MAX_PARTICLES = 256;
+static Flock *firefliesA = NULL;
+static Flock *fireflies2B = NULL;
+static vec3 attractorPositionA =  vec3(-30.0f, 15.0f, -30.0f);
+static vec3 attractorPositionB =  vec3(-30.0f, 15.0f, 30.0f);
+static BsplineInterpolator *firefliesAPath1 = NULL;
+static BsplineInterpolator *firefliesAPath2 = NULL;
+static SplineRenderer *pathA1 = NULL;
+static SplineRenderer *pathA2 = NULL;
+static BsplineInterpolator *firefliesBPath1 = NULL;
+static SplineRenderer *pathB1 = NULL;
+static SplineAdjuster *pathAdjuster = NULL;
 
 void nightscene::setupProgram() {
 	try {
@@ -112,14 +128,11 @@ void nightscene::setupCamera() {
 	camRig1->setScalingFactor(0.1f);
 }
 
-float randInRange(float min, float max) {
-	return ((float)rand() / (float)RAND_MAX) * (max - min) + min;
-}
-
 void nightscene::init() {
 	nightevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 2.0f }},
-		{CAMERAMOVE_T, { 2.0f, 8.0f }}
+		{CAMERAMOVE_T, { 2.0f, 8.0f }},
+		{FIREFLIES1BEGIN_T, {8.0f, 30.0f}}
 	});
 
 	float startz = -105.0f;
@@ -131,7 +144,7 @@ void nightscene::init() {
 	int k = 0;
 	for(int i = 0; i < 10; i++) {
 		for(int j = 0; j < 6; j++) {
-			treePositionsArray.push_back(vec4(startx + dx * j + randInRange(-4.0f, 4.0f), 0.0f, startz + dz * i + randInRange(-4.0f, 4.0f), 0.0f));
+			treePositionsArray.push_back(vec4(startx + dx * j + programglobal::randgen->getRandomFloat(-4.0f, 4.0f), 0.0f, startz + dz * i + programglobal::randgen->getRandomFloat(-4.0f, 4.0f), 0.0f));
 		}
 	}
 
@@ -149,12 +162,12 @@ void nightscene::init() {
 
 	vector<float> starArray;
 	for(int i = 0; i < 300; i++) {
-		starArray.push_back(randInRange(-1.0f, 1.0f));
-		starArray.push_back(randInRange(-1.0f, 1.0f));
-		starArray.push_back(randInRange(5.0f, 20.0f));
-		starArray.push_back(randInRange(0.9f, 1.0f));
-		starArray.push_back(randInRange(0.6f, 1.0f));
-		starArray.push_back(randInRange(0.5f, 1.0f));
+		starArray.push_back(programglobal::randgen->getRandomFloat(-1.0f, 1.0f));
+		starArray.push_back(programglobal::randgen->getRandomFloat(-1.0f, 1.0f));
+		starArray.push_back(programglobal::randgen->getRandomFloat(5.0f, 20.0f));
+		starArray.push_back(programglobal::randgen->getRandomFloat(0.9f, 1.0f));
+		starArray.push_back(programglobal::randgen->getRandomFloat(0.6f, 1.0f));
+		starArray.push_back(programglobal::randgen->getRandomFloat(0.5f, 1.0f));
 	}
 
 	glGenVertexArrays(1, &vaoNightSky);
@@ -202,7 +215,7 @@ void nightscene::init() {
 	land2 = new terrain(texJungle2, 256, true, 5, 16);
 	quickModelPlacer = new modelplacer();
 	lightManager = new SceneLight(false);
-	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 10.0f, vec3(0.0f, -1.0f, 0.0f)));
+	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, -1.0f, 0.0f)));
 
 	float skybox_positions[] = {
 		// positions          
@@ -255,6 +268,26 @@ void nightscene::init() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(skybox_positions), skybox_positions, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), NULL);
 	glEnableVertexAttribArray(0);
+
+	firefliesA = new Flock(MAX_PARTICLES, attractorPositionA);
+	fireflies2B = new Flock(MAX_PARTICLES, attractorPositionB);
+
+	vector<vec3> firefliesAPath1Points = vector<vec3>({
+		vec3(-24.5204f, 2.3876f, -69.3911f),
+		vec3(-24.5204f, 2.3876f, -69.3911f),
+		vec3(-24.5204f, 2.3876f, -69.3911f),
+		vec3(-0.0203418f, 1.41239f, -73.5925f),
+		vec3(-9.50299f, 16.9127f, -65.7925f),
+		vec3(-12.303f, 14.1127f, -28.893f),
+		vec3(-58.2204f, 8.5876f, -39.2911f),
+		vec3(-24.5204f, 2.3876f, -69.3911f),
+		vec3(-0.0203418f, 1.41239f, -73.5925f)
+	});
+	firefliesAPath1 = new BsplineInterpolator(firefliesAPath1Points);
+	pathA1 = new SplineRenderer(firefliesAPath1);
+	pathAdjuster = new SplineAdjuster(firefliesAPath1);
+	pathAdjuster->setScalingFactor(0.1f);
+	pathAdjuster->setRenderPoints(true);
 }
 
 void nightscene::render() {
@@ -318,7 +351,13 @@ void nightscene::render() {
 	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 5.0f, 0.0f) * rotate(90.0f,vec3(1.0f,0.0f,0.0f)) * scale(1.0f));
 	lightManager->setLightUniform(programStaticInstancedPBR, false);
 	glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboTreePosition);
-	modelTreeRed->draw(programStaticInstancedPBR, 60);
+	// modelTreeRed->draw(programStaticInstancedPBR, 60);
+
+	firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
+	firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
+
+	// fireflies2B->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.08f);
+	// fireflies2B->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
 	if((*nightevents)[CROSSIN_T] < 1.0f) {
 		crossfader::render(texDaySceneFinal, (*nightevents)[CROSSIN_T]);
@@ -326,12 +365,20 @@ void nightscene::render() {
 
 	if(programglobal::debugMode == CAMERA) {
 		camRig1->render();
+		pathAdjuster->render(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f, 0.0f, 1.0f, 1.0f), vec4(1.0f, 1.0f, 0.0f, 1.0f));
 	} else if(programglobal::debugMode == SPLINE) {
+		camRig1->render();
+		pathAdjuster->render(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f, 0.0f, 1.0f, 1.0f), vec4(1.0f, 1.0f, 0.0f, 1.0f));
 	}
 }
 
 void nightscene::update() {
 	nightevents->increment();
+	attractorPositionA = vec3(firefliesAPath1->interpolate((*nightevents)[FIREFLIES1BEGIN_T]));
+	firefliesA->setAttractorPosition(attractorPositionA);
+	firefliesA->update();
+	fireflies2B->update();
+	fireflies2B->setAttractorPosition(attractorPositionB);
 }
 
 void nightscene::reset() {
@@ -340,6 +387,11 @@ void nightscene::reset() {
 
 void nightscene::uninit() {
 	delete land;
+	delete pathAdjuster;
+	delete pathA1;
+	delete firefliesAPath1;
+	delete fireflies2B;
+	delete firefliesA;
 }
 
 void nightscene::keyboardfunc(int key) {
@@ -348,6 +400,7 @@ void nightscene::keyboardfunc(int key) {
 	} else if(programglobal::debugMode == CAMERA) {
 		camRig1->keyboardfunc(key);
 	} else if(programglobal::debugMode == SPLINE) {
+		pathAdjuster->keyboardfunc(key);
 	} else if(programglobal::debugMode == NONE) {
 	}
 	switch(key) {
@@ -365,6 +418,7 @@ void nightscene::keyboardfunc(int key) {
 		if(programglobal::debugMode == CAMERA) {
 			cout<<camRig1->getCamera()<<endl;
 		} else if(programglobal::debugMode == SPLINE) {
+			cout << pathAdjuster->getSpline() << endl;
 		} else if(programglobal::debugMode == MODEL) {
 			cout<<quickModelPlacer<<endl;
 		}
