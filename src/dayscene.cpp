@@ -327,7 +327,7 @@ void dayscene::init() {
 	godraysDrone->setWeight(0.01f);
 
 	lightManager = new SceneLight();
-	lightManager->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,-1.0,-1.0f)));
+	lightManager->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,-1.0,0.0f)));
 
 	lake1 = new lake(-6.0f);
 
