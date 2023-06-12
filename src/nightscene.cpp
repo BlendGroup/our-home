@@ -131,7 +131,7 @@ void nightscene::init() {
 	int k = 0;
 	for(int i = 0; i < 10; i++) {
 		for(int j = 0; j < 6; j++) {
-			treePositionsArray.push_back(vec4(startx + dx * j, 0.0f, startz + dz * i, 0.0f));
+			treePositionsArray.push_back(vec4(startx + dx * j + randInRange(-4.0f, 4.0f), 0.0f, startz + dz * i + randInRange(-4.0f, 4.0f), 0.0f));
 		}
 	}
 
@@ -318,7 +318,7 @@ void nightscene::render() {
 	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 6.0f, 0.0f) * scale(2.85f));
 	lightManager->setLightUniform(programStaticInstancedPBR, false);
 	glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboTreePosition);
-	// modelTreeRed->draw(programStaticInstancedPBR, 60);
+	modelTreeRed->draw(programStaticInstancedPBR, 60);
 
 	if((*nightevents)[CROSSIN_T] < 1.0f) {
 		crossfader::render(texDaySceneFinal, (*nightevents)[CROSSIN_T]);
