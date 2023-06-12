@@ -74,7 +74,7 @@ void nightscene::setupProgram() {
 		programStaticPBR = new glshaderprogram({"shaders/pbrStatic.vert", "shaders/pbrMain.frag"});
 		programStaticInstancedPBR = new glshaderprogram({"shaders/pbrStaticInstanced.vert", "shaders/pbrMain.frag"});
 		programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
-		programSkybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/debug/rendercubemap.frag"});
+		programSkybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/nightsky/rendercubemap.frag"});
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -177,7 +177,8 @@ void nightscene::init() {
 	glBindFramebuffer(GL_FRAMEBUFFER, fboNightSky);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texColorNightSky, 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, texEmmissionNightSky, 0);
-	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	GLenum drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+	glDrawBuffers(2, drawBuffers);
 	glBindFramebuffer(GL_FRAMEBUFFER, fboNightSky);
 	glViewport(0, 0, 1024, 1024);
 	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -254,6 +255,9 @@ void nightscene::render() {
 	programSkybox->use();
 	glUniformMatrix4fv(programSkybox->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
 	glUniformMatrix4fv(programSkybox->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
+	glUniform1i(programSkybox->getUniformLocation("skyboxColor"), 0);
+	glUniform1i(programSkybox->getUniformLocation("skyboxEmmission"), 1);
+	glUniform1f(programSkybox->getUniformLocation("emmissionPower"), (*nightevents)[CROSSIN_T]);
 	glBindVertexArray(skybox_vao);
 	glBindTextureUnit(0, texColorNightSky);
 	glBindTextureUnit(1, texEmmissionNightSky);
