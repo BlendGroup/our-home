@@ -11,6 +11,10 @@ uniform mat4 vMat;
 uniform mat4 mMat;
 uniform float clipy;
 
+layout(std140) uniform position_ubo {
+	vec4 position[10];
+} ubo;
+
 out VS_OUT {
     vec3 P;
 	vec3 N;
@@ -19,7 +23,7 @@ out VS_OUT {
 } vs_out;
 
 void main(void) {
-	vec4 P = mMat * vPos;
+	vec4 P = mMat * vPos + ubo.position[gl_InstanceID];
 	gl_Position = pMat * vMat * P;
     vs_out.P = vec3(P);
 	vs_out.N = mat3(mMat) * vNor;

@@ -77,9 +77,9 @@ void init(void) {
 		programglobal::shapeRenderer = new shaperenderer();
 		crossfader::init();
 		sceneList.insert(sceneList.begin(), {
-			new titlescene(),
-			new labscene(),
-			new dayscene(),
+			// new titlescene(),
+			// new labscene(),
+			// new dayscene(),
 			new nightscene()
 		});
 
@@ -101,6 +101,7 @@ void init(void) {
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_MULTISAMPLE);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+		glEnable(GL_PROGRAM_POINT_SIZE);
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
