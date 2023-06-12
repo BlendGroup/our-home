@@ -309,7 +309,11 @@ void sceneCameraRig::keyboardfunc(int key) {
 		break;
 	//Add/Remove Path Points
 	case XK_bracketright:
-		this->mountCamera->m_bspPositions->m_pointsVec.insert(this->mountCamera->m_bspPositions->m_pointsVec.begin() + selectedPathPoint + 1, mountCamera->m_bspPositions->m_pointsVec[selectedPathPoint]);
+		if(selectedPathPoint == this->mountCamera->m_bspPositions->m_pointsVec.size()) {
+			this->mountCamera->m_bspPositions->m_pointsVec.push_back(this->mountCamera->m_bspPositions->m_pointsVec[selectedPathPoint]);
+		} else {
+			this->mountCamera->m_bspPositions->m_pointsVec.insert(this->mountCamera->m_bspPositions->m_pointsVec.begin() + selectedPathPoint + 1, mountCamera->m_bspPositions->m_pointsVec[selectedPathPoint]);
+		}
 		refreshPos = true;
 		break;
 	case XK_bracketleft:
@@ -319,7 +323,11 @@ void sceneCameraRig::keyboardfunc(int key) {
 		break;
 	//Add/Remove Front Points
 	case XK_period:
-		this->mountCamera->m_bspFront->m_pointsVec.insert(this->mountCamera->m_bspFront->m_pointsVec.begin() + selectedFrontPoint + 1, mountCamera->m_bspFront->m_pointsVec[selectedFrontPoint]);
+		if(selectedFrontPoint == this->mountCamera->m_bspFront->m_pointsVec.size()) {
+			this->mountCamera->m_bspFront->m_pointsVec.push_back(this->mountCamera->m_bspFront->m_pointsVec[selectedFrontPoint]);
+		} else {
+			this->mountCamera->m_bspFront->m_pointsVec.insert(this->mountCamera->m_bspFront->m_pointsVec.begin() + selectedFrontPoint + 1, mountCamera->m_bspFront->m_pointsVec[selectedFrontPoint]);
+		}
 		refreshFront = true;
 		break;
 	case XK_comma:

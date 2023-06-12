@@ -82,16 +82,24 @@ void nightscene::setupProgram() {
 
 void nightscene::setupCamera() {
 	vector<vec3> positionVector = {
-		vec3(0.0f, 1.11237f, -122.191f),
-		vec3(0.0f, 1.11237f, -121.891f),
-		vec3(0.0f, 1.11237f, -120.691f),
-		vec3(0.0f, 1.11237f, -109.391f)
+		vec3(0.0f, 1.4f, -122.191f),
+		vec3(0.0f, 1.4f, -121.891f),
+		vec3(0.0f, 1.4f, -120.691f),
+		vec3(0.0f, 1.4f, -117.691f),
+		vec3(0.0f, 1.4f, -114.091f),
+		vec3(0.0f, 1.4f, -107.891f),
+		vec3(0.0f, 1.4f, -99.3911f),
+		vec3(0.0f, 1.4f, -90.6912f)
 	};
 	vector<vec3> frontVector = {
-		vec3(0.0f, 17.81f, -109.7f),
-		vec3(0.0f, 10.61f, -105.09f),
-		vec3(0.0f, 2.9f, -98.29f),
-		vec3(0.0f, 1.6f, -89.19f)
+		vec3(0.0f, 23.81f, -109.7f),
+		vec3(0.0f, 12.51f, -107.89f),
+		vec3(0.0f, 3.2f, -102.99f),
+		vec3(0.0f, 1.4f, -96.3899f),
+		vec3(0.0f, 1.4f, -92.09f),
+		vec3(0.0f, 1.4f, -85.8901f),
+		vec3(0.0f, 1.4f, -79.2902f),
+		vec3(0.0f, 1.4f, -73.5903f)
 	}; 
 	camera1 = new sceneCamera(positionVector, frontVector);
 
@@ -110,8 +118,8 @@ float randInRange(float min, float max) {
 
 void nightscene::init() {
 	nightevents = new eventmanager({
-		{CROSSIN_T, { 0.0f, 10.0f }},
-		{CAMERAMOVE_T, { 10.0f, 8.0f }}
+		{CROSSIN_T, { 0.0f, 2.0f }},
+		{CAMERAMOVE_T, { 2.0f, 8.0f }}
 	});
 
 	float startz = -105.0f;
@@ -310,7 +318,7 @@ void nightscene::render() {
 	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 6.0f, 0.0f) * scale(2.85f));
 	lightManager->setLightUniform(programStaticInstancedPBR, false);
 	glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboTreePosition);
-	modelTreeRed->draw(programStaticInstancedPBR, 60);
+	// modelTreeRed->draw(programStaticInstancedPBR, 60);
 
 	if((*nightevents)[CROSSIN_T] < 1.0f) {
 		crossfader::render(texDaySceneFinal, (*nightevents)[CROSSIN_T]);
