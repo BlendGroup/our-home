@@ -5,6 +5,7 @@
 #include<glshaderloader.h>
 #include<vmath.h>
 #include<global.h>
+#include<sphere.h>
 
 #define PRESET_MAX_FORCE 0.8f
 #define PRESET_MAX_SPEED 0.4f
@@ -22,9 +23,9 @@ private:
     cl_uint count;
     clglmem flockBufferCLGL;
     vmath::vec4 attractorPosition;
-    GLuint emptyVao;
     glshaderprogram *flockProgram;
     glshaderprogram *colorProgram;
+    sphere *boidSphere;
     float cohesionRadius;
     float alignmentRadius;
     float separationRadius;
@@ -35,7 +36,7 @@ public:
     Flock(size_t count, const vmath::vec4 &initAttractorPosition);
     ~Flock();
     void update(void);
-    void renderAsQuads(const vmath::vec4 &color, const vmath::vec4 &emissive, float scale);
+    void renderAsSpheres(const vmath::vec4 &color, const vmath::vec4 &emissive, float scale);
     void renderAttractorAsQuad(const vmath::vec4 &color, const vmath::vec4 &emissive, float scale);
     void setCohesionRadius(float radius) {
         this->cohesionRadius = radius;

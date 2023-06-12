@@ -2,6 +2,8 @@
 
 #define MAX_BOIDS_PER_FLOCK 1024
 
+layout(location = 0) in vec4 vPos;
+
 struct boid_t {
     vec4 position;
     vec4 velocity;
@@ -14,13 +16,6 @@ uniform mat4 vMat;
 uniform mat4 pMat;
 uniform float scale;
 
-const vec4 quadVerts[4] = vec4[] (
-    vec4(-1.0,-1.0, 0.0, 1.0),
-    vec4( 1.0,-1.0, 0.0, 1.0),
-    vec4(-1.0, 1.0, 0.0, 1.0),
-    vec4( 1.0, 1.0, 0.0, 1.0)
-);
-
 void main(void) {
     mat4 mMat = mat4(
         vec4(scale, 0.0, 0.0, 0.0),
@@ -29,9 +24,5 @@ void main(void) {
         flock_buffer[gl_InstanceID].position
     );
     mat4 mvMat = vMat * mMat;
-    // TODO: billboard correctly
-    // mvMat[0][0] = 1.0;
-    // mvMat[1][1] = 1.0;
-    // mvMat[2][2] = 1.0;
-    gl_Position = pMat * mvMat * quadVerts[gl_VertexID];
+    gl_Position = pMat * mvMat * vPos;
 }

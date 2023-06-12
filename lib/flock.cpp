@@ -40,13 +40,13 @@ Flock::Flock(size_t count, const vec4 &initAttractorPosition)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     flockProgram = new glshaderprogram({"shaders/flock/flock.vert", "shaders/color.frag"});
     colorProgram = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
-    glCreateVertexArrays(1, &this->emptyVao);
+    boidSphere = new sphere(5, 5, 1.0f);
 }
 
 Flock::~Flock() {
-    if(this->emptyVao) {
-        glDeleteVertexArrays(1, &this->emptyVao);
-        this->emptyVao = 0;
+    if(boidSphere) {
+        delete boidSphere;
+        boidSphere = NULL;
     }
     if(colorProgram) {
         delete colorProgram;
@@ -85,7 +85,7 @@ void Flock::update(void) {
     CLErr(clhelpererr = clFinish(programglobal::oclContext->getCommandQueue()));
 }
 
-void Flock::renderAsQuads(const vec4 &color, const vec4 &emissive, float scale) {
+void Flock::renderAsSpheres(const vec4 &color, const vec4 &emissive, float scale) {
     flockProgram->use();
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, this->flockBufferCLGL.gl);
     glUniformMatrix4fv(flockProgram->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
@@ -94,9 +94,7 @@ void Flock::renderAsQuads(const vec4 &color, const vec4 &emissive, float scale) 
     glUniform4fv(flockProgram->getUniformLocation("color"), 1, color);
     glUniform4fv(flockProgram->getUniformLocation("emissive"), 1, emissive);
     glUniform4fv(flockProgram->getUniformLocation("occlusion"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
-    glBindVertexArray(this->emptyVao);
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, this->count);
-    glBindVertexArray(0);
+    boidSphere->renderInstanced(this->count);
 }
 
 void Flock::renderAttractorAsQuad(const vec4 &color, const vec4 &emissive, float scale) {
