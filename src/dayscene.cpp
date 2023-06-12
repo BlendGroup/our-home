@@ -23,6 +23,8 @@
 #include<audio.h>
 #include<godrays.h>
 #include<atmosphere.h>
+#include<scenecamera.h>
+#include<flock.h>
 
 using namespace std;
 using namespace vmath;
@@ -77,8 +79,8 @@ static GLuint texDiffuseDirt;
 static GLuint texDiffuseMountain;
 static GLuint texLakeDuDvMap;
 extern GLuint texLabSceneFinal;
-static GLuint texTerrainHeight;
 GLuint texDaySceneFinal;
+static GLuint texTerrainHeight;
 	
 enum tvalues {
 	CROSSIN_T,
@@ -330,6 +332,7 @@ void dayscene::init() {
 	lake1 = new lake(-6.0f);
 
 	atmosphere = new Atmosphere();
+
 #ifdef DEBUG
 	// lakePlacer = new modelplacer(vec3(0.0f, 10.0f, 0.0f), vec3(0.0f, 0.0f, 0.0f), 10.0f);
 	// vec3(-49.0f, -6.0f, -72.0f), vec3(0.0f, 0.0f, 0.0f), 38.0f -> Lake
@@ -411,6 +414,8 @@ void dayscene::renderScene(bool cameraFlip) {
     	atmosphere->render(currentViewMatrix, mix(vec1(radians(10.0f)), vec1(radians(35.0f)), (*dayevents)[SUNRISEEND_T])[0]);
 	}
 }
+
+vec4 xyzVector = vec4(-30.4f, 10.8f, -62.8999f, 1.0f);
 
 void dayscene::render() {
 	camera1->setT((*dayevents)[CAMERA1MOVE_T]);

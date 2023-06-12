@@ -60,6 +60,12 @@ void sphere::render() {
 	glDrawElements(GL_TRIANGLES, this->numOfTriangles, GL_UNSIGNED_INT, 0);
 }
 
+void sphere::renderInstanced(GLsizei primcount) {
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eabo);
+	glDrawElementsInstanced(GL_TRIANGLES, this->numOfTriangles, GL_UNSIGNED_INT, 0, primcount);
+}
+
 sphere::~sphere() {
 	glDeleteVertexArrays(1, &this->vao);
 	glDeleteBuffers(1, &this->vbo);
