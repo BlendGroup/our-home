@@ -12,7 +12,7 @@ uniform mat4 mMat;
 uniform float clipy;
 
 layout(std140) uniform position_ubo {
-	vec4 position[10];
+	vec4 position[60];
 } ubo;
 
 out VS_OUT {

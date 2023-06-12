@@ -114,18 +114,18 @@ void nightscene::init() {
 		{CAMERAMOVE_T, { 10.0f, 8.0f }}
 	});
 
-	vec4 treePositionsArray[] = {
-		vec4(14.0f, 0.0f, -97.0f, 0.0f),
-		vec4(0.0f, 0.0f, 0.0f, 0.0f),
-		vec4(0.0f, 0.0f, 0.0f, 0.0f),
-		vec4(0.0f, 0.0f, 0.0f, 0.0f),
-		vec4(0.0f, 0.0f, 0.0f, 0.0f),
-		vec4(0.0f, 0.0f, 0.0f, 0.0f),
-		vec4(0.0f, 0.0f, 0.0f, 0.0f),
-		vec4(0.0f, 0.0f, 0.0f, 0.0f),
-		vec4(0.0f, 0.0f, 0.0f, 0.0f),
-		vec4(0.0f, 0.0f, 0.0f, 0.0f)
-	};
+	float startz = -105.0f;
+	float dz = 10.0f;
+	float startx = -25.0f;
+	float dx = 10.0f;
+	vector<vec4> treePositionsArray;
+	
+	int k = 0;
+	for(int i = 0; i < 10; i++) {
+		for(int j = 0; j < 6; j++) {
+			treePositionsArray.push_back(vec4(startx + dx * j, 0.0f, startz + dz * i, 0.0f));
+		}
+	}
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseDirt = createTexture2D("resources/textures/dirt.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -136,7 +136,7 @@ void nightscene::init() {
 	
 	glGenBuffers(1, &uboTreePosition);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboTreePosition);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(vec4) * 10, treePositionsArray, GL_STATIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(vec4) * 60, treePositionsArray.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	vector<float> starArray;
@@ -310,7 +310,7 @@ void nightscene::render() {
 	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 6.0f, 0.0f) * scale(2.85f));
 	lightManager->setLightUniform(programStaticInstancedPBR, false);
 	glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboTreePosition);
-	modelTreeRed->draw(programStaticInstancedPBR, 10);
+	modelTreeRed->draw(programStaticInstancedPBR, 60);
 
 	if((*nightevents)[CROSSIN_T] < 1.0f) {
 		crossfader::render(texDaySceneFinal, (*nightevents)[CROSSIN_T]);
