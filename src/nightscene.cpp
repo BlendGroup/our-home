@@ -57,7 +57,8 @@ static GLuint uboTreePosition;
 static GLuint vaoNightSky;
 static GLuint vboNightSky;
 static GLuint fboNightSky;
-static GLuint texNightSky;
+static GLuint texColorNightSky;
+static GLuint texEmmissionNightSky;
 static GLuint skybox_vao;
 static GLuint vbo;
 
@@ -142,7 +143,7 @@ void nightscene::init() {
 	for(int i = 0; i < 300; i++) {
 		starArray.push_back(randInRange(-1.0f, 1.0f));
 		starArray.push_back(randInRange(-1.0f, 1.0f));
-		starArray.push_back(randInRange(0.0f, 5.0f));
+		starArray.push_back(randInRange(5.0f, 20.0f));
 		starArray.push_back(randInRange(0.9f, 1.0f));
 		starArray.push_back(randInRange(0.6f, 1.0f));
 		starArray.push_back(randInRange(0.5f, 1.0f));
@@ -158,20 +159,29 @@ void nightscene::init() {
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(sizeof(float) * 3));
 
-	glGenTextures(1, &texNightSky);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, texNightSky);
+	glGenTextures(1, &texColorNightSky);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texColorNightSky);
 	glTexStorage2D(GL_TEXTURE_CUBE_MAP, 1, GL_RGBA8, 1024, 1024);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	glGenTextures(1, &texEmmissionNightSky);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texEmmissionNightSky);
+	glTexStorage2D(GL_TEXTURE_CUBE_MAP, 1, GL_RGBA32F, 1024, 1024);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glPointSize(5.0f);
 	programNightSky = new glshaderprogram({"shaders/nightsky/render.vert", "shaders/nightsky/render.geom", "shaders/nightsky/render.frag"});
 	glGenFramebuffers(1, &fboNightSky);
 	glBindFramebuffer(GL_FRAMEBUFFER, fboNightSky);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texNightSky, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texColorNightSky, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, texEmmissionNightSky, 0);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 	glBindFramebuffer(GL_FRAMEBUFFER, fboNightSky);
 	glViewport(0, 0, 1024, 1024);
 	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	glClearBufferfv(GL_COLOR, 1, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	programNightSky->use();
 	glBindVertexArray(vaoNightSky);
 	glDrawArrays(GL_POINTS, 0, starArray.size() / 6);
@@ -245,7 +255,8 @@ void nightscene::render() {
 	glUniformMatrix4fv(programSkybox->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
 	glUniformMatrix4fv(programSkybox->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
 	glBindVertexArray(skybox_vao);
-	glBindTextureUnit(0, texNightSky);
+	glBindTextureUnit(0, texColorNightSky);
+	glBindTextureUnit(1, texEmmissionNightSky);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
 

@@ -101,7 +101,6 @@ void init(void) {
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_MULTISAMPLE);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-		glEnable(GL_PROGRAM_POINT_SIZE);
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
