@@ -1,3 +1,4 @@
+#define DEBUG
 #include<scenes/night.h>
 #include<iostream>
 #include<vmath.h>
@@ -73,8 +74,8 @@ static eventmanager* nightevents;
 static const int MAX_PARTICLES = 1024;
 static Flock *fireflies1 = NULL;
 static Flock *fireflies2 = NULL;
-static vec4 attractorPosition1 =  vec4(-30.0f, 15.0f, -30.0f, 1.0f);
-static vec4 attractorPosition2 =  vec4(-30.0f, 15.0f, 30.0f, 1.0f);
+static vec3 attractorPosition1 =  vec3(-30.0f, 15.0f, -30.0f);
+static vec3 attractorPosition2 =  vec3(-30.0f, 15.0f, 30.0f);
 static BsplineInterpolator *fireflies1Path = NULL;
 static SplineRenderer *path1 = NULL;
 static BsplineInterpolator *fireflies2Path = NULL;
@@ -125,10 +126,6 @@ void nightscene::setupCamera() {
 	camRig1->setScalingFactor(0.1f);
 }
 
-float randInRange(float min, float max) {
-	return ((float)rand() / (float)RAND_MAX) * (max - min) + min;
-}
-
 void nightscene::init() {
 	nightevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 2.0f }},
@@ -163,12 +160,12 @@ void nightscene::init() {
 
 	vector<float> starArray;
 	for(int i = 0; i < 300; i++) {
-		starArray.push_back(randInRange(-1.0f, 1.0f));
-		starArray.push_back(randInRange(-1.0f, 1.0f));
-		starArray.push_back(randInRange(5.0f, 20.0f));
-		starArray.push_back(randInRange(0.9f, 1.0f));
-		starArray.push_back(randInRange(0.6f, 1.0f));
-		starArray.push_back(randInRange(0.5f, 1.0f));
+		starArray.push_back(programglobal::randgen->getRandomFloat(-1.0f, 1.0f));
+		starArray.push_back(programglobal::randgen->getRandomFloat(-1.0f, 1.0f));
+		starArray.push_back(programglobal::randgen->getRandomFloat(5.0f, 20.0f));
+		starArray.push_back(programglobal::randgen->getRandomFloat(0.9f, 1.0f));
+		starArray.push_back(programglobal::randgen->getRandomFloat(0.6f, 1.0f));
+		starArray.push_back(programglobal::randgen->getRandomFloat(0.5f, 1.0f));
 	}
 
 	glGenVertexArrays(1, &vaoNightSky);
@@ -216,7 +213,7 @@ void nightscene::init() {
 	land2 = new terrain(texJungle2, 256, true, 5, 16);
 	quickModelPlacer = new modelplacer();
 	lightManager = new SceneLight(false);
-	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 10.0f, vec3(0.0f, -1.0f, 0.0f)));
+	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, -1.0f, 0.0f)));
 
 	float skybox_positions[] = {
 		// positions          
@@ -374,7 +371,7 @@ void nightscene::render() {
 
 void nightscene::update() {
 	nightevents->increment();
-	attractorPosition1 = vec4(fireflies1Path->interpolate((*nightevents)[FIREFLIES1BEGIN_T]), 1.0f);
+	attractorPosition1 = vec3(fireflies1Path->interpolate((*nightevents)[FIREFLIES1BEGIN_T]));
 	fireflies1->setAttractorPosition(attractorPosition1);
 	fireflies1->update();
 	fireflies2->update();
@@ -422,6 +419,9 @@ void nightscene::keyboardfunc(int key) {
 		} else if(programglobal::debugMode == MODEL) {
 			cout<<quickModelPlacer<<endl;
 		}
+		break;
+	case XK_4:
+		// attractorPosition1 += vec3(0.0f, 1.0f, 0.0f);
 		break;
 	}
 }

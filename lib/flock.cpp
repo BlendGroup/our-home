@@ -1,18 +1,20 @@
+#include "global.h"
 #include<flock.h>
 #include<iostream>
+#include<random>
 
 #define PRESET_MAX_FORCE 0.8f
 #define PRESET_MAX_SPEED 0.4f
 #define PRESET_COHESION_RADIUS 2.5f
 #define PRESET_ALIGNMENT_RADIUS 4.0f
 #define PRESET_SEPARATION_RADIUS 5.0f
-#define PRESET_MAX_DISTANCE_FROM_ATTRACTOR 50.0f
+#define PRESET_MAX_DISTANCE_FROM_ATTRACTOR 5.0f
 
 using namespace std;
 using namespace vmath;
 
 /***************************** OpenCL Flocking *****************************/
-Flock::Flock(size_t count, const vec4 &initAttractorPosition)
+Flock::Flock(size_t count, const vec3 &initAttractorPosition)
 : count(count),
   attractorPosition(initAttractorPosition),
   cohesionRadius(PRESET_COHESION_RADIUS),
@@ -25,23 +27,10 @@ Flock::Flock(size_t count, const vec4 &initAttractorPosition)
     this->flockBufferCLGL = programglobal::oclContext->createCLGLBuffer(count * sizeof(boid_t), GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT, CL_MEM_READ_WRITE);
     glBindBuffer(GL_ARRAY_BUFFER, this->flockBufferCLGL.gl);
     boid_t *pFlockBuffer = (boid_t *)glMapBufferRange(GL_ARRAY_BUFFER, 0, count * sizeof(boid_t), GL_MAP_WRITE_BIT);
-	auto randomVec4Offset = [] (float minLength, float maxLength) -> vec4 {
-		float x = fmodf(rand(), 100.0f);
-		x = (rand() & 1) ? x : -x;
-		float y = fmodf(rand(), 100.0f);
-		y = (rand() & 1) ? y : -y;
-		float z = fmodf(rand(), 100.0f);
-		z = (rand() & 1) ? z : -z;	
-		float t = (float)rand() / (float)RAND_MAX;
-		vec3 out = (minLength + (maxLength - minLength) * t) * normalize(vec3(x, y, z));
-		return vec4(out, 0.0f);
-	};
-	srand(time(NULL));
+	
     for(int i = 0; i < count; i++) {
-		srand(rand());
-        pFlockBuffer[i].position = initAttractorPosition + randomVec4Offset(0.0f, 5.0f);
-		srand(rand());
-        pFlockBuffer[i].velocity = randomVec4Offset(0.01f, 0.02f);
+        pFlockBuffer[i].position = vec4(initAttractorPosition + programglobal::randgen->getRandomVector3(0.0f, 5.0f), 1.0);
+        pFlockBuffer[i].velocity = vec4(programglobal::randgen->getRandomVector3(0.01f, 0.02f), 0.0f);
     }
     glUnmapBuffer(GL_ARRAY_BUFFER);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -75,6 +64,7 @@ Flock::~Flock() {
 
 void Flock::update(void) {
     cl_kernel flockUpdateKernel = programglobal::oclContext->getKernel("flock_update");
+    vec4 attractor = vec4(this->attractorPosition, 0.0f);
     programglobal::oclContext->setKernelParameters(
         flockUpdateKernel,
         { clkernelparam(0, this->flockBufferCLGL.cl),
@@ -82,7 +72,7 @@ void Flock::update(void) {
         clkernelparam(2, this->cohesionRadius),
         clkernelparam(3, this->alignmentRadius),
         clkernelparam(4, this->separationRadius),
-        clkernelparam(5, this->attractorPosition),
+        clkernelparam(5, attractor),
         clkernelparam(6, this->maxDistanceFromAttractor),
         clkernelparam(7, this->maxSpeed),
         clkernelparam(8, this->maxForce) }

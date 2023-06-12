@@ -15,7 +15,7 @@ private:
     };
     cl_uint count;
     clglmem flockBufferCLGL;
-    vmath::vec4 attractorPosition;
+    vmath::vec3 attractorPosition;
     glshaderprogram *flockProgram;
     glshaderprogram *colorProgram;
     sphere *boidSphere;
@@ -26,7 +26,7 @@ private:
     float maxSpeed;
     float maxForce;
 public:
-    Flock(size_t count, const vmath::vec4 &initAttractorPosition);
+    Flock(size_t count, const vmath::vec3 &initAttractorPosition);
     ~Flock();
     void update(void);
     void renderAsSpheres(const vmath::vec4 &color, const vmath::vec4 &emissive, float scale);
@@ -40,7 +40,7 @@ public:
     void setSeparationRadius(float radius) {
         this->separationRadius = radius;
     }
-    void setAttractorPosition(const vmath::vec4 &attractorPosition) {
+    void setAttractorPosition(const vmath::vec3 &attractorPosition) {
         this->attractorPosition = attractorPosition;
     }
     void setMaxDistanceFromAttractor(float distance) {
