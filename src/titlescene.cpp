@@ -77,7 +77,7 @@ void titlescene::render() {
 	}
 	glUniform1i(programRender->getUniformLocation("texDiffuse"), 0);
 	glBindTextureUnit(0, texGold);
-	modelTitle->draw(programRender, 1, false);
+	modelTitle->draw(programRender, 1, 0, false);
 	godraysTitle->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix(), vec4(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
