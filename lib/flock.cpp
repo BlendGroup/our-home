@@ -3,12 +3,12 @@
 #include<iostream>
 #include<random>
 
-#define PRESET_MAX_FORCE 2.0f
-#define PRESET_MAX_SPEED 1.95f
-#define PRESET_COHESION_RADIUS 2.0f
-#define PRESET_ALIGNMENT_RADIUS 4.0f
-#define PRESET_SEPARATION_RADIUS 3.5f
-#define PRESET_MAX_DISTANCE_FROM_ATTRACTOR 5.0f
+#define PRESET_MAX_FORCE 3.0f
+#define PRESET_MAX_SPEED 0.9f
+#define PRESET_COHESION_RADIUS 1.1f
+#define PRESET_ALIGNMENT_RADIUS 0.75f
+#define PRESET_SEPARATION_RADIUS 10.0f
+#define PRESET_ATTRACTION_WEIGHT 0.45f
 
 using namespace std;
 using namespace vmath;
@@ -20,7 +20,7 @@ Flock::Flock(size_t count, const vec3 &initAttractorPosition)
   cohesionRadius(PRESET_COHESION_RADIUS),
   alignmentRadius(PRESET_ALIGNMENT_RADIUS),
   separationRadius(PRESET_SEPARATION_RADIUS),
-  maxDistanceFromAttractor(PRESET_MAX_DISTANCE_FROM_ATTRACTOR),
+  attractionWeight(PRESET_ATTRACTION_WEIGHT),
   maxSpeed(PRESET_MAX_SPEED),
   maxForce(PRESET_MAX_FORCE)
   {
@@ -73,7 +73,7 @@ void Flock::update(void) {
         clkernelparam(3, this->alignmentRadius),
         clkernelparam(4, this->separationRadius),
         clkernelparam(5, attractor),
-        clkernelparam(6, this->maxDistanceFromAttractor),
+        clkernelparam(6, this->attractionWeight),
         clkernelparam(7, this->maxSpeed),
         clkernelparam(8, this->maxForce) }
     );

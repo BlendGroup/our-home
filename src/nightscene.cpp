@@ -390,9 +390,6 @@ void nightscene::init() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), NULL);
 	glEnableVertexAttribArray(0);
 
-	firefliesA = new Flock(MAX_PARTICLES, attractorPositionA);
-	firefliesB = new Flock(MAX_PARTICLES, attractorPositionB);
-
 	vector<vec3> firefliesAPath1Points = vector<vec3>({
 		// vec3(-22.303f, 10.4127f, -80.3923f),
 		// vec3(-23.803f, 8.61268f, -84.9922f),
@@ -493,6 +490,10 @@ void nightscene::init() {
 	firefliesBPath1 = new BsplineInterpolator(firefliesBPath1Points);
 	pathA2 = new SplineRenderer(firefliesBPath1);
 	pathAdjuster = new SplineAdjuster(firefliesAPath1);
+
+	attractorPositionA = vec3(firefliesAPath1->interpolate(0.0f));
+	firefliesA = new Flock(MAX_PARTICLES, attractorPositionA);
+	firefliesB = new Flock(MAX_PARTICLES, attractorPositionB);
 }
 
 void nightscene::render() {
@@ -571,10 +572,10 @@ void nightscene::render() {
 		}
 		modelTreeRed->draw(programStaticInstancedPBR, count);
 	}
-	firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
+	firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.02f);
 	firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
-	firefliesB->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
+	firefliesB->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.02f);
 	firefliesB->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
 	programTex->use();

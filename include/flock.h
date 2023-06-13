@@ -22,7 +22,7 @@ private:
     float cohesionRadius;
     float alignmentRadius;
     float separationRadius;
-    float maxDistanceFromAttractor;
+    float attractionWeight;
     float maxSpeed;
     float maxForce;
 public:
@@ -43,8 +43,8 @@ public:
     void setAttractorPosition(const vmath::vec3 &attractorPosition) {
         this->attractorPosition = attractorPosition;
     }
-    void setMaxDistanceFromAttractor(float distance) {
-        this->maxDistanceFromAttractor = distance;
+    void setAttractionWeight(float weight) {
+        this->attractionWeight = weight;
     }
     void setMaxSpeed(float speed) {
         this->maxSpeed = speed;
