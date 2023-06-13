@@ -229,7 +229,7 @@ void nightscene::init() {
 		{CROSSIN_T, { 0.0f, 2.0f }},
 		{CAMERAMOVE_T, { 2.0f, 80.0f }},
 		{FIREFLIES1BEGIN_T, {1.5f, 80.0f}},
-		{FIREFLIES2BEGIN_T, {20.0f, 30.0f}}
+		{FIREFLIES2BEGIN_T, {46.0f, 80.0f}}
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -461,12 +461,34 @@ void nightscene::init() {
 	firefliesAPath1 = new BsplineInterpolator(firefliesAPath1Points);
 	pathA1 = new SplineRenderer(firefliesAPath1);
 	vector<vec3> firefliesBPath1Points = vector<vec3>({
-		vec3(25.3797f, 11.5876f, -7.19158f),
-		vec3(-17.9204f, 0.9876f, 12.1084f),
-		vec3(-4.72037f, 14.3876f, -28.2917f),
-		vec3(-15.0204f, 20.1876f, 1.9084f),
-		vec3(29.6797f, 27.3877f, -11.9916f),
-		vec3(-3.82034f, 39.6123f, -36.8931f)
+		// vec3(25.3797f, 11.5876f, -7.19158f),
+		// vec3(-17.9204f, 0.9876f, 12.1084f),
+		// vec3(-4.72037f, 14.3876f, -28.2917f),
+		// vec3(-15.0204f, 20.1876f, 1.9084f),
+		// vec3(29.6797f, 27.3877f, -11.9916f),
+		// vec3(-3.82034f, 39.6123f, -36.8931f)
+		// Running
+		vec3(41.4999f, 8.2f, 198.101f),
+		vec3(0.0f, 1.4f, 200.1f),
+		vec3(9.6f, 2.2f, 221.3f),
+		vec3(-8.7f, 4.2f, 240.0f),
+		vec3(4.6f, 1.6f, 264.3f),
+		vec3(-3.3f, 1.4f, 280.1f),
+		vec3(6.9f, 2.1f, 304.7f),
+		vec3(-7.99999f, 5.1f, 309.499f),
+		vec3(-7.1f, 10.7f, 294.697f),
+		vec3(11.5f, 10.4f, 308.097f),
+		vec3(3.6f, 5.6f, 309.596f),
+		vec3(-8.3f, 1.3f, 400.2f),
+		vec3(0.0f, 1.4f, 420.1f),
+		vec3(7.5f, 1.4f, 440.1f),
+		vec3(0.0f, 1.4f, 460.1f),
+		vec3(0.0f, 1.4f, 480.1f),
+		vec3(0.0f, 1.4f, 500.1f),
+		vec3(0.0f, 1.4f, 520.1f),
+		vec3(0.0f, 1.4f, 540.1f),
+		vec3(0.0f, 1.4f, 560.1f),
+		vec3(0.0f, 1.4f, 580.1f)
 	});
 	firefliesBPath1 = new BsplineInterpolator(firefliesBPath1Points);
 	pathA2 = new SplineRenderer(firefliesBPath1);
@@ -552,8 +574,8 @@ void nightscene::render() {
 	firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
-	// firefliesB->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
-	// firefliesB->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
+	firefliesB->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
+	firefliesB->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
 	programTex->use();
 	glUniformMatrix4fv(programTex->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
