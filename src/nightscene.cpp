@@ -292,7 +292,7 @@ void nightscene::init() {
 		{CROSSIN_T, { 0.0f, 2.0f }},
 		{CAMERAMOVE_T, { 2.0f, 110.0f }},
 		{FIREFLIES1BEGIN_T, {1.5f, 80.0f}},
-		{FIREFLIES2BEGIN_T, {46.0f, 80.0f}}
+		{FIREFLIES2BEGIN_T, {46.0f, 35.5f}}
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
