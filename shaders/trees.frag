@@ -13,6 +13,7 @@ in VS_OUT {
 	vec3 N;
 	vec2 Tex;
 	mat3 TBN;
+	flat int treeid;
 } fs_in;
 
 // structs
@@ -54,6 +55,10 @@ struct SpotLight{
 
 //uniforms
 
+layout(std140)uniform color_ubo {
+	vec4 color[5];
+} leaf_ubo;
+
 uniform vec3 viewPos;
 uniform material_t material;
 uniform DirectionalLight dl[2];
@@ -68,7 +73,6 @@ uniform bool IBL;
 uniform bool isTexture;
 uniform int renderEmissiveToOcclusion = 0;
 
-uniform vec3 leafColor;
 uniform vec3 emissionColor;
 
 layout (binding = 0)uniform sampler2D texture_diffuse;
@@ -203,8 +207,8 @@ vec3 pbr(BaseLight base, vec3 direction, vec3 N, vec3 P){
     
     if(albedo.x >= 0.4 && albedo.y >= 0.4 && albedo.z >= 0.4)
     {
-        albedo = albedo * leafColor;
-        emmitColor = vec4(emissionColor.rgb,1.0);
+        albedo = albedo * leaf_ubo.color[fs_in.treeid % 5].rgb;
+        emmitColor = vec4(albedo * emissionColor,1.0);
     }
 
     float metallic = material.metallic;

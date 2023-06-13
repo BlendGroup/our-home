@@ -20,6 +20,7 @@ out VS_OUT {
 	vec3 N;
 	vec2 Tex;
 	mat3 TBN;
+	int treeid;
 } vs_out;
 
 void main(void) {
@@ -29,6 +30,7 @@ void main(void) {
 	vs_out.N = mat3(mMat) * vNor;
 	vs_out.TBN = mat3(mMat) * mat3(vTangent,vBitangent,vNor);
 	vs_out.Tex = vTex;
+	vs_out.treeid = gl_InstanceID;
 
 	vec4 clipingPlaneReflection = vec4(0.0, 1.0, 0.0, -clipy);
 	vec4 clipingPlaneRefraction = vec4(0.0, -1.0, 0.0, clipy);
