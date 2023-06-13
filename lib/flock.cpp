@@ -3,8 +3,8 @@
 #include<iostream>
 #include<random>
 
-#define PRESET_MAX_FORCE 0.2f
-#define PRESET_MAX_SPEED 0.1f
+#define PRESET_MAX_FORCE 0.5f
+#define PRESET_MAX_SPEED 0.4f
 #define PRESET_COHESION_RADIUS 2.0f
 #define PRESET_ALIGNMENT_RADIUS 4.0f
 #define PRESET_SEPARATION_RADIUS 3.5f

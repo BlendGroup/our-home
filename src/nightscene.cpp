@@ -65,13 +65,14 @@ static GLuint vbo;
 enum tvalues {
 	CROSSIN_T,
 	CAMERAMOVE_T,
-	FIREFLIES1BEGIN_T
+	FIREFLIES1BEGIN_T,
+	FIREFLIES2BEGIN_T,
 };
 static eventmanager* nightevents;
 
 static const int MAX_PARTICLES = 256;
 static Flock *firefliesA = NULL;
-static Flock *fireflies2B = NULL;
+static Flock *firefliesB = NULL;
 static vec3 attractorPositionA =  vec3(-30.0f, 15.0f, -30.0f);
 static vec3 attractorPositionB =  vec3(-30.0f, 15.0f, 30.0f);
 static BsplineInterpolator *firefliesAPath1 = NULL;
@@ -148,7 +149,8 @@ void nightscene::init() {
 	nightevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 2.0f }},
 		{CAMERAMOVE_T, { 2.0f, 18.0f }},
-		{FIREFLIES1BEGIN_T, {8.0f, 30.0f}}
+		{FIREFLIES1BEGIN_T, {8.0f, 30.0f}},
+		{FIREFLIES2BEGIN_T, {20.0f, 30.0f}}
 	});
 
 	float startz = -105.0f;
@@ -293,24 +295,35 @@ void nightscene::init() {
 	glEnableVertexAttribArray(0);
 
 	firefliesA = new Flock(MAX_PARTICLES, attractorPositionA);
-	fireflies2B = new Flock(MAX_PARTICLES, attractorPositionB);
+	firefliesB = new Flock(MAX_PARTICLES, attractorPositionB);
 
 	vector<vec3> firefliesAPath1Points = vector<vec3>({
-		vec3(-24.5204f, 2.3876f, -69.3911f),
-		vec3(-24.5204f, 2.3876f, -69.3911f),
-		vec3(-24.5204f, 2.3876f, -69.3911f),
-		vec3(-0.0203418f, 1.41239f, -73.5925f),
-		vec3(-9.50299f, 16.9127f, -65.7925f),
-		vec3(-12.303f, 14.1127f, -28.893f),
-		vec3(-58.2204f, 8.5876f, -39.2911f),
-		vec3(-24.5204f, 2.3876f, -69.3911f),
-		vec3(-0.0203418f, 1.41239f, -73.5925f)
+		vec3(-22.303f, 10.4127f, -80.3923f),
+		vec3(-23.803f, 8.61268f, -84.9922f),
+		vec3(-24.5208f, 3.2876f, -74.4906f),
+		vec3(-16.6204f, 1.1876f, -70.8911f),
+		vec3(-0.020374f, 1.3876f, -72.6911f),
+		vec3(-23.3204f, 0.3876f, -52.3914f),
+		vec3(20.2797f, 4.9876f, -49.9914f),
+		vec3(-17.9204f, 0.6876f, -25.8917f),
+		vec3(-4.82037f, 5.9876f, -9.1916f),
+		vec3(17.5797f, 19.4876f, -8.9916f),
+		vec3(26.7797f, 26.2877f, -29.9917f),
+		vec3(-2.22034f, 33.8124f, -21.3931f)
 	});
 	firefliesAPath1 = new BsplineInterpolator(firefliesAPath1Points);
 	pathA1 = new SplineRenderer(firefliesAPath1);
+	vector<vec3> firefliesBPath1Points = vector<vec3>({
+		vec3(25.3797f, 11.5876f, -7.19158f),
+		vec3(-17.9204f, 0.9876f, 12.1084f),
+		vec3(-4.72037f, 14.3876f, -28.2917f),
+		vec3(-15.0204f, 20.1876f, 1.9084f),
+		vec3(29.6797f, 27.3877f, -11.9916f),
+		vec3(-3.82034f, 39.6123f, -36.8931f)
+	});
+	firefliesBPath1 = new BsplineInterpolator(firefliesBPath1Points);
+	pathA2 = new SplineRenderer(firefliesBPath1);
 	pathAdjuster = new SplineAdjuster(firefliesAPath1);
-	pathAdjuster->setScalingFactor(0.1f);
-	pathAdjuster->setRenderPoints(true);
 }
 
 void nightscene::render() {
@@ -374,13 +387,13 @@ void nightscene::render() {
 	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 5.0f, 0.0f) * rotate(90.0f,vec3(1.0f,0.0f,0.0f)) * scale(1.0f));
 	lightManager->setLightUniform(programStaticInstancedPBR, false);
 	glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboTreePosition);
-	modelTreeRed->draw(programStaticInstancedPBR, 60);
+	// modelTreeRed->draw(programStaticInstancedPBR, 60);
 
 	firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
-	// fireflies2B->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.08f);
-	// fireflies2B->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
+	firefliesB->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
+	firefliesB->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
 	programTex->use();
 	glUniformMatrix4fv(programTex->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
@@ -413,8 +426,9 @@ void nightscene::update() {
 	attractorPositionA = vec3(firefliesAPath1->interpolate((*nightevents)[FIREFLIES1BEGIN_T]));
 	firefliesA->setAttractorPosition(attractorPositionA);
 	firefliesA->update();
-	fireflies2B->update();
-	fireflies2B->setAttractorPosition(attractorPositionB);
+	attractorPositionB = vec3(firefliesBPath1->interpolate((*nightevents)[FIREFLIES2BEGIN_T]));
+	firefliesB->update();
+	firefliesB->setAttractorPosition(attractorPositionB);
 }
 
 void nightscene::reset() {
@@ -425,8 +439,10 @@ void nightscene::uninit() {
 	delete land;
 	delete pathAdjuster;
 	delete pathA1;
+	delete pathA2;
 	delete firefliesAPath1;
-	delete fireflies2B;
+	delete firefliesAPath2;
+	delete firefliesB;
 	delete firefliesA;
 }
 
@@ -449,6 +465,18 @@ void nightscene::keyboardfunc(int key) {
 	case XK_F2:
 		renderPath = !renderPath;
 		camRig1->setRenderPathToFront(renderPath);
+		break;
+	case XK_F9:
+		delete pathAdjuster;
+		pathAdjuster = new SplineAdjuster(firefliesAPath1);
+		pathAdjuster->setScalingFactor(0.1f);
+		pathAdjuster->setRenderPoints(true);
+		break;
+	case XK_F10:
+		delete pathAdjuster;
+		pathAdjuster = new SplineAdjuster(firefliesBPath1);
+		pathAdjuster->setScalingFactor(0.1f);
+		pathAdjuster->setRenderPoints(true);
 		break;
 	case XK_Tab:
 		if(programglobal::debugMode == CAMERA) {
