@@ -267,8 +267,8 @@ void nightscene::init() {
 		}
 	}
 
-	for(int i = 0; i < 10; i++) {
-		for(int j = 0; j < 7; j++) {
+	for(int i = 0; i < 70; i++) {
+		for(int j = 0; j < 6; j++) {
 			flowerPositionsArray.push_back(vec4(startx + dx * j + programglobal::randgen->getRandomFloat(-5.0f, 5.0f), 0.0f, startz + dz * i + programglobal::randgen->getRandomFloat(-7.0f, 7.0f), 0.0f));
 		}
 	}
@@ -297,7 +297,7 @@ void nightscene::init() {
 
 	glGenBuffers(1, &uboFlowerPosition);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboFlowerPosition);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(vec4) * 70, flowerPositionsArray.data(), GL_STATIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(vec4) * flowerPositionsArray.size(), flowerPositionsArray.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	vector<float> starArray;
@@ -499,12 +499,7 @@ void nightscene::render() {
 	programStaticInstancedPBR->use();
 	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 0.0f) * rotate(0.0f,vec3(1.0f,0.0f,0.0f)) * scale(1.0f));
-	lightManager->setLightUniform(programStaticInstancedPBR, false);
-	glUniform3fv(programStaticInstancedPBR->getUniformLocation("leafColor"),1,vec3(0.0,1.0,1.0));
-	glUniform3fv(programStaticInstancedPBR->getUniformLocation("emissionColor"),1,vec3(0.9,0.1,0.0));
-	glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboFlowerPosition);
-	modelFlowerPurple->draw(programStaticInstancedPBR, 70);
+
 
 	firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
@@ -528,6 +523,21 @@ void nightscene::render() {
 			glUniform1i(programStaticInstancedPBR->getUniformLocation("instanceOffset"), 0);
 		}
 		modelTreeRed->draw(programStaticInstancedPBR, count);
+
+		count = 200;
+		if(z >= -95.0f) {
+			//z += 95.0f;
+			int n = 8 * (int)(z / 10.0f);
+			count = std::min(420 - n, 200);
+			glUniform1i(programStaticInstancedPBR->getUniformLocation("instanceOffset"), n);
+		} else {
+			glUniform1i(programStaticInstancedPBR->getUniformLocation("instanceOffset"), 0);
+		}
+		glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.3f, 0.0f) * rotate(0.0f,vec3(1.0f,0.0f,0.0f)) * scale(1.0f));
+		glUniform3fv(programStaticInstancedPBR->getUniformLocation("emissionColor"),1,vec3(0.0,0.0,0.0));
+		glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboFlowerPosition);
+		glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("color_ubo"), uboTreeColor);
+		modelFlowerPurple->draw(programStaticInstancedPBR, count);
 	}
 	// firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	// firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
