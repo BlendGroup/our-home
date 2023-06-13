@@ -86,7 +86,7 @@ void nightscene::setupProgram() {
 	try {
 		programTerrain = new glshaderprogram({"shaders/terrain/render.vert", "shaders/terrain/render.tesc", "shaders/terrain/render.tese", "shaders/terrain/renderjungle.frag"});
 		programStaticPBR = new glshaderprogram({"shaders/pbrStatic.vert", "shaders/pbrMain.frag"});
-		programStaticInstancedPBR = new glshaderprogram({"shaders/pbrStaticInstanced.vert", "shaders/pbrMain.frag"});
+		programStaticInstancedPBR = new glshaderprogram({"shaders/pbrStaticInstanced.vert", "shaders/trees.frag"});
 		programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
 		programSkybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/nightsky/rendercubemap.frag"});
 		programTex = new glshaderprogram({"shaders/debug/basictex.vert", "shaders/debug/basictex.frag"});
@@ -170,14 +170,16 @@ void nightscene::init() {
 	GLuint texJungle = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 0), 256.0f, 2.0f, 5, 235);
 	GLuint texJungle2 = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 1024), 256.0f, 2.0f, 5, 235);
 
-	modelTreeRed = new glmodel("resources/models/tree/wtree.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	godraysMoon = new godrays();
 	godraysMoon->setDecay(0.98f);
 	godraysMoon->setDensity(0.9f);
 	godraysMoon->setExposure(1.0f);
 	godraysMoon->setSamples(125);
 	godraysMoon->setWeight(0.02f);
-
+	
+	// modelTreeRed = new glmodel("resources/models/tree/wtree.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelTreeRed = new glmodel("resources/models/tree/purpletree.fbx", aiProcessPreset_TargetRealtime_Quality, true);
+	
 	glGenBuffers(1, &uboTreePosition);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboTreePosition);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(vec4) * 60, treePositionsArray.data(), GL_STATIC_DRAW);
@@ -238,7 +240,8 @@ void nightscene::init() {
 	land2 = new terrain(texJungle2, 256, true, 5, 16);
 	quickModelPlacer = new modelplacer();
 	lightManager = new SceneLight(false);
-	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, -1.0f, 0.0f)));
+	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 3.0f, vec3(0.0f, -1.0f, -1.0f)));
+	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 3.0f, vec3(0.0f, -1.0f, 1.0f)));
 
 	float skybox_positions[] = {
 		// positions          
@@ -371,8 +374,10 @@ void nightscene::render() {
 	programStaticInstancedPBR->use();
 	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 5.0f, 0.0f) * rotate(90.0f,vec3(1.0f,0.0f,0.0f)) * scale(1.0f));
+	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 3.0f, 0.0f) * rotate(-90.0f,vec3(1.0f,0.0f,0.0f)) * scale(1.0f));
 	lightManager->setLightUniform(programStaticInstancedPBR, false);
+	glUniform3fv(programStaticInstancedPBR->getUniformLocation("leafColor"),1,vec3(0.9,0.1,0.0));
+	glUniform3fv(programStaticInstancedPBR->getUniformLocation("emissionColor"),1,vec3(0.0,0.0,0.0));
 	glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboTreePosition);
 	modelTreeRed->draw(programStaticInstancedPBR, 60);
 

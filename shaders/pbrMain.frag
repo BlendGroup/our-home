@@ -149,8 +149,6 @@ float getSpotAngleAttenuation(vec3 l, vec3 light_dir,float inner_angle,float out
 vec3 indirectLightingDiffuse(vec3 N, vec3 P)
 {
     vec3 albedo = isTexture ? texture(texture_diffuse,fs_in.Tex).rgb : material.diffuse;
-    if(texture(texture_diffuse,fs_in.Tex).a <= 0.1)
-        discard;
     float metallic = material.metallic;
     if(isTexture)
     {
@@ -197,8 +195,6 @@ vec3 indirectLightingDiffuse(vec3 N, vec3 P)
 vec3 pbr(BaseLight base, vec3 direction, vec3 N, vec3 P){
 
     vec3 albedo = isTexture ? texture(texture_diffuse,fs_in.Tex).rgb : material.diffuse;
-    if(texture(texture_diffuse,fs_in.Tex).a <= 0.1)
-        discard;
     float metallic = material.metallic;
     if(isTexture)
     {
