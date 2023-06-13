@@ -45,6 +45,7 @@ static sphere* sphereMap;
 static modelplacer* quickModelPlacer;
 
 static glmodel* modelTreeRed;
+static glmodel* modelFlowerPurple;
 
 #ifdef DEBUG
 static sceneCameraRig* camRig1;
@@ -56,6 +57,7 @@ extern GLuint texDaySceneFinal;
 static GLuint texDiffuseGrass;
 static GLuint texDiffuseDirt;
 static GLuint uboTreePosition;
+static GLuint uboFlowerPosition;
 static GLuint vaoNightSky;
 static GLuint vboNightSky;
 static GLuint fboNightSky;
@@ -140,11 +142,18 @@ void nightscene::init() {
 	float startx = -25.0f;
 	float dx = 10.0f;
 	vector<vec4> treePositionsArray;
+	vector<vec4> flowerPositionsArray;
 	
 	int k = 0;
 	for(int i = 0; i < 10; i++) {
 		for(int j = 0; j < 6; j++) {
 			treePositionsArray.push_back(vec4(startx + dx * j + programglobal::randgen->getRandomFloat(-4.0f, 4.0f), 0.0f, startz + dz * i + programglobal::randgen->getRandomFloat(-4.0f, 4.0f), 0.0f));
+		}
+	}
+
+	for(int i = 0; i < 10; i++) {
+		for(int j = 0; j < 7; j++) {
+			flowerPositionsArray.push_back(vec4(startx + dx * j + programglobal::randgen->getRandomFloat(-5.0f, 5.0f), 0.0f, startz + dz * i + programglobal::randgen->getRandomFloat(-7.0f, 7.0f), 0.0f));
 		}
 	}
 
@@ -155,10 +164,16 @@ void nightscene::init() {
 
 	// modelTreeRed = new glmodel("resources/models/tree/wtree.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelTreeRed = new glmodel("resources/models/tree/purpletree.fbx", aiProcessPreset_TargetRealtime_Quality, true);
-	
+	modelFlowerPurple = new glmodel("resources/models/flowers/flower1.glb", aiProcessPreset_TargetRealtime_Quality, true);
+
 	glGenBuffers(1, &uboTreePosition);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboTreePosition);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(vec4) * 60, treePositionsArray.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	glGenBuffers(1, &uboFlowerPosition);
+	glBindBuffer(GL_UNIFORM_BUFFER, uboFlowerPosition);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(vec4) * 70, flowerPositionsArray.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	vector<float> starArray;
@@ -353,9 +368,19 @@ void nightscene::render() {
 	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 3.0f, 0.0f) * rotate(-90.0f,vec3(1.0f,0.0f,0.0f)) * scale(1.0f));
 	lightManager->setLightUniform(programStaticInstancedPBR, false);
 	glUniform3fv(programStaticInstancedPBR->getUniformLocation("leafColor"),1,vec3(0.9,0.1,0.0));
-	glUniform3fv(programStaticInstancedPBR->getUniformLocation("emissionColor"),1,vec3(0.0,0.0,0.0));
+	glUniform3fv(programStaticInstancedPBR->getUniformLocation("emissionColor"),1,vec3(1.0,0.0,0.0));
 	glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboTreePosition);
 	modelTreeRed->draw(programStaticInstancedPBR, 60);
+
+	programStaticInstancedPBR->use();
+	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 0.0f) * rotate(0.0f,vec3(1.0f,0.0f,0.0f)) * scale(1.0f));
+	lightManager->setLightUniform(programStaticInstancedPBR, false);
+	glUniform3fv(programStaticInstancedPBR->getUniformLocation("leafColor"),1,vec3(0.0,1.0,1.0));
+	glUniform3fv(programStaticInstancedPBR->getUniformLocation("emissionColor"),1,vec3(0.9,0.1,0.0));
+	glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboFlowerPosition);
+	modelFlowerPurple->draw(programStaticInstancedPBR, 70);
 
 	firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
