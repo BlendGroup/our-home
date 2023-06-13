@@ -41,6 +41,9 @@ static sceneCamera* camera1;
 static sphere* moon;
 static modelplacer* quickModelPlacer;
 static glmodel* modelTreeRed;
+static glmodel* modelDrone;
+static glmodel* modelAstro;
+static glmodel* modelRover;
 static godrays* godraysMoon;
 #ifdef DEBUG
 static sceneCameraRig* camRig1;
@@ -319,7 +322,10 @@ void nightscene::init() {
 	
 	// modelTreeRed = new glmodel("resources/models/tree/wtree.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelTreeRed = new glmodel("resources/models/tree/purpletree.fbx", aiProcessPreset_TargetRealtime_Quality, true);
-	
+	modelRover = new glmodel("resources/models/rover/rover.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelDrone = new glmodel("resources/models/drone/drone2.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
+
 	float startz = -115.0f;
 	float dz = 10.0f;
 	float startx = -25.0f;
@@ -402,7 +408,7 @@ void nightscene::init() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	moon = new sphere(25, 50, 1.0f);
-	quickModelPlacer = new modelplacer();
+	quickModelPlacer = new modelplacer(vec3(2.0f, -1.0f, 1161.0f), vec3(0.0f, 180.0f, 0.0f), 15.0f);
 	lightManager = new SceneLight(false);
 	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, -0.5f, -1.0f)));
 
@@ -687,6 +693,20 @@ void nightscene::render() {
 	glBindTextureUnit(2, 0);
 	programglobal::shapeRenderer->renderQuad();
 
+	programDynamicPBR->use();
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
+	glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"), GL_FALSE);
+	lightManager->setLightUniform(programDynamicPBR, false);
+	modelDrone->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(2.0f, -1.0f, 1161.0f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(15.0f));
+	modelDrone->draw(programDynamicPBR);
+
+	modelAstro->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-2.0f, -3.5f, 1161.0f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(3.0f));
+	modelAstro->draw(programDynamicPBR);
+
 	if((*nightevents)[CROSSIN_T] < 1.0f) {
 		crossfader::render(texDaySceneFinal, (*nightevents)[CROSSIN_T]);
 	}
@@ -701,6 +721,8 @@ void nightscene::render() {
 }
 
 void nightscene::update() {
+	static const float DRONE_ANIM_SPEED = 0.8f;
+	static const float ASTRO_ANIM_SPEED = 0.5f;
 	nightevents->increment();
 	attractorPositionA = vec3(firefliesAPath1->interpolate((*nightevents)[FIREFLIES1BEGIN_T]));
 	firefliesA->setAttractorPosition(attractorPositionA);
@@ -715,6 +737,8 @@ void nightscene::update() {
 			playerBkgnd->pause();
 		}
 	}
+	modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
+	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 1);
 }
 
 void nightscene::reset() {
