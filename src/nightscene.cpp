@@ -170,7 +170,7 @@ void nightscene::setupCamera() {
 		vec3(0.0f, 1.4f, 1000.1f),
 		vec3(0.0f, 1.4f, 1050.1f),
 		vec3(0.0f, 1.4f, 1100.1f),
-		vec3(0.0f, 1.4f, 1150.1f),
+		vec3(0.0f, 1.4f, 1153.1f),
 	};
 	
 	vector<vec3> frontVector = {
@@ -408,7 +408,7 @@ void nightscene::init() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	moon = new sphere(25, 50, 1.0f);
-	quickModelPlacer = new modelplacer(vec3(2.0f, -1.0f, 1161.0f), vec3(0.0f, 180.0f, 0.0f), 15.0f);
+	quickModelPlacer = new modelplacer(vec3(-2.0f, -3.5f, 1161.0f), vec3(0.0f, 180.0f, 0.0f), 3.0f);
 	lightManager = new SceneLight(false);
 	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, -0.5f, -1.0f)));
 
@@ -700,11 +700,11 @@ void nightscene::render() {
 	glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"), GL_FALSE);
 	lightManager->setLightUniform(programDynamicPBR, false);
 	modelDrone->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(2.0f, -1.0f, 1161.0f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(15.0f));
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(2.3f, -1.0f, 1161.0f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(15.0f));
 	modelDrone->draw(programDynamicPBR);
 
 	modelAstro->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-2.0f, -3.5f, 1161.0f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(3.0f));
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-0.3f, -4.1f, 1157.5f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(3.0f));
 	modelAstro->draw(programDynamicPBR);
 
 	if((*nightevents)[CROSSIN_T] < 1.0f) {
