@@ -157,17 +157,17 @@ void nightscene::setupCamera() {
 		vec3(0.0f, 1.4f, 575.1f),
 		//Ocean
 		vec3(0.0f, 1.4f, 600.1f),
-		vec3(0.0f, 1.4f, 625.1f),
 		vec3(0.0f, 1.4f, 650.1f),
-		vec3(0.0f, 1.4f, 675.1f),
 		vec3(0.0f, 1.4f, 700.1f),
-		vec3(0.0f, 1.4f, 725.1f),
 		vec3(0.0f, 1.4f, 750.1f),
-		vec3(0.0f, 1.4f, 775.1f),
 		vec3(0.0f, 1.4f, 800.1f),
-		vec3(0.0f, 1.4f, 825.1f),
 		vec3(0.0f, 1.4f, 850.1f),
-		vec3(0.0f, 1.4f, 875.1f),
+		vec3(0.0f, 1.4f, 900.1f),
+		vec3(0.0f, 1.4f, 950.1f),
+		vec3(0.0f, 1.4f, 1000.1f),
+		vec3(0.0f, 1.4f, 1050.1f),
+		vec3(0.0f, 1.4f, 1100.1f),
+		vec3(0.0f, 1.4f, 1150.1f),
 	};
 	
 	vector<vec3> frontVector = {
@@ -229,17 +229,17 @@ void nightscene::setupCamera() {
 		vec3(0.0f, 1.4f, 580.1f),
 		//Ocean
 		vec3(0.0f, 1.4f, 605.1f),
-		vec3(0.0f, 1.4f, 630.1f),
 		vec3(0.0f, 1.4f, 655.1f),
-		vec3(0.0f, 1.4f, 680.1f),
 		vec3(0.0f, 1.4f, 705.1f),
-		vec3(0.0f, 1.4f, 730.1f),
 		vec3(0.0f, 1.4f, 755.1f),
-		vec3(0.0f, 1.4f, 780.1f),
 		vec3(0.0f, 1.4f, 805.1f),
-		vec3(0.0f, 1.4f, 830.1f),
 		vec3(0.0f, 1.4f, 855.1f),
-		vec3(0.0f, 1.4f, 880.1f),
+		vec3(0.0f, 1.4f, 905.1f),
+		vec3(0.0f, 1.4f, 955.1f),
+		vec3(0.0f, 1.4f, 1005.1f),
+		vec3(0.0f, 1.4f, 1055.1f),
+		vec3(0.0f, 1.4f, 1105.1f),
+		vec3(0.0f, 1.4f, 1155.1f),
 	};
 	camera1 = new sceneCamera(positionVector, frontVector);
 
@@ -615,7 +615,7 @@ void nightscene::render() {
 	lightManager->setLightUniform(programTerrain, false);
 	land2->render();
 
-	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 950.0f));
+	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 1250.0f));
 	glUniform1f(programTerrain->getUniformLocation("maxTess"), island->getMaxTess());
 	glUniform1f(programTerrain->getUniformLocation("minTess"), island->getMinTess());
 	glUniform1i(programTerrain->getUniformLocation("texHeight"), 0);
@@ -656,11 +656,11 @@ void nightscene::render() {
 			modelTreeRed->draw(programStaticInstancedPBR, count);
 		}
 	}
-	firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
-	firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
+	// firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
+	// firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
-	firefliesB->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
-	firefliesB->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
+	// firefliesB->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
+	// firefliesB->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
 	programTex->use();
 	glUniformMatrix4fv(programTex->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
