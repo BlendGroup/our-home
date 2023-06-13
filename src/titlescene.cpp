@@ -10,6 +10,7 @@
 #include<debugcamera.h>
 #include<eventmanager.h>
 #include<crossfade.h>
+#include<errorlog.h>
 
 using namespace std;
 using namespace vmath;
@@ -48,11 +49,15 @@ void titlescene::init() {
 }
 
 void titlescene::render() {
-	programRender->use();
-	glUniformMatrix4fv(programRender->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	glUniformMatrix4fv(programRender->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(programRender->getUniformLocation("mMat"), 1, GL_FALSE, mat4::identity());
-	modelTitle->draw(programRender, 1, false);
+	try {
+		programRender->use();
+		glUniformMatrix4fv(programRender->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+		glUniformMatrix4fv(programRender->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+		glUniformMatrix4fv(programRender->getUniformLocation("mMat"), 1, GL_FALSE, mat4::identity());
+		modelTitle->draw(programRender, 1, 0, false);
+	} catch(string errorString) {
+		throwErr(errorString);
+	}
 }
 
 void titlescene::update(void) {

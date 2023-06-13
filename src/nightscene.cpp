@@ -22,6 +22,7 @@
 #include<gltextureloader.h>
 #include<flock.h>
 #include<glmodelloader.h>
+#include<errorlog.h>
 
 using namespace std;
 using namespace vmath;
@@ -698,6 +699,7 @@ void postOceanRender() {
 void nightscene::render() {
 	camera1->setT((*nightevents)[CAMERAMOVE_T]);
 
+	try {
 	programSkybox->use();
 	glUniformMatrix4fv(programSkybox->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
 	glUniformMatrix4fv(programSkybox->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
@@ -772,6 +774,9 @@ void nightscene::render() {
 	} else if(programglobal::debugMode == SPLINE) {
 		camRig1->render();
 		pathAdjuster->render(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f, 0.0f, 1.0f, 1.0f), vec4(1.0f, 1.0f, 0.0f, 1.0f));
+	}
+	} catch(string errorString) {
+		throwErr(errorString);
 	}
 }
 
