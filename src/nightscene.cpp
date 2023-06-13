@@ -32,19 +32,16 @@ static glshaderprogram* programStaticInstancedPBR;
 static glshaderprogram* programDynamicPBR;
 static glshaderprogram* programNightSky;
 static glshaderprogram* programSkybox;
+static glshaderprogram* programTex;
 
 static terrain* land;
 static terrain* land2;
-
 static SceneLight* lightManager;
-
 static sceneCamera* camera1;
-
-static sphere* sphereMap;
-
+static sphere* moon;
 static modelplacer* quickModelPlacer;
-
 static glmodel* modelTreeRed;
+static godrays* godraysMoon;
 
 #ifdef DEBUG
 static sceneCameraRig* camRig1;
@@ -61,6 +58,7 @@ static GLuint vboNightSky;
 static GLuint fboNightSky;
 static GLuint texColorNightSky;
 static GLuint texEmmissionNightSky;
+static GLuint texMoon;
 static GLuint skybox_vao;
 static GLuint vbo;
 
@@ -91,6 +89,7 @@ void nightscene::setupProgram() {
 		programStaticInstancedPBR = new glshaderprogram({"shaders/pbrStaticInstanced.vert", "shaders/pbrMain.frag"});
 		programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
 		programSkybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/nightsky/rendercubemap.frag"});
+		programTex = new glshaderprogram({"shaders/debug/basictex.vert", "shaders/debug/basictex.frag"});
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -98,25 +97,42 @@ void nightscene::setupProgram() {
 
 void nightscene::setupCamera() {
 	vector<vec3> positionVector = {
-		vec3(0.0f, 1.4f, -122.191f),
-		vec3(0.0f, 1.4f, -121.891f),
-		vec3(0.0f, 1.4f, -120.691f),
-		vec3(0.0f, 1.4f, -117.691f),
-		vec3(0.0f, 1.4f, -114.091f),
-		vec3(0.0f, 1.4f, -107.891f),
-		vec3(0.0f, 1.4f, -99.3911f),
-		vec3(0.0f, 1.4f, -90.6912f)
+		vec3(0.0f, 1.4f, -122.2f),
+		vec3(0.0f, 1.4f, -122.2f),
+		vec3(0.0f, 1.4f, -122.2f),
+		vec3(0.0f, 1.4f, -122.2f),
+		vec3(0.0f, 1.4f, -122.2f),
+		vec3(0.0f, 1.4f, -122.2f),
+		vec3(0.0f, 1.4f, -122.2f),
+		vec3(0.0f, 1.4f, -121.2f),
+		vec3(0.0f, 1.4f, -120.2f),
+		vec3(0.0f, 1.4f, -118.2f),
+		vec3(0.0f, 1.4f, -116.2f),
+		vec3(0.0f, 1.4f, -114.2f),
+		vec3(0.0f, 1.4f, -112.2f),
+		vec3(0.0f, 1.4f, -110.2f),
+		vec3(0.0f, 1.4f, -108.2f),
+		vec3(0.0f, 1.4f, -106.2f),
+		vec3(0.0f, 1.4f, -103.2f),
 	};
 	vector<vec3> frontVector = {
-		vec3(0.0f, 23.81f, -109.7f),
-		vec3(0.0f, 12.51f, -107.89f),
-		vec3(0.0f, 3.2f, -102.99f),
-		vec3(0.0f, 1.4f, -96.3899f),
-		vec3(0.0f, 1.4f, -92.09f),
-		vec3(0.0f, 1.4f, -85.8901f),
-		vec3(0.0f, 1.4f, -79.2902f),
-		vec3(0.0f, 1.4f, -73.5903f)
-	}; 
+		vec3(13.8f, 23.81f, -122.2f),
+		vec3(12.5f, 14.51f, -122.2f),
+		vec3(8.6f, 6.61f, -122.2f),
+		vec3(5.0f, 2.2f, -121.5f),
+		vec3(3.1f, 1.5f, -118.8f),
+		vec3(0.0f, 1.4f, -118.1f),
+		vec3(-2.4f, 1.4f, -118.2f),
+		vec3(-4.9f, 1.4f, -116.2f),
+		vec3(-2.9f, 1.4f, -112.0f),
+		vec3(-0.4f, 1.4f, -109.1f),
+		vec3(0.0f, 2.2f, -104.5f),
+		vec3(0.0f, 4.9f, -102.5f),
+		vec3(0.0f, 5.2f, -100.4f),
+		vec3(0.0f, 4.6f, -98.5f),
+		vec3(0.0f, 2.0f, -96.5f),
+		vec3(0.0f, 1.4f, -94.2f),
+	};
 	camera1 = new sceneCamera(positionVector, frontVector);
 
 	camRig1 = new sceneCameraRig(camera1);
@@ -131,7 +147,7 @@ void nightscene::setupCamera() {
 void nightscene::init() {
 	nightevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 2.0f }},
-		{CAMERAMOVE_T, { 2.0f, 8.0f }},
+		{CAMERAMOVE_T, { 2.0f, 18.0f }},
 		{FIREFLIES1BEGIN_T, {8.0f, 30.0f}}
 	});
 
@@ -150,11 +166,18 @@ void nightscene::init() {
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseDirt = createTexture2D("resources/textures/dirt.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
+	texMoon = createTexture2D("resources/textures/moon.jpg", GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
 	GLuint texJungle = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 0), 256.0f, 2.0f, 5, 235);
 	GLuint texJungle2 = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 1024), 256.0f, 2.0f, 5, 235);
 
 	modelTreeRed = new glmodel("resources/models/tree/wtree.glb", aiProcessPreset_TargetRealtime_Quality, true);
-	
+	godraysMoon = new godrays();
+	godraysMoon->setDecay(0.98f);
+	godraysMoon->setDensity(0.9f);
+	godraysMoon->setExposure(1.0f);
+	godraysMoon->setSamples(125);
+	godraysMoon->setWeight(0.02f);
+
 	glGenBuffers(1, &uboTreePosition);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboTreePosition);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(vec4) * 60, treePositionsArray.data(), GL_STATIC_DRAW);
@@ -210,7 +233,7 @@ void nightscene::init() {
 	glBindVertexArray(0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	sphereMap = new sphere(25, 50, 1.0f);
+	moon = new sphere(25, 50, 1.0f);
 	land = new terrain(texJungle, 256, true, 5, 16);
 	land2 = new terrain(texJungle2, 256, true, 5, 16);
 	quickModelPlacer = new modelplacer();
@@ -351,13 +374,26 @@ void nightscene::render() {
 	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 5.0f, 0.0f) * rotate(90.0f,vec3(1.0f,0.0f,0.0f)) * scale(1.0f));
 	lightManager->setLightUniform(programStaticInstancedPBR, false);
 	glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboTreePosition);
-	// modelTreeRed->draw(programStaticInstancedPBR, 60);
+	modelTreeRed->draw(programStaticInstancedPBR, 60);
 
 	firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
 	// fireflies2B->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.08f);
 	// fireflies2B->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
+
+	programTex->use();
+	glUniformMatrix4fv(programTex->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programTex->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programTex->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 297.0f, 517.0f) * scale(35.0f));
+	glUniform1i(programTex->getUniformLocation("texture_diffuse"), 0);
+	glUniform1i(programTex->getUniformLocation("texture_emmission"), 1);
+	glUniform1i(programTex->getUniformLocation("texture_occlusion"), 2);
+	glBindTextureUnit(0, texMoon);
+	glBindTextureUnit(1, 0);
+	glBindTextureUnit(2, texMoon);
+	moon->render();
+	godraysMoon->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix() * translate(0.0f, 297.0f, 517.0f), vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
 	if((*nightevents)[CROSSIN_T] < 1.0f) {
 		crossfader::render(texDaySceneFinal, (*nightevents)[CROSSIN_T]);
@@ -431,4 +467,5 @@ camera* nightscene::getCamera() {
 }
 
 void nightscene::crossfade() {
+	godraysMoon->renderRays();
 }

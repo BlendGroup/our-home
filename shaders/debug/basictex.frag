@@ -5,6 +5,8 @@ layout(location = 1)out vec4 EmissionColor;
 layout(location = 2)out vec4 OcclusionColor;
 
 uniform sampler2D texture_diffuse;
+uniform sampler2D texture_emmission;
+uniform sampler2D texture_occlusion;
 
 in VS_OUT {
 	vec2 texCoord;
@@ -12,6 +14,6 @@ in VS_OUT {
 
 void main(void) {
 	FragColor = texture(texture_diffuse, fs_in.texCoord);
-	EmissionColor = vec4(0.0);
-	OcclusionColor = vec4(0.0);
+	EmissionColor = texture(texture_emmission, fs_in.texCoord);
+	OcclusionColor = texture(texture_occlusion, fs_in.texCoord);
 }
