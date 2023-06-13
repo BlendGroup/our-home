@@ -228,7 +228,7 @@ void nightscene::init() {
 	nightevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 2.0f }},
 		{CAMERAMOVE_T, { 2.0f, 80.0f }},
-		{FIREFLIES1BEGIN_T, {8.0f, 30.0f}},
+		{FIREFLIES1BEGIN_T, {1.5f, 80.0f}},
 		{FIREFLIES2BEGIN_T, {20.0f, 30.0f}}
 	});
 
@@ -394,18 +394,69 @@ void nightscene::init() {
 	firefliesB = new Flock(MAX_PARTICLES, attractorPositionB);
 
 	vector<vec3> firefliesAPath1Points = vector<vec3>({
-		vec3(-22.303f, 10.4127f, -80.3923f),
-		vec3(-23.803f, 8.61268f, -84.9922f),
-		vec3(-24.5208f, 3.2876f, -74.4906f),
-		vec3(-16.6204f, 1.1876f, -70.8911f),
-		vec3(-0.020374f, 1.3876f, -72.6911f),
-		vec3(-23.3204f, 0.3876f, -52.3914f),
-		vec3(20.2797f, 4.9876f, -49.9914f),
-		vec3(-17.9204f, 0.6876f, -25.8917f),
-		vec3(-4.82037f, 5.9876f, -9.1916f),
-		vec3(17.5797f, 19.4876f, -8.9916f),
-		vec3(26.7797f, 26.2877f, -29.9917f),
-		vec3(-2.22034f, 33.8124f, -21.3931f)
+		// vec3(-22.303f, 10.4127f, -80.3923f),
+		// vec3(-23.803f, 8.61268f, -84.9922f),
+		// vec3(-24.5208f, 3.2876f, -74.4906f),
+		// vec3(-16.6204f, 1.1876f, -70.8911f),
+		// vec3(-0.020374f, 1.3876f, -72.6911f),
+		// vec3(-23.3204f, 0.3876f, -52.3914f),
+		// vec3(20.2797f, 4.9876f, -49.9914f),
+		// vec3(-17.9204f, 0.6876f, -25.8917f),
+		// vec3(-4.82037f, 5.9876f, -9.1916f),
+		// vec3(17.5797f, 19.4876f, -8.9916f),
+		// vec3(26.7797f, 26.2877f, -29.9917f),
+		// vec3(-2.22034f, 33.8124f, -21.3931f)
+		vec3(13.8f, 23.81f, -102.2f),
+		vec3(12.5f, 14.51f, -102.2f),
+		vec3(8.6f, 6.61f, -102.2f),
+		vec3(5.01f, 2.2f, -101.5f),
+		vec3(3.1f, 1.5f, -98.8f),
+		vec3(-0.01f, 1.4f, -98.1f),
+		vec3(-2.4f, 1.4f, -98.2f),
+		vec3(-4.9f, 1.4f, -96.2f),
+		vec3(-2.8f, 1.4f, -92.1f),
+		vec3(-0.4f, 2.5f, -89.1f),
+		vec3(0.0f, 4.3f, -85.3f),
+		vec3(0.0f, 5.1f, -82.5f),
+		vec3(0.0f, 5.2f, -80.4f),
+		vec3(0.0f, 5.2f, -78.5f),
+		vec3(0.0f, 4.6f, -75.9f),
+		vec3(0.0f, 3.2f, -74.1f),
+		vec3(0.0f, 1.7f, -67.1f),
+		vec3(5.4f, 2.8f, -57.1f),
+		vec3(-7.6f, 2.4f, -45.1f),
+		vec3(6.1f, 1.4f, -30.1f),
+		vec3(-7.1f, 3.0f, -15.1f),
+		vec3(0.0f, 1.4f, -0.1f),
+		vec3(0.0f, 1.4f, 20.1f),
+		vec3(10.7f, 1.9f, 40.1f),
+		vec3(5.2f, 4.8f, 60.0f),
+		vec3(0.0f, 1.4f, 80.1f),
+		vec3(0.0f, 1.4f, 100.1f),
+		vec3(-7.3f, 1.4f, 120.1f),
+		vec3(3.2f, 1.1f, 140.1f),
+		vec3(0.0f, 1.4f, 160.1f),
+		vec3(0.0f, 1.4f, 180.1f),
+		vec3(0.0f, 1.4f, 200.1f),
+		vec3(-6.9f, 1.6f, 221.2f),
+		vec3(9.5f, 1.4f, 239.9f),
+		vec3(0.0f, 1.4f, 260.1f),
+		vec3(0.0f, 1.4f, 280.1f),
+		vec3(0.0f, 1.4f, 300.1f),
+		vec3(0.0f, 1.4f, 320.1f),
+		vec3(-8.2f, 3.4f, 340.0f),
+		vec3(0.0f, 1.4f, 360.1f),
+		vec3(0.0f, 1.4f, 380.1f),
+		vec3(-8.3f, 1.3f, 400.2f),
+		vec3(0.0f, 1.4f, 420.1f),
+		vec3(7.5f, 1.4f, 440.1f),
+		vec3(0.0f, 1.4f, 460.1f),
+		vec3(0.0f, 1.4f, 480.1f),
+		vec3(0.0f, 1.4f, 500.1f),
+		vec3(0.0f, 1.4f, 520.1f),
+		vec3(0.0f, 1.4f, 540.1f),
+		vec3(0.0f, 1.4f, 560.1f),
+		vec3(0.0f, 1.4f, 580.1f)
 	});
 	firefliesAPath1 = new BsplineInterpolator(firefliesAPath1Points);
 	pathA1 = new SplineRenderer(firefliesAPath1);
@@ -498,8 +549,8 @@ void nightscene::render() {
 		}
 		modelTreeRed->draw(programStaticInstancedPBR, count);
 	}
-	// firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
-	// firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
+	firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
+	firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
 	// firefliesB->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	// firefliesB->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
