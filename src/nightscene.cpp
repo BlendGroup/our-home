@@ -307,11 +307,11 @@ void nightscene::init() {
 	texMoon = createTexture2D("resources/textures/moon.jpg", GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
 	texOcean = createTexture2D("resources/textures/ocean.jpg", GL_LINEAR, GL_LINEAR);
 	GLuint texMap = createTexture2D("resources/textures/islandmap.png", GL_LINEAR, GL_LINEAR);
-	GLuint texJungle = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 0), 256.0f, 1.0f, 5, 235);
-	GLuint texJungle2 = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 1024), 256.0f, 1.0f, 5, 235);
+	GLuint texJungle = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 0), 256.0f, 0.25f, 5, 235);
+	GLuint texJungle2 = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 1024), 256.0f, 0.25f, 5, 235);
 	GLuint texIsland = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 1024), 256.0f, 1.0f, 5, 235);
-	land = new terrain(texJungle, 256, true, 5, 16);
-	land2 = new terrain(texJungle2, 256, true, 5, 16);
+	land = new terrain(texJungle, 64, true, 5, 8);
+	land2 = new terrain(texJungle2, 64, true, 5, 8);
 	GLuint texNewIsland = createCombinedMapTextureNight(texIsland, texMap);
 	island = new terrain(texNewIsland, 256, true, 5, 16);
 
@@ -604,12 +604,12 @@ void preOceanRender() {
 
 	glBindTextureUnit(0, land->getHeightMap());
 	glBindTextureUnit(1, land->getNormalMap());
-	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, scale(1.5f));
+	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, scale(6.0f));
 	glUniform1f(programTerrain->getUniformLocation("maxTess"), land->getMaxTess());
 	glUniform1f(programTerrain->getUniformLocation("minTess"), land->getMinTess());
 	land->render();
 	
-	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 256.0f * 1.5f) * scale(1.5f));
+	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 64.0f * 6.0f) * scale(6.0f));
 	glUniform1f(programTerrain->getUniformLocation("maxTess"), land2->getMaxTess());
 	glUniform1f(programTerrain->getUniformLocation("minTess"), land2->getMinTess());
 	glBindTextureUnit(0, land2->getHeightMap());
@@ -735,18 +735,20 @@ void nightscene::render() {
 	// lightManager->setLightUniform(programDynamicPBR, false);
 	// modelPhoenix->draw(programDynamicPBR,1);
 
-	programTex->use();
-	glUniformMatrix4fv(programTex->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	glUniformMatrix4fv(programTex->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(programTex->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 320.0f, 520.0f) * scale(35.0f));
-	glUniform1i(programTex->getUniformLocation("texture_diffuse"), 0);
-	glUniform1i(programTex->getUniformLocation("texture_emmission"), 1);
-	glUniform1i(programTex->getUniformLocation("texture_occlusion"), 2);
-	glBindTextureUnit(0, texMoon);
-	glBindTextureUnit(1, 0);
-	glBindTextureUnit(2, texMoon);
-	moon->render();
-	godraysMoon->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix() * translate(0.0f, 297.0f, 517.0f), vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	if((*nightevents)[CAMERAMOVE_T] > 0.136f && (*nightevents)[CAMERAMOVE_T] < 0.26f) {
+		programTex->use();
+		glUniformMatrix4fv(programTex->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+		glUniformMatrix4fv(programTex->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+		glUniformMatrix4fv(programTex->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 320.0f, 520.0f) * scale(35.0f));
+		glUniform1i(programTex->getUniformLocation("texture_diffuse"), 0);
+		glUniform1i(programTex->getUniformLocation("texture_emmission"), 1);
+		glUniform1i(programTex->getUniformLocation("texture_occlusion"), 2);
+		glBindTextureUnit(0, texMoon);
+		glBindTextureUnit(1, 0);
+		glBindTextureUnit(2, texMoon);
+		moon->render();
+		godraysMoon->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix() * translate(0.0f, 297.0f, 517.0f), vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	}
 
 	programTex->use();
 	glUniformMatrix4fv(programTex->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
@@ -853,6 +855,7 @@ void nightscene::keyboardfunc(int key) {
 		} else if(programglobal::debugMode == MODEL) {
 			cout<<quickModelPlacer<<endl;
 		}
+		// cout<<(*nightevents)[CAMERAMOVE_T]<<endl;
 		break;
 	}
 }
@@ -862,5 +865,7 @@ camera* nightscene::getCamera() {
 }
 
 void nightscene::crossfade() {
-	godraysMoon->renderRays();
+	if((*nightevents)[CAMERAMOVE_T] > 0.136f && (*nightevents)[CAMERAMOVE_T] < 0.26f) {
+		godraysMoon->renderRays();
+	}
 }
