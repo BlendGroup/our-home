@@ -350,10 +350,8 @@ void nightscene::init() {
 		}
 	}
 
-	// modelTreeRed = new glmodel("resources/models/tree/wtree.glb", aiProcessPreset_TargetRealtime_Quality, true);
-	modelTreeRed = new glmodel("resources/models/tree/purpletree.fbx", aiProcessPreset_TargetRealtime_Quality, true);
-	modelFlowerPurple = new glmodel("resources/models/flowers/flower1.glb", aiProcessPreset_TargetRealtime_Quality, true);
-	modelPhoenix = new glmodel("resources/models/phoenix/phoenix.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	// modelFlowerPurple = new glmodel("resources/models/flowers/flower1.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	// modelPhoenix = new glmodel("resources/models/phoenix/phoenix.glb", aiProcessPreset_TargetRealtime_Quality, true);
 
 	glGenBuffers(1, &uboTreePosition);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboTreePosition);
@@ -590,6 +588,113 @@ void nightscene::init() {
 	pathAdjuster = new SplineAdjuster(firefliesAPath1);
 }
 
+void preOceanRender() {
+	programTerrain->use();
+	glUniformMatrix4fv(programTerrain->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programTerrain->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniform3fv(programTerrain->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
+	glUniform1i(programTerrain->getUniformLocation("texHeight"), 0);
+	// glUniform1i(programTerrain->getUniformLocation("texNormal"), 1);
+	glUniform1i(programTerrain->getUniformLocation("texDiffuseGrass"), 3);
+	glUniform1i(programTerrain->getUniformLocation("texDiffuseDirt"), 4);
+	glUniform1f(programTerrain->getUniformLocation("texScale"), 15.0f);
+	glBindTextureUnit(3, texDiffuseGrass);
+	glBindTextureUnit(4, texDiffuseDirt);
+	lightManager->setLightUniform(programTerrain, false);
+
+	glBindTextureUnit(0, land->getHeightMap());
+	glBindTextureUnit(1, land->getNormalMap());
+	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, scale(1.5f));
+	glUniform1f(programTerrain->getUniformLocation("maxTess"), land->getMaxTess());
+	glUniform1f(programTerrain->getUniformLocation("minTess"), land->getMinTess());
+	land->render();
+	
+	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 256.0f * 1.5f) * scale(1.5f));
+	glUniform1f(programTerrain->getUniformLocation("maxTess"), land2->getMaxTess());
+	glUniform1f(programTerrain->getUniformLocation("minTess"), land2->getMinTess());
+	glBindTextureUnit(0, land2->getHeightMap());
+	glBindTextureUnit(1, land2->getNormalMap());
+	land2->render();
+	
+	for(int i = 0; i < 9; i++) {
+		glBindTextureUnit(i, 0);
+	}
+	if(renderTrees) {
+		programStaticInstancedPBR->use();
+		glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+		glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+		glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 4.0f, 0.0f) * rotate(-90.0f,vec3(1.0f,0.0f,0.0f)) * scale(1.0f));
+		lightManager->setLightUniform(programStaticInstancedPBR, false);
+		glUniform3fv(programStaticInstancedPBR->getUniformLocation("emissionColor"),1,vec3(0.05f,0.05f,0.05f));
+		glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboTreePosition);
+		glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("color_ubo"), uboTreeColor);
+		float z = programglobal::currentCamera->position()[2];
+		int count = 60;
+		if(z >= -95.0f) {
+			z += 95.0f;
+			int n = 6 * (int)(z / 10.0f);
+			count = std::min(420 - n, 90);
+			glUniform1i(programStaticInstancedPBR->getUniformLocation("instanceOffset"), n);
+		} else {
+			glUniform1i(programStaticInstancedPBR->getUniformLocation("instanceOffset"), 0);
+		}
+		if(count > 0) {
+			modelTreeRed->draw(programStaticInstancedPBR, count);
+		}
+		modelTreeRed->draw(programStaticInstancedPBR, count);
+
+		// count = 200;
+		// if(z >= -95.0f) {
+		// 	//z += 95.0f;
+		// 	int n = 8 * (int)(z / 10.0f);
+		// 	count = std::min(420 - n, 200);
+		// 	glUniform1i(programStaticInstancedPBR->getUniformLocation("instanceOffset"), n);
+		// } else {
+		// 	glUniform1i(programStaticInstancedPBR->getUniformLocation("instanceOffset"), 0);
+		// }
+		// glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.3f, 0.0f) * rotate(0.0f,vec3(1.0f,0.0f,0.0f)) * scale(1.0f));
+		// glUniform3fv(programStaticInstancedPBR->getUniformLocation("emissionColor"),1,vec3(0.0,0.0,0.0));
+		// glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboFlowerPosition);
+		// glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("color_ubo"), uboTreeColor);
+		// modelFlowerPurple->draw(programStaticInstancedPBR, count);
+	}
+
+}
+
+void postOceanRender() {
+	programTerrain->use();
+	glUniformMatrix4fv(programTerrain->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programTerrain->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 1250.0f));
+	glUniform3fv(programTerrain->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
+	glUniform1f(programTerrain->getUniformLocation("maxTess"), island->getMaxTess());
+	glUniform1f(programTerrain->getUniformLocation("minTess"), island->getMinTess());
+	glUniform1i(programTerrain->getUniformLocation("texHeight"), 0);
+	// glUniform1i(programTerrain->getUniformLocation("texNormal"), 1);
+	glUniform1i(programTerrain->getUniformLocation("texDiffuseGrass"), 2);
+	glUniform1i(programTerrain->getUniformLocation("texDiffuseDirt"), 3);
+	glUniform1f(programTerrain->getUniformLocation("texScale"), 15.0f);
+	glBindTextureUnit(0, island->getHeightMap());
+	glBindTextureUnit(1, island->getNormalMap());
+	glBindTextureUnit(2, texDiffuseGrass);
+	glBindTextureUnit(3, texDiffuseDirt);
+	island->render();
+
+	programDynamicPBR->use();
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
+	glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"), GL_FALSE);
+	lightManager->setLightUniform(programDynamicPBR, false);
+	modelDrone->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(2.3f, -1.0f, 1161.0f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(15.0f));
+	modelDrone->draw(programDynamicPBR);
+
+	modelAstro->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-0.3f, -4.1f, 1157.5f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(3.0f));
+	modelAstro->draw(programDynamicPBR);
+}
+
 void nightscene::render() {
 	camera1->setT((*nightevents)[CAMERAMOVE_T]);
 
@@ -605,102 +710,13 @@ void nightscene::render() {
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
 
-	programTerrain->use();
-	glUniformMatrix4fv(programTerrain->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	glUniformMatrix4fv(programTerrain->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, scale(1.5f));
-	glUniform1f(programTerrain->getUniformLocation("maxTess"), land->getMaxTess());
-	glUniform1f(programTerrain->getUniformLocation("minTess"), land->getMinTess());
-	glUniform3fv(programTerrain->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
-	glUniform1i(programTerrain->getUniformLocation("texHeight"), 0);
-	// glUniform1i(programTerrain->getUniformLocation("texNormal"), 1);
-	glUniform1i(programTerrain->getUniformLocation("texDiffuseGrass"), 3);
-	glUniform1i(programTerrain->getUniformLocation("texDiffuseDirt"), 4);
-	glUniform1f(programTerrain->getUniformLocation("texScale"), 15.0f);
-	glBindTextureUnit(0, land->getHeightMap());
-	glBindTextureUnit(1, land->getNormalMap());
-	glBindTextureUnit(3, texDiffuseGrass);
-	glBindTextureUnit(4, texDiffuseDirt);
-	lightManager->setLightUniform(programTerrain, false);
-	land->render();
-	
-	glUniformMatrix4fv(programTerrain->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	glUniformMatrix4fv(programTerrain->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 256.0f * 1.5f) * scale(1.5f));
-	glUniform1f(programTerrain->getUniformLocation("maxTess"), land2->getMaxTess());
-	glUniform1f(programTerrain->getUniformLocation("minTess"), land2->getMinTess());
-	glUniform3fv(programTerrain->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
-	glUniform1i(programTerrain->getUniformLocation("texHeight"), 0);
-	// glUniform1i(programTerrain->getUniformLocation("texNormal"), 1);
-	glUniform1i(programTerrain->getUniformLocation("texDiffuseGrass"), 2);
-	glUniform1i(programTerrain->getUniformLocation("texDiffuseDirt"), 3);
-	glUniform1f(programTerrain->getUniformLocation("texScale"), 15.0f);
-	glBindTextureUnit(0, land2->getHeightMap());
-	glBindTextureUnit(1, land2->getNormalMap());
-	glBindTextureUnit(2, texDiffuseGrass);
-	glBindTextureUnit(3, texDiffuseDirt);
-	lightManager->setLightUniform(programTerrain, false);
-	land2->render();
-
-	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 1250.0f));
-	glUniform1f(programTerrain->getUniformLocation("maxTess"), island->getMaxTess());
-	glUniform1f(programTerrain->getUniformLocation("minTess"), island->getMinTess());
-	glUniform1i(programTerrain->getUniformLocation("texHeight"), 0);
-	// glUniform1i(programTerrain->getUniformLocation("texNormal"), 1);
-	glUniform1i(programTerrain->getUniformLocation("texDiffuseGrass"), 2);
-	glUniform1i(programTerrain->getUniformLocation("texDiffuseDirt"), 3);
-	glUniform1f(programTerrain->getUniformLocation("texScale"), 15.0f);
-	glBindTextureUnit(0, island->getHeightMap());
-	glBindTextureUnit(1, island->getNormalMap());
-	glBindTextureUnit(2, texDiffuseGrass);
-	glBindTextureUnit(3, texDiffuseDirt);
-	island->render();
-
-	for(int i = 0; i < 9; i++) {
-		glBindTextureUnit(i, 0);
+	if((*nightevents)[CAMERAMOVE_T] < 0.81) {
+		preOceanRender();
+	}
+	if((*nightevents)[CAMERAMOVE_T] > 0.6) {
+		postOceanRender();
 	}
 
-	firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
-	firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
-	if(renderTrees) {
-		programStaticInstancedPBR->use();
-		glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-		glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-		glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 4.0f, 0.0f) * rotate(-90.0f,vec3(1.0f,0.0f,0.0f)) * scale(1.0f));
-		lightManager->setLightUniform(programStaticInstancedPBR, false);
-		glUniform3fv(programStaticInstancedPBR->getUniformLocation("emissionColor"),1,vec3(0.05f,0.05f,0.05f));
-		glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboTreePosition);
-		glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("color_ubo"), uboTreeColor);
-		float z = programglobal::currentCamera->position()[2];
-		int count = 120;
-		if(z >= -95.0f) {
-			z += 95.0f;
-			int n = 6 * (int)(z / 10.0f);
-			count = std::min(420 - n, 120);
-			glUniform1i(programStaticInstancedPBR->getUniformLocation("instanceOffset"), n);
-		} else {
-			glUniform1i(programStaticInstancedPBR->getUniformLocation("instanceOffset"), 0);
-		}
-		if(count > 0) {
-			modelTreeRed->draw(programStaticInstancedPBR, count);
-		}
-		modelTreeRed->draw(programStaticInstancedPBR, count);
-
-		count = 200;
-		if(z >= -95.0f) {
-			//z += 95.0f;
-			int n = 8 * (int)(z / 10.0f);
-			count = std::min(420 - n, 200);
-			glUniform1i(programStaticInstancedPBR->getUniformLocation("instanceOffset"), n);
-		} else {
-			glUniform1i(programStaticInstancedPBR->getUniformLocation("instanceOffset"), 0);
-		}
-		glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.3f, 0.0f) * rotate(0.0f,vec3(1.0f,0.0f,0.0f)) * scale(1.0f));
-		glUniform3fv(programStaticInstancedPBR->getUniformLocation("emissionColor"),1,vec3(0.0,0.0,0.0));
-		glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboFlowerPosition);
-		glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("color_ubo"), uboTreeColor);
-		modelFlowerPurple->draw(programStaticInstancedPBR, count);
-	}
 	// firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	// firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
@@ -708,16 +724,16 @@ void nightscene::render() {
 	// firefliesB->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
 	//phoenix test
-	programDynamicPBR->use();
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
-    glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,5.0f,0.0f) * scale(10.0f,10.0f,10.0f));
-    modelPhoenix->update(0.01f, 0);
-    modelPhoenix->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
-	glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1,programglobal::currentCamera->position());
-	glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
-	lightManager->setLightUniform(programDynamicPBR, false);
-	modelPhoenix->draw(programDynamicPBR,1);
+	// programDynamicPBR->use();
+	// glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
+    // glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
+	// glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,5.0f,0.0f) * scale(10.0f,10.0f,10.0f));
+    // modelPhoenix->update(0.01f, 0);
+    // modelPhoenix->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+	// glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1,programglobal::currentCamera->position());
+	// glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
+	// lightManager->setLightUniform(programDynamicPBR, false);
+	// modelPhoenix->draw(programDynamicPBR,1);
 
 	programTex->use();
 	glUniformMatrix4fv(programTex->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
@@ -744,20 +760,6 @@ void nightscene::render() {
 	glBindTextureUnit(2, 0);
 	programglobal::shapeRenderer->renderQuad();
 
-	programDynamicPBR->use();
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
-	glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"), GL_FALSE);
-	lightManager->setLightUniform(programDynamicPBR, false);
-	modelDrone->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(2.3f, -1.0f, 1161.0f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(15.0f));
-	modelDrone->draw(programDynamicPBR);
-
-	modelAstro->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-0.3f, -4.1f, 1157.5f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(3.0f));
-	modelAstro->draw(programDynamicPBR);
-
 	if((*nightevents)[CROSSIN_T] < 1.0f) {
 		crossfader::render(texDaySceneFinal, (*nightevents)[CROSSIN_T]);
 	}
@@ -775,12 +777,12 @@ void nightscene::update() {
 	static const float DRONE_ANIM_SPEED = 0.8f;
 	static const float ASTRO_ANIM_SPEED = 0.5f;
 	nightevents->increment();
-	attractorPositionA = vec3(firefliesAPath1->interpolate((*nightevents)[FIREFLIES1BEGIN_T]));
-	firefliesA->setAttractorPosition(attractorPositionA);
-	firefliesA->update();
-	attractorPositionB = vec3(firefliesBPath1->interpolate((*nightevents)[FIREFLIES2BEGIN_T]));
-	firefliesB->update();
-	firefliesB->setAttractorPosition(attractorPositionB);
+	// attractorPositionA = vec3(firefliesAPath1->interpolate((*nightevents)[FIREFLIES1BEGIN_T]));
+	// firefliesA->setAttractorPosition(attractorPositionA);
+	// firefliesA->update();
+	// attractorPositionB = vec3(firefliesBPath1->interpolate((*nightevents)[FIREFLIES2BEGIN_T]));
+	// firefliesB->update();
+	// firefliesB->setAttractorPosition(attractorPositionB);
 	if((*nightevents)[CROSSIN_T] >= 0.01f) {
 		if(programglobal::isAnimating) {
 			playerBkgnd->play();
