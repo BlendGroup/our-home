@@ -201,9 +201,9 @@ vec3 pbr(BaseLight base, vec3 direction, vec3 N, vec3 P){
 
     vec3 albedo = isTexture ? texture(texture_diffuse,fs_in.Tex).rgb : material.diffuse;
     
-    if(albedo.x >= 0.8 && albedo.y >= 0.8 && albedo.z >= 0.8)
+    if(albedo.x >= 0.4 && albedo.y >= 0.4 && albedo.z >= 0.4)
     {
-        albedo = leafColor;
+        albedo = albedo * leafColor;
         emmitColor = vec4(emissionColor.rgb,1.0);
     }
 
