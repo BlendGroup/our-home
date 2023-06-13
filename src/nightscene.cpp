@@ -35,6 +35,7 @@ static glshaderprogram* programSkybox;
 static glshaderprogram* programTex;
 static terrain* land;
 static terrain* land2;
+static terrain* island;
 static SceneLight* lightManager;
 static sceneCamera* camera1;
 static sphere* moon;
@@ -56,6 +57,7 @@ static GLuint fboNightSky;
 static GLuint texColorNightSky;
 static GLuint texEmmissionNightSky;
 static GLuint texMoon;
+static GLuint texOcean;
 static GLuint skybox_vao;
 static GLuint vbo;
 static bool renderTrees = true;
@@ -153,6 +155,19 @@ void nightscene::setupCamera() {
 		vec3(0.0f, 1.4f, 535.1f),
 		vec3(0.0f, 1.4f, 555.1f),
 		vec3(0.0f, 1.4f, 575.1f),
+		//Ocean
+		vec3(0.0f, 1.4f, 600.1f),
+		vec3(0.0f, 1.4f, 625.1f),
+		vec3(0.0f, 1.4f, 650.1f),
+		vec3(0.0f, 1.4f, 675.1f),
+		vec3(0.0f, 1.4f, 700.1f),
+		vec3(0.0f, 1.4f, 725.1f),
+		vec3(0.0f, 1.4f, 750.1f),
+		vec3(0.0f, 1.4f, 775.1f),
+		vec3(0.0f, 1.4f, 800.1f),
+		vec3(0.0f, 1.4f, 825.1f),
+		vec3(0.0f, 1.4f, 850.1f),
+		vec3(0.0f, 1.4f, 875.1f),
 	};
 	
 	vector<vec3> frontVector = {
@@ -212,6 +227,19 @@ void nightscene::setupCamera() {
 		vec3(0.0f, 1.4f, 540.1f),
 		vec3(0.0f, 1.4f, 560.1f),
 		vec3(0.0f, 1.4f, 580.1f),
+		//Ocean
+		vec3(0.0f, 1.4f, 605.1f),
+		vec3(0.0f, 1.4f, 630.1f),
+		vec3(0.0f, 1.4f, 655.1f),
+		vec3(0.0f, 1.4f, 680.1f),
+		vec3(0.0f, 1.4f, 705.1f),
+		vec3(0.0f, 1.4f, 730.1f),
+		vec3(0.0f, 1.4f, 755.1f),
+		vec3(0.0f, 1.4f, 780.1f),
+		vec3(0.0f, 1.4f, 805.1f),
+		vec3(0.0f, 1.4f, 830.1f),
+		vec3(0.0f, 1.4f, 855.1f),
+		vec3(0.0f, 1.4f, 880.1f),
 	};
 	camera1 = new sceneCamera(positionVector, frontVector);
 
@@ -224,10 +252,45 @@ void nightscene::setupCamera() {
 	camRig1->setScalingFactor(0.1f);
 }
 
+GLuint createCombinedMapTextureNight(GLuint texLand, GLuint texMap) {
+	GLuint fbo;
+	GLuint tex;
+	GLuint vao;
+
+	glshaderprogram* programCombineMap = new glshaderprogram({"shaders/fsquad.vert", "shaders/combinedmaptexturenight.frag"});
+
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, tex_1k);
+
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+	GLenum attachment[] =  {GL_COLOR_ATTACHMENT0};
+	glDrawBuffers(1, attachment);
+
+	programCombineMap->use();
+	glBindTextureUnit(0, texLand);
+	glBindTextureUnit(1, texMap);
+	glViewport(0, 0, tex_1k);
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	glDeleteVertexArrays(1, &vao);
+	glDeleteFramebuffers(1, &fbo);
+
+	return tex;
+}
+
 void nightscene::init() {
 	nightevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 2.0f }},
-		{CAMERAMOVE_T, { 2.0f, 80.0f }},
+		{CAMERAMOVE_T, { 2.0f, 110.0f }},
 		{FIREFLIES1BEGIN_T, {8.0f, 30.0f}},
 		{FIREFLIES2BEGIN_T, {20.0f, 30.0f}}
 	});
@@ -235,8 +298,15 @@ void nightscene::init() {
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texDiffuseDirt = createTexture2D("resources/textures/dirt.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	texMoon = createTexture2D("resources/textures/moon.jpg", GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
+	texOcean = createTexture2D("resources/textures/ocean.jpg", GL_LINEAR, GL_LINEAR);
+	GLuint texMap = createTexture2D("resources/textures/islandmap.png", GL_LINEAR, GL_LINEAR);
 	GLuint texJungle = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 0), 256.0f, 1.0f, 5, 235);
 	GLuint texJungle2 = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 1024), 256.0f, 1.0f, 5, 235);
+	GLuint texIsland = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 1024), 256.0f, 1.0f, 5, 235);
+	land = new terrain(texJungle, 256, true, 5, 16);
+	land2 = new terrain(texJungle2, 256, true, 5, 16);
+	GLuint texNewIsland = createCombinedMapTextureNight(texIsland, texMap);
+	island = new terrain(texNewIsland, 256, true, 5, 16);
 
 	playerBkgnd = new audioplayer("resources/audio/TheDragonWarrior.wav");
 
@@ -332,8 +402,6 @@ void nightscene::init() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	moon = new sphere(25, 50, 1.0f);
-	land = new terrain(texJungle, 256, true, 5, 16);
-	land2 = new terrain(texJungle2, 256, true, 5, 16);
 	quickModelPlacer = new modelplacer();
 	lightManager = new SceneLight(false);
 	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, -0.5f, -1.0f)));
@@ -459,8 +527,8 @@ void nightscene::render() {
 	glUniformMatrix4fv(programTerrain->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(programTerrain->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
 	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 256.0f * 1.5f) * scale(1.5f));
-	glUniform1f(programTerrain->getUniformLocation("maxTess"), land->getMaxTess());
-	glUniform1f(programTerrain->getUniformLocation("minTess"), land->getMinTess());
+	glUniform1f(programTerrain->getUniformLocation("maxTess"), land2->getMaxTess());
+	glUniform1f(programTerrain->getUniformLocation("minTess"), land2->getMinTess());
 	glUniform3fv(programTerrain->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
 	glUniform1i(programTerrain->getUniformLocation("texHeight"), 0);
 	// glUniform1i(programTerrain->getUniformLocation("texNormal"), 1);
@@ -473,6 +541,21 @@ void nightscene::render() {
 	glBindTextureUnit(3, texDiffuseDirt);
 	lightManager->setLightUniform(programTerrain, false);
 	land2->render();
+
+	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 950.0f));
+	glUniform1f(programTerrain->getUniformLocation("maxTess"), island->getMaxTess());
+	glUniform1f(programTerrain->getUniformLocation("minTess"), island->getMinTess());
+	glUniform1i(programTerrain->getUniformLocation("texHeight"), 0);
+	// glUniform1i(programTerrain->getUniformLocation("texNormal"), 1);
+	glUniform1i(programTerrain->getUniformLocation("texDiffuseGrass"), 2);
+	glUniform1i(programTerrain->getUniformLocation("texDiffuseDirt"), 3);
+	glUniform1f(programTerrain->getUniformLocation("texScale"), 15.0f);
+	glBindTextureUnit(0, island->getHeightMap());
+	glBindTextureUnit(1, island->getNormalMap());
+	glBindTextureUnit(2, texDiffuseGrass);
+	glBindTextureUnit(3, texDiffuseDirt);
+	island->render();
+
 	for(int i = 0; i < 9; i++) {
 		glBindTextureUnit(i, 0);
 	}
@@ -496,7 +579,9 @@ void nightscene::render() {
 		} else {
 			glUniform1i(programStaticInstancedPBR->getUniformLocation("instanceOffset"), 0);
 		}
-		modelTreeRed->draw(programStaticInstancedPBR, count);
+		if(count > 0) {
+			modelTreeRed->draw(programStaticInstancedPBR, count);
+		}
 	}
 	// firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	// firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
@@ -516,6 +601,18 @@ void nightscene::render() {
 	glBindTextureUnit(2, texMoon);
 	moon->render();
 	godraysMoon->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix() * translate(0.0f, 297.0f, 517.0f), vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+	programTex->use();
+	glUniformMatrix4fv(programTex->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programTex->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programTex->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, -13.0f, 1300.0f) * rotate(90.0f, 1.0f, 0.0f, 0.0f) * scale(721.0f));
+	glUniform1i(programTex->getUniformLocation("texture_diffuse"), 0);
+	glUniform1i(programTex->getUniformLocation("texture_emmission"), 1);
+	glUniform1i(programTex->getUniformLocation("texture_occlusion"), 2);
+	glBindTextureUnit(0, texOcean);
+	glBindTextureUnit(1, 0);
+	glBindTextureUnit(2, 0);
+	programglobal::shapeRenderer->renderQuad();
 
 	if((*nightevents)[CROSSIN_T] < 1.0f) {
 		crossfader::render(texDaySceneFinal, (*nightevents)[CROSSIN_T]);
