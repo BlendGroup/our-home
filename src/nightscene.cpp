@@ -41,6 +41,7 @@ static sphere* moon;
 static modelplacer* quickModelPlacer;
 static glmodel* modelTreeRed;
 static glmodel* modelFlowerPurple;
+static glmodel* modelPhoenix;
 
 static godrays* godraysMoon;
 #ifdef DEBUG
@@ -276,6 +277,7 @@ void nightscene::init() {
 	// modelTreeRed = new glmodel("resources/models/tree/wtree.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelTreeRed = new glmodel("resources/models/tree/purpletree.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	modelFlowerPurple = new glmodel("resources/models/flowers/flower1.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelPhoenix = new glmodel("resources/models/phoenix/phoenix.glb", aiProcessPreset_TargetRealtime_Quality, true);
 
 	glGenBuffers(1, &uboTreePosition);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboTreePosition);
@@ -496,11 +498,6 @@ void nightscene::render() {
 		glBindTextureUnit(i, 0);
 	}
 
-	programStaticInstancedPBR->use();
-	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-
-
 	firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 	if(renderTrees) {
@@ -544,6 +541,18 @@ void nightscene::render() {
 
 	// firefliesB->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	// firefliesB->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
+
+	//phoenix test
+	programDynamicPBR->use();
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
+    glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,5.0f,0.0f) * scale(10.0f,10.0f,10.0f));
+    modelPhoenix->update(0.01f, 0);
+    modelPhoenix->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+	glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1,programglobal::currentCamera->position());
+	glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
+	lightManager->setLightUniform(programDynamicPBR, false);
+	modelPhoenix->draw(programDynamicPBR,1);
 
 	programTex->use();
 	glUniformMatrix4fv(programTex->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
