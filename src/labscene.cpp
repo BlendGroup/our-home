@@ -338,7 +338,7 @@ void labscene::render() {
 		glUniform1f(programHologram->getUniformLocation("EmissionPower"), (*labevents)[CROSSIN_T]);
 		// glUniform1f(programHologram->getUniformLocation("GlowSpeed"),1.0f);
 		// glUniform1f(programHologram->getUniformLocation("GlowDistance"),1.0f);
-		modelBLEND->draw(programHologram,1,false);
+		modelBLEND->draw(programHologram,1,0,false);
 		glDepthMask(GL_TRUE);
 
 		// a cheap cylindrical billboard for mug steam quad
