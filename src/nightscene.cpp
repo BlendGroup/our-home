@@ -257,7 +257,7 @@ void nightscene::init() {
 	vector<vec4> treePositionsArray;
 	
 	int k = 0;
-	for(int i = 0; i < 60; i++) {
+	for(int i = 0; i < 70; i++) {
 		for(int j = 0; j < 6; j++) {
 			treePositionsArray.push_back(vec4(startx + dx * j + programglobal::randgen->getRandomFloat(-4.0f, 4.0f), 0.0f, startz + dz * i + programglobal::randgen->getRandomFloat(-4.0f, 4.0f), 0.0f));
 		}
@@ -265,7 +265,7 @@ void nightscene::init() {
 
 	glGenBuffers(1, &uboTreePosition);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboTreePosition);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(vec4) * 60, treePositionsArray.data(), GL_STATIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(vec4) * 420, treePositionsArray.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	vector<vec4> treeColors = {
@@ -486,7 +486,17 @@ void nightscene::render() {
 		glUniform3fv(programStaticInstancedPBR->getUniformLocation("emissionColor"),1,vec3(0.05f,0.05f,0.05f));
 		glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboTreePosition);
 		glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("color_ubo"), uboTreeColor);
-		modelTreeRed->draw(programStaticInstancedPBR, 60);
+		float z = programglobal::currentCamera->position()[2];
+		int count = 120;
+		if(z >= -95.0f) {
+			z += 95.0f;
+			int n = 6 * (int)(z / 10.0f);
+			count = std::min(420 - n, 120);
+			glUniform1i(programStaticInstancedPBR->getUniformLocation("instanceOffset"), n);
+		} else {
+			glUniform1i(programStaticInstancedPBR->getUniformLocation("instanceOffset"), 0);
+		}
+		modelTreeRed->draw(programStaticInstancedPBR, count);
 	}
 	// firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	// firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
