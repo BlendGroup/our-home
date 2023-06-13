@@ -3,8 +3,8 @@
 #include<iostream>
 #include<random>
 
-#define PRESET_MAX_FORCE 0.2f
-#define PRESET_MAX_SPEED 0.1f
+#define PRESET_MAX_FORCE 0.5f
+#define PRESET_MAX_SPEED 0.4f
 #define PRESET_COHESION_RADIUS 2.0f
 #define PRESET_ALIGNMENT_RADIUS 4.0f
 #define PRESET_SEPARATION_RADIUS 3.5f
@@ -91,7 +91,7 @@ void Flock::renderAsSpheres(const vec4 &color, const vec4 &emissive, float scale
     glUniform4fv(flockProgram->getUniformLocation("color"), 1, color);
     glUniform4fv(flockProgram->getUniformLocation("emissive"), 1, emissive);
     glUniform4fv(flockProgram->getUniformLocation("occlusion"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
-    boidSphere->renderInstanced(this->count);
+    boidSphere->render(this->count);
 }
 
 void Flock::renderAttractorAsQuad(const vec4 &color, const vec4 &emissive, float scale) {

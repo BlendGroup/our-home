@@ -12,7 +12,6 @@ private:
 	GLuint numOfTriangles;
 public:
 	sphere(GLubyte stacks, GLubyte slices, GLfloat radius);
-	void renderInstanced(GLsizei primcount);
-	void render(void);
+	void render(GLsizei primcount = 1);
 	~sphere();
 };
