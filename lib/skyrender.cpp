@@ -60,7 +60,7 @@ void SkyRenderSystem::Render(vmath::mat4 pMat, camera *cam, float dt){
         glUniform1f(skyShader->getUniformLocation("Km"),Km);
         glUniform1f(skyShader->getUniformLocation("sun"),sun);
         glUniform1f(skyShader->getUniformLocation("Scale"),1.0f/(outerRadius - innerRadius));
-        sphereMesh->draw(skyShader,1,false);
+        sphereMesh->draw(skyShader,1,0,false);
 
         if(animateSun){
             double pp = M_PI + vmath::radians(20.0f);

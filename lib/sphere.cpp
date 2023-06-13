@@ -47,6 +47,8 @@ sphere::sphere(GLubyte stacks, GLubyte slices, GLfloat radius) {
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_stride, (GLvoid*)normal_offset);
 	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, vertex_stride, (GLvoid*)texcoord_offset);
+	glEnableVertexAttribArray(2);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glGenBuffers(1, &this->eabo);
@@ -54,10 +56,10 @@ sphere::sphere(GLubyte stacks, GLubyte slices, GLfloat radius) {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, (slices - 1) * (stacks - 1) * 6 * sizeof(GLuint), elements, GL_STATIC_DRAW);
 }
 
-void sphere::render() {
-	glBindVertexArray(vao);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eabo);
-	glDrawElements(GL_TRIANGLES, this->numOfTriangles, GL_UNSIGNED_INT, 0);
+void sphere::render(GLsizei primcount) {
+	glBindVertexArray(this->vao);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->eabo);
+	glDrawElementsInstanced(GL_TRIANGLES, this->numOfTriangles, GL_UNSIGNED_INT, 0, primcount);
 }
 
 sphere::~sphere() {

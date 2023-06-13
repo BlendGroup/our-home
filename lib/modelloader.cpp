@@ -733,7 +733,7 @@ void glmodel::update(float dt, int baseAnimation , int layeredAnimation , float 
 	}
 }
 
-void glmodel::draw(glshaderprogram *program,int instance,bool setMaterials) {
+void glmodel::draw(glshaderprogram *program,int instance, int baseInstance, bool setMaterials) {
 	try {
 		for(unsigned int i = 0; i < this->meshes.size(); i++) {
 			
@@ -768,7 +768,7 @@ void glmodel::draw(glshaderprogram *program,int instance,bool setMaterials) {
 				//////
 			}
 			glBindVertexArray(this->meshes[i].vao);
-			glDrawElementsInstanced(GL_TRIANGLES, this->meshes[i].trianglePointCount, GL_UNSIGNED_INT, 0, instance);
+			glDrawElementsInstancedBaseVertexBaseInstance(GL_TRIANGLES, this->meshes[i].trianglePointCount, GL_UNSIGNED_INT, 0, instance, 0, baseInstance);
 			// unbind textures
 			glBindTextureUnit(0,0);
 			glBindTextureUnit(1,0);

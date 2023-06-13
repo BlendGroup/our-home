@@ -80,6 +80,13 @@ glshaderprogram::glshaderprogram(initializer_list<std::string> shaderList, int v
 		glGetActiveUniform(this->programObject, i, sizeof(buffer), NULL, &size, &type, buffer);
 		this->uniforms[string(buffer)] = glGetUniformLocation(this->programObject, buffer);
 	}
+	glGetProgramiv(this->programObject, GL_ACTIVE_UNIFORM_BLOCKS, &numberOfActiveUniforms);
+	for(int i = 0; i < numberOfActiveUniforms; i++) {
+		char buffer[1024];
+		glGetActiveUniformBlockName(this->programObject, i, sizeof(buffer), NULL, buffer);
+		glUniformBlockBinding(this->programObject, glGetUniformBlockIndex(this->programObject, buffer), i);
+		this->uniforms[string(buffer)] = i;
+	}
 }
 
 #ifdef DEBUG

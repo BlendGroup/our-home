@@ -32,4 +32,10 @@ void audioplayer::pause(void) {
     }
 }
 
+void audioplayer::restart(void) {
+	alSourceStop(source);
+	alSourcePlay(source);
+	isPlaying = true;
+}
+
 /*************************************/

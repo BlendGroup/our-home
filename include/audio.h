@@ -25,6 +25,7 @@ public:
     audioplayer(const std::string &wavFilePath);
     void play(void);
     void pause(void);
+	void restart(void);
 };
 
 #endif // __AUDIO__
