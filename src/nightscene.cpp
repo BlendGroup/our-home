@@ -56,7 +56,7 @@ static bool renderPath = false;
 #endif
 static vec3 sunDirection = vec3(-1.0f, 1.0f, 1.0f);
 static vec3 oceanColor = vec3(0.004f, 0.016f, 0.047f);
-static vec3 skyColor = vec3(0.196116f, 0.588348f, 0.784465f);
+static vec3 skyColor = vec3(0.0f, 0.028f, 0.06f);
 extern GLuint texDaySceneFinal;
 static GLuint texDiffuseGrass;
 static GLuint texDiffuseDirt;
@@ -337,7 +337,7 @@ void nightscene::init() {
 	modelDrone = new glmodel("resources/models/drone/drone2.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
 
-	obocean = new ocean(vec2(3.0f, 3.0f), 0.2f, 100);
+	obocean = new ocean(vec2(3.0f, 3.0f), 1.5f, 100);
 
 	float startz = -115.0f;
 	float dz = 10.0f;
