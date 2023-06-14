@@ -579,7 +579,7 @@ void preOceanRender() {
 	glUniform1f(programTerrain->getUniformLocation("minTess"), land->getMinTess());
 	land->render();
 	
-	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 64.0f * 6.0f) * scale(6.0f));
+	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 64.0f * 6.0f - 1.0f) * scale(6.0f));
 	glUniform1f(programTerrain->getUniformLocation("maxTess"), land2->getMaxTess());
 	glUniform1f(programTerrain->getUniformLocation("minTess"), land2->getMinTess());
 	glBindTextureUnit(0, land2->getHeightMap());
