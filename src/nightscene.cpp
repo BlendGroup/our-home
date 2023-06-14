@@ -305,8 +305,8 @@ void nightscene::init() {
 	nightevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 2.0f }},
 		{CAMERAMOVE_T, { 2.0f, 110.0f }},
-		{FIREFLIES1BEGIN_T, {1.5f, 80.0f}},
-		{FIREFLIES2BEGIN_T, {46.0f, 35.5f}}
+		{FIREFLIES1BEGIN_T, {25.0f, 55.0f}},//End at 80
+		{FIREFLIES2BEGIN_T, {46.0f, 34.5f}} //End at 80f
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -872,7 +872,7 @@ void nightscene::keyboardfunc(int key) {
 		} else if(programglobal::debugMode == MODEL) {
 			cout<<quickModelPlacer<<endl;
 		}
-		// cout<<(*nightevents)[CAMERAMOVE_T]<<endl;
+		cout<<nightevents->getT()<<endl;
 		break;
 	}
 }
