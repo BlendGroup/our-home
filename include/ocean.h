@@ -17,7 +17,6 @@ private:
 	glshaderprogram* phaseProgram;
 	glshaderprogram* spectrumProgram;
 	glshaderprogram* normalMapProgram;
-	glshaderprogram* oceanProgram;
 	GLuint fullscreenVertexBuffer;
 	GLuint initialSpectrumFramebuffer;
 	GLuint pingPhaseFramebuffer;
@@ -42,7 +41,10 @@ private:
 	GLuint pongTransformTexture;
 public:
 	ocean(vmath::vec2 wind, float choppiness, int size);
-	void render(vmath::mat4 mMat);
+	void render(glshaderprogram* program);
+	void update(float deltaTime);
+	GLuint getDisplacementMap();
+	GLuint getNormalMap();
 };
 
 #endif

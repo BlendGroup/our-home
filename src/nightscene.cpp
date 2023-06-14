@@ -34,6 +34,7 @@ static glshaderprogram* programDynamicPBR;
 static glshaderprogram* programNightSky;
 static glshaderprogram* programSkybox;
 static glshaderprogram* programTex;
+static glshaderprogram* programOcean;
 static terrain* land;
 static terrain* land2;
 static terrain* island;
@@ -53,6 +54,9 @@ static godrays* godraysMoon;
 static sceneCameraRig* camRig1;
 static bool renderPath = false;
 #endif
+static vec3 sunDirection = vec3(-1.0f, 1.0f, 1.0f);
+static vec3 oceanColor = vec3(0.004f, 0.016f, 0.047f);
+static vec3 skyColor = vec3(0.196116f, 0.588348f, 0.784465f);
 extern GLuint texDaySceneFinal;
 static GLuint texDiffuseGrass;
 static GLuint texDiffuseDirt;
@@ -101,6 +105,7 @@ void nightscene::setupProgram() {
 		programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
 		programSkybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/nightsky/rendercubemap.frag"});
 		programTex = new glshaderprogram({"shaders/debug/basictex.vert", "shaders/debug/basictex.frag"});
+		programOcean = new glshaderprogram({"shaders/ocean/ocean.vert", "shaders/ocean/ocean.frag"});
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -422,7 +427,7 @@ void nightscene::init() {
 	glDrawBuffers(2, drawBuffers);
 	glBindFramebuffer(GL_FRAMEBUFFER, fboNightSky);
 	glViewport(0, 0, 1024, 1024);
-	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	glClearBufferfv(GL_COLOR, 0, vec4(0.015f, 0.015f, 0.05f, 1.0f));
 	glClearBufferfv(GL_COLOR, 1, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	programNightSky->use();
 	glBindVertexArray(vaoNightSky);
@@ -691,8 +696,19 @@ void nightscene::render() {
 		postOceanRender();
 	}
 
-
-	obocean->render(translate(0.0f, -13.0f, 1300.0f) * scale(721.0f));
+	programOcean->use();
+	glUniformMatrix4fv(programOcean->getUniformLocation("pMat"), 1, false, programglobal::perspective);
+	glUniformMatrix4fv(programOcean->getUniformLocation("vMat"), 1, false, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programOcean->getUniformLocation("mMat"), 1, false, translate(0.0f, -13.0f, 1300.0f) * scale(721.0f));
+	glUniform3fv(programOcean->getUniformLocation("cameraPosition"), 1, programglobal::currentCamera->position());
+	glUniform3fv(programOcean->getUniformLocation("oceanColor"), 1, oceanColor);
+	glUniform3fv(programOcean->getUniformLocation("skyColor"), 1, skyColor);
+	glUniform3fv(programOcean->getUniformLocation("sunDirection"), 1, sunDirection);
+	glUniform1i(programOcean->getUniformLocation("displacementMap"), 0);
+	glUniform1i(programOcean->getUniformLocation("normalMap"), 1);
+	glBindTextureUnit(0, obocean->getDisplacementMap());
+	glBindTextureUnit(1, obocean->getNormalMap());
+	obocean->render(programOcean);
 
 	firefliesA->renderAsSpheres(translate(firefliesAPath1->interpolate((*nightevents)[FIREFLIES1BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	firefliesA->renderAttractorAsQuad(translate(firefliesAPath1->interpolate((*nightevents)[FIREFLIES1BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
@@ -746,6 +762,7 @@ void nightscene::render() {
 void nightscene::update() {
 	static const float DRONE_ANIM_SPEED = 0.8f;
 	static const float ASTRO_ANIM_SPEED = 0.5f;
+	static const float OCEAN_ANIM_SPEED = 0.2f;
 	
 	nightevents->increment();
 	firefliesA->update();
@@ -759,6 +776,7 @@ void nightscene::update() {
 	}
 	modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
 	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 1);
+	obocean->update(OCEAN_ANIM_SPEED * programglobal::deltaTime);
 }
 
 void nightscene::reset() {

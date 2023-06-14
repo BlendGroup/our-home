@@ -7,9 +7,6 @@ using namespace std;
 using namespace vmath;
 
 #define GEOMETRY_ORIGIN vec2(-1.0f, -1.0f)
-#define SUN_DIRECTION vec3(-1.0, 1.0, 1.0)
-#define OCEAN_COLOR vec3(0.004, 0.016, 0.047)
-#define SKY_COLOR vec3(0.196116, 0.588348, 0.784465)
 #define GEOMETRY_RESOLUTION 256
 #define GEOMETRY_SIZE 2.0f
 #define RESOLUTION 512
@@ -70,13 +67,6 @@ ocean::ocean(vec2 wind, float choppiness, int size) {
 	this->normalMapProgram = new glshaderprogram({fullscreenVertexShader, "shaders/ocean/normalMap.frag"});
 	this->normalMapProgram->use();
 	glUniform1f(this->normalMapProgram->getUniformLocation("u_resolution"), RESOLUTION);
-
-	this->oceanProgram = new glshaderprogram({"shaders/ocean/ocean.vert", "shaders/ocean/ocean.frag"});
-	this->oceanProgram->use();
-	glUniform1f(this->oceanProgram->getUniformLocation("u_geometrySize"), GEOMETRY_SIZE);
-	glUniform3fv(this->oceanProgram->getUniformLocation("u_oceanColor"), 1, OCEAN_COLOR);
-	glUniform3fv(this->oceanProgram->getUniformLocation("u_skyColor"), 1, SKY_COLOR);
-	glUniform3fv(this->oceanProgram->getUniformLocation("u_sunDirection"), 1, SUN_DIRECTION);
 
 	glUseProgram(0);
 
@@ -159,7 +149,7 @@ ocean::ocean(vec2 wind, float choppiness, int size) {
 	this->pongTransformFramebuffer = createFramebufferFromTexture(this->pongTransformTexture);
 }
 
-void ocean::render(mat4 mMat) {
+void ocean::update(float deltaTime) {
 	glViewport(0, 0, RESOLUTION, RESOLUTION);
 	glDisable(GL_DEPTH_TEST);
 
@@ -176,7 +166,7 @@ void ocean::render(mat4 mMat) {
 	glUniform1i(this->phaseProgram->getUniformLocation("u_phases"), 20);
 	glBindTextureUnit(20, this->pingPhase ? this->pingPhaseTexture : this->pongPhaseTexture);
 	this->pingPhase = !this->pingPhase;
-	glUniform1f(this->phaseProgram->getUniformLocation("u_deltaTime"), 0.005);
+	glUniform1f(this->phaseProgram->getUniformLocation("u_deltaTime"), deltaTime);
 	glUniform1f(this->phaseProgram->getUniformLocation("u_size"), this->size);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -231,18 +221,20 @@ void ocean::render(mat4 mMat) {
 
 	glEnable(GL_DEPTH_TEST);
 	resetFBO();
+}
 
+void ocean::render(glshaderprogram* program) {
+	program->use();
+	glUniform1f(program->getUniformLocation("geometrySize"), GEOMETRY_SIZE);
+	glUniform1f(program->getUniformLocation("size"), this->size);
 	glBindVertexArray(this->vaoOcean);
-
-	this->oceanProgram->use();
-	glUniform1f(this->oceanProgram->getUniformLocation("u_size"), this->size);
-	glUniformMatrix4fv(this->oceanProgram->getUniformLocation("u_projectionMatrix"), 1, false, programglobal::perspective);
-	glUniformMatrix4fv(this->oceanProgram->getUniformLocation("u_viewMatrix"), 1, false, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(this->oceanProgram->getUniformLocation("u_modelMatrix"), 1, false, mMat);
-	glUniform3fv(this->oceanProgram->getUniformLocation("u_cameraPosition"), 1, programglobal::currentCamera->position());
-	glUniform1i(this->oceanProgram->getUniformLocation("u_displacementMap"), 20);
-	glBindTextureUnit(20, this->displacementMap);
-	glUniform1i(this->oceanProgram->getUniformLocation("u_normalMap"), 21);
-	glBindTextureUnit(21, this->normalMap);
 	glDrawElements(GL_TRIANGLES, this->countOfIndicesOcean, GL_UNSIGNED_SHORT, 0);	
+}
+
+GLuint ocean::getDisplacementMap() {
+	return this->displacementMap;
+}
+
+GLuint ocean::getNormalMap() {
+	return this->normalMap;
 }
