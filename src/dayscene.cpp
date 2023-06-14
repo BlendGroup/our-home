@@ -47,6 +47,9 @@ static glmodel* modelTreePine;
 static glmodel* modelTreeRed;
 static glmodel* modelTreePurple;
 static glmodel* modelDrone;
+static glmodel* modelFish;
+static glmodel* modelBird;
+static glmodel* modelTurtle;
 
 static SceneLight* lightManager;
 
@@ -274,6 +277,9 @@ void dayscene::init() {
 	modelTreeRed = new glmodel("resources/models/tree/redtree.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	modelDrone = new glmodel("resources/models/drone/drone2.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelDrone->update(0.0f, 1);
+	modelFish = new glmodel("resources/models/phoenix/fish.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelBird = new glmodel("resources/models/phoenix/bird1.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelTurtle = new glmodel("resources/models/phoenix/turtle.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	// modelTreePine = new glmodel("resources/models/tree/pine.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	// modelTreePurple = new glmodel("resources/models/tree/purpletree.glb", aiProcessPreset_TargetRealtime_Quality, true);
 
@@ -327,7 +333,8 @@ void dayscene::init() {
 	godraysDrone->setWeight(0.01f);
 
 	lightManager = new SceneLight();
-	lightManager->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,-1.0,0.0f)));
+	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f),1.0f,vec3(0.0,-1.0,-1.0f)));
+	//lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f),1.0f,vec3(0.0,1.0,1.0f)));
 
 	lake1 = new lake(-6.0f);
 
@@ -403,6 +410,21 @@ void dayscene::renderScene(bool cameraFlip) {
 	modelDrone->draw(programDynamicPBR);
 	godraysDrone->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix(), vec4(eye, 1.0f));
 	glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 0);
+
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-26.8f, -6.5f, -85.6f) * rotate(177.0f, 0.0f, 1.0f, 0.0f) * scale(19.0f));
+	modelTurtle->update(0.005f, 0);
+    modelTurtle->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+	modelTurtle->draw(programDynamicPBR);
+
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-54.8998f, -10.9f, -80.2996f) * scale(1.3f));
+	modelFish->update(0.005f, 0);
+    modelFish->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+	modelFish->draw(programDynamicPBR);
+
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-30.0f, 2.0f, -64.5f) * rotate(105.0f, 0.0f, 1.0f, 0.0f) * scale(0.5f));
+	modelBird->update(0.005f, 0);
+    modelBird->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+	modelBird->draw(programDynamicPBR);
 
 	if((*dayevents)[SUNRISEINIT_T] <= 0.0f) {
     	atmosphere->render(currentViewMatrix, mix(vec1(radians(-10.0f)), vec1(radians(0.0f)), (*dayevents)[CAMERA1MOVE_T])[0]);
