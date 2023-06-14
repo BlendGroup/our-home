@@ -42,34 +42,34 @@ ocean::ocean(vec2 wind, float choppiness, int size) {
 	this->size = size;
 	this->pingPhase = true;
 	
-	string fullscreenVertexShader = "shaders/fullscreen.vert";
+	string fullscreenVertexShader = "shaders/ocean/fullscreen.vert";
 
-	this->horizontalSubtransformProgram = new glshaderprogram({ fullscreenVertexShader, "shaders/horizontalSubtransform.frag" });
+	this->horizontalSubtransformProgram = new glshaderprogram({ fullscreenVertexShader, "shaders/ocean/horizontalSubtransform.frag" });
 	this->horizontalSubtransformProgram->use();
 	glUniform1f(this->horizontalSubtransformProgram->getUniformLocation("u_transformSize"), RESOLUTION);
 
-	this->verticalSubtransformProgram = new glshaderprogram({fullscreenVertexShader, "shaders/verticalSubtransform.frag"});
+	this->verticalSubtransformProgram = new glshaderprogram({fullscreenVertexShader, "shaders/ocean/verticalSubtransform.frag"});
 	this->verticalSubtransformProgram->use();
 	glUniform1f(this->verticalSubtransformProgram->getUniformLocation("u_transformSize"), RESOLUTION);
 	
-	this->initialSpectrumProgram = new glshaderprogram({fullscreenVertexShader, "shaders/initialSpectrum.frag"});
+	this->initialSpectrumProgram = new glshaderprogram({fullscreenVertexShader, "shaders/ocean/initialSpectrum.frag"});
 	this->initialSpectrumProgram->use();
 	glUniform1f(this->initialSpectrumProgram->getUniformLocation("u_resolution"), RESOLUTION);
 
 	
-	this->phaseProgram = new glshaderprogram({fullscreenVertexShader, "shaders/phase.frag"});
+	this->phaseProgram = new glshaderprogram({fullscreenVertexShader, "shaders/ocean/phase.frag"});
 	this->phaseProgram->use();
 	glUniform1f(this->phaseProgram->getUniformLocation("u_resolution"), RESOLUTION);
 
-	this->spectrumProgram = new glshaderprogram({fullscreenVertexShader, "shaders/spectrum.frag"});
+	this->spectrumProgram = new glshaderprogram({fullscreenVertexShader, "shaders/ocean/spectrum.frag"});
 	this->spectrumProgram->use();
 	glUniform1f(this->spectrumProgram->getUniformLocation("u_resolution"), RESOLUTION);
 
-	this->normalMapProgram = new glshaderprogram({fullscreenVertexShader, "shaders/normalMap.frag"});
+	this->normalMapProgram = new glshaderprogram({fullscreenVertexShader, "shaders/ocean/normalMap.frag"});
 	this->normalMapProgram->use();
 	glUniform1f(this->normalMapProgram->getUniformLocation("u_resolution"), RESOLUTION);
 
-	this->oceanProgram = new glshaderprogram({"shaders/ocean.vert", "shaders/ocean.frag"});
+	this->oceanProgram = new glshaderprogram({"shaders/ocean/ocean.vert", "shaders/ocean/ocean.frag"});
 	this->oceanProgram->use();
 	glUniform1f(this->oceanProgram->getUniformLocation("u_geometrySize"), GEOMETRY_SIZE);
 	glUniform3fv(this->oceanProgram->getUniformLocation("u_oceanColor"), 1, OCEAN_COLOR);
