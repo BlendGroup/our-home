@@ -13,9 +13,8 @@ using namespace std;
 using namespace vmath;
 
 /***************************** OpenCL Flocking *****************************/
-Flock::Flock(size_t count, const vec3 &initAttractorPosition) {
+Flock::Flock(size_t count) {
 	this->count = count,
-	this->attractorPosition = initAttractorPosition;
 	this->flockUpdateProgram = new glshaderprogram({"shaders/flock/flockupdate.comp"});
 	this->flockProgram = new glshaderprogram({"shaders/flock/flock.vert", "shaders/color.frag"});
 	this->colorProgram = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
@@ -29,7 +28,7 @@ Flock::Flock(size_t count, const vec3 &initAttractorPosition) {
 	glBufferData(GL_SHADER_STORAGE_BUFFER, this->count * sizeof(flock_member), NULL, GL_DYNAMIC_COPY);
 	flock_member * ptr = (flock_member *)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, this->count * sizeof(flock_member), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
 	for (int i = 0; i < this->count; i++) {
-		ptr[i].position = initAttractorPosition + (vmath::vec3::random() - vmath::vec3(0.5f)) * 4.0f;
+		ptr[i].position = (vmath::vec3::random() - vmath::vec3(0.5f)) * 2.0f;
 		ptr[i].velocity = vec3(0.0f, 0.0f, 0.0f);
 	}
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
@@ -51,8 +50,11 @@ Flock::~Flock() {
 }
 
 void Flock::update(void) {
+	static float t = programglobal::deltaTime;
+	vec3 goal = vec3(sinf(t * 0.54f), cosf(t * 0.59f), sinf(t * 0.52f) * cosf(t * 0.5f));
+	goal = goal * vmath::vec3(4.0f, 2.0f, 4.0f);
 	this->flockUpdateProgram->use();
-	glUniform3fv(this->flockUpdateProgram->getUniformLocation("goal"), 1, this->attractorPosition);
+	glUniform3fv(this->flockUpdateProgram->getUniformLocation("goal"), 1, goal);
 
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, this->flockBuffer[this->frameIndex]);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, this->flockBuffer[this->frameIndex ^ 1]);
@@ -75,7 +77,7 @@ void Flock::renderAsSpheres(const mat4& mMat, const vec4 &color, const vec4 &emi
 }
 
 void Flock::renderAttractorAsQuad(const mat4& mMat, const vec4 &color, const vec4 &emissive, float scale) {
-	mat4 mvMatrix = programglobal::currentCamera->matrix() * mMat * translate(attractorPosition[0], attractorPosition[1], attractorPosition[2]);
+	mat4 mvMatrix = programglobal::currentCamera->matrix() * mMat;
 	mvMatrix[0][0] = 1.0f;
 	mvMatrix[0][1] = 0.0f;
 	mvMatrix[0][2] = 0.0f;

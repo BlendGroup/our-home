@@ -554,9 +554,8 @@ void nightscene::init() {
 	pathA2 = new SplineRenderer(firefliesBPath1);
 	pathAdjuster = new SplineAdjuster(firefliesAPath1);
 
-	attractorPositionA = vec3(0.0f, 1.4f, 0.0f);
-	firefliesA = new Flock(MAX_PARTICLES, attractorPositionA);
-	firefliesB = new Flock(MAX_PARTICLES, attractorPositionB);
+	firefliesA = new Flock(MAX_PARTICLES);
+	firefliesB = new Flock(MAX_PARTICLES);
 }
 
 void preOceanRender() {
@@ -753,17 +752,9 @@ void nightscene::update() {
 	static const float DRONE_ANIM_SPEED = 0.8f;
 	static const float ASTRO_ANIM_SPEED = 0.5f;
 	
-	static float t;
-
-	t +=  programglobal::deltaTime;
-
 	nightevents->increment();
-	// attractorPositionA = vec3(firefliesAPath1->interpolate((*nightevents)[FIREFLIES1BEGIN_T]));
-	firefliesA->setAttractorPosition(vec3(sinf(t) * 3.0f, 1.4f, 0.0f));
 	firefliesA->update();
-	// attractorPositionB = vec3(firefliesBPath1->interpolate((*nightevents)[FIREFLIES2BEGIN_T]));
 	// firefliesB->update();
-	// firefliesB->setAttractorPosition(attractorPositionB);
 	if((*nightevents)[CROSSIN_T] >= 0.01f) {
 		if(programglobal::isAnimating) {
 			playerBkgnd->play();
