@@ -191,6 +191,10 @@ void keyboard(glwindow* window, int key) {
 	case XK_F8:
 		programglobal::debugMode = LIGHT;
 		break;
+	case XK_F9:
+		delete debugcamera;
+		debugcamera = new debugCamera(currentScene->getCamera()->position(), -90.0f, 0.0f);
+		break;
 	case XK_space:
 		programglobal::isAnimating = !programglobal::isAnimating;
 		break;

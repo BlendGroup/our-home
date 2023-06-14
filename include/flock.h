@@ -27,8 +27,8 @@ public:
     Flock(size_t count, const vmath::vec3 &initAttractorPosition);
     ~Flock();
     void update(void);
-    void renderAsSpheres(const vmath::vec4 &color, const vmath::vec4 &emissive, float scale);
-    void renderAttractorAsQuad(const vmath::vec4 &color, const vmath::vec4 &emissive, float scale);
+    void renderAsSpheres(const vmath::mat4& mMat, const vmath::vec4 &color, const vmath::vec4 &emissive, float scale);
+    void renderAttractorAsQuad(const vmath::mat4& mMat, const vmath::vec4 &color, const vmath::vec4 &emissive, float scale);
     void setAttractorPosition(const vmath::vec3 &attractorPosition) {
         this->attractorPosition = attractorPosition;
     }

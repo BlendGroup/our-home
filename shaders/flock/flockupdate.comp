@@ -40,7 +40,7 @@ vec3 rule2(vec3 my_position, vec3 my_velocity, vec3 their_position, vec3 their_v
 {
      vec3 d = their_position - my_position;
      vec3 dv = their_velocity - my_velocity;
-     return dv / (dot(d, d) + 10.0);
+     return dv / (dot(d, d) + 100.0);
 }
 
 void main(void)
@@ -79,8 +79,8 @@ void main(void)
     accelleration += normalize(goal - me.position) * rule3_weight;
     accelleration += normalize(flock_center - me.position) * rule4_weight;
     new_me.velocity = me.velocity + accelleration * timestep;
-    if (length(new_me.velocity) > 10.0)
-        new_me.velocity = normalize(new_me.velocity) * 10.0;
+    if (length(new_me.velocity) > 100.0)
+        new_me.velocity = normalize(new_me.velocity) * 100.0;
     new_me.velocity = mix(me.velocity, new_me.velocity, 0.4);
     output_data.member[global_id] = new_me;
 }

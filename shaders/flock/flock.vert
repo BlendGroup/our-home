@@ -12,16 +12,17 @@ layout(std140) uniform FlockBlock {
     boid_t flock_buffer[MAX_BOIDS_PER_FLOCK];
 };
 
+uniform mat4 mMat;
 uniform mat4 vMat;
 uniform mat4 pMat;
 uniform float scale;
 
 void main(void) {
-    mat4 mMat = mat4(
+    mat4 lmMat = mat4(
         vec4(scale, 0.0, 0.0, 0.0),
         vec4(0.0, scale, 0.0, 0.0),
         vec4(0.0, 0.0, scale, 0.0),
         vec4(flock_buffer[gl_InstanceID].position, 1.0)
     );
-    gl_Position = pMat * vMat * mMat * vPos;
+    gl_Position = pMat * vMat * mMat * (lmMat * vPos);
 }

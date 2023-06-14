@@ -61,11 +61,12 @@ void Flock::update(void) {
 	this->frameIndex ^= 1;
 }
 
-void Flock::renderAsSpheres(const vec4 &color, const vec4 &emissive, float scale) {
+void Flock::renderAsSpheres(const mat4& mMat, const vec4 &color, const vec4 &emissive, float scale) {
 	this->flockProgram->use();
 	glBindBufferBase(GL_UNIFORM_BUFFER, this->flockProgram->getUniformLocation("FlockBlock"), this->flockBuffer[this->frameIndex]);
 	glUniformMatrix4fv(flockProgram->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
 	glUniformMatrix4fv(flockProgram->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(flockProgram->getUniformLocation("mMat"), 1, GL_FALSE, mMat);
 	glUniform1f(flockProgram->getUniformLocation("scale"), scale);
 	glUniform4fv(flockProgram->getUniformLocation("color"), 1, color);
 	glUniform4fv(flockProgram->getUniformLocation("emissive"), 1, emissive);
@@ -73,8 +74,8 @@ void Flock::renderAsSpheres(const vec4 &color, const vec4 &emissive, float scale
 	boidSphere->render(this->count);
 }
 
-void Flock::renderAttractorAsQuad(const vec4 &color, const vec4 &emissive, float scale) {
-	mat4 mvMatrix = programglobal::currentCamera->matrix() * translate(attractorPosition[0], attractorPosition[1], attractorPosition[2]);
+void Flock::renderAttractorAsQuad(const mat4& mMat, const vec4 &color, const vec4 &emissive, float scale) {
+	mat4 mvMatrix = programglobal::currentCamera->matrix() * mMat * translate(attractorPosition[0], attractorPosition[1], attractorPosition[2]);
 	mvMatrix[0][0] = 1.0f;
 	mvMatrix[0][1] = 0.0f;
 	mvMatrix[0][2] = 0.0f;
