@@ -642,7 +642,6 @@ void preOceanRender() {
 		if(count > 0) {
 			modelTreeRed->draw(programStaticInstancedPBR, count);
 		}
-		modelTreeRed->draw(programStaticInstancedPBR, count);
 
 		// count = 200;
 		// if(z >= -95.0f) {
@@ -719,8 +718,8 @@ void nightscene::render() {
 		postOceanRender();
 	}
 
-	// firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
-	// firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
+	firefliesA->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
+	firefliesA->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
 	// firefliesB->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	// firefliesB->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
@@ -784,9 +783,9 @@ void nightscene::update() {
 	static const float DRONE_ANIM_SPEED = 0.8f;
 	static const float ASTRO_ANIM_SPEED = 0.5f;
 	nightevents->increment();
-	// attractorPositionA = vec3(firefliesAPath1->interpolate((*nightevents)[FIREFLIES1BEGIN_T]));
-	// firefliesA->setAttractorPosition(attractorPositionA);
-	// firefliesA->update();
+	attractorPositionA = vec3(firefliesAPath1->interpolate((*nightevents)[FIREFLIES1BEGIN_T]));
+	firefliesA->setAttractorPosition(attractorPositionA);
+	firefliesA->update();
 	// attractorPositionB = vec3(firefliesBPath1->interpolate((*nightevents)[FIREFLIES2BEGIN_T]));
 	// firefliesB->update();
 	// firefliesB->setAttractorPosition(attractorPositionB);
