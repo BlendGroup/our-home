@@ -22,6 +22,7 @@
 #include<flock.h>
 #include<glmodelloader.h>
 #include<errorlog.h>
+#include<ocean.h>
 
 using namespace std;
 using namespace vmath;
@@ -90,6 +91,7 @@ static SplineRenderer *pathA2 = NULL;
 static BsplineInterpolator *firefliesBPath1 = NULL;
 static SplineRenderer *pathB1 = NULL;
 static SplineAdjuster *pathAdjuster = NULL;
+static ocean *obocean;
 
 void nightscene::setupProgram() {
 	try {
@@ -329,6 +331,10 @@ void nightscene::init() {
 	modelRover = new glmodel("resources/models/rover/rover.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelDrone = new glmodel("resources/models/drone/drone2.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
+
+	mat4 o = translate(0.0f, 10.0f, 0.0f);
+	vec2 w = vec2(10.0f, 20.0f);
+	obocean = new ocean(o, w, 1.5f, 100);
 
 	float startz = -115.0f;
 	float dz = 10.0f;
@@ -686,6 +692,9 @@ void nightscene::render() {
 	if((*nightevents)[CAMERAMOVE_T] > 0.6) {
 		postOceanRender();
 	}
+
+
+	obocean->render();
 
 	firefliesA->renderAsSpheres(translate(firefliesAPath1->interpolate((*nightevents)[FIREFLIES1BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	firefliesA->renderAttractorAsQuad(translate(firefliesAPath1->interpolate((*nightevents)[FIREFLIES1BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
