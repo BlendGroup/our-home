@@ -82,7 +82,7 @@ void init(void) {
 		sceneList.insert(sceneList.begin(), {
 			// new titlescene(),
 			// new labscene(),
-			// new dayscene(),
+			new dayscene(),
 			new nightscene()
 		});
 
