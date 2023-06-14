@@ -31,7 +31,6 @@ private:
 	GLuint oceanBuffer;
 	GLuint oceanIndexBuffer;
 	GLuint countOfIndicesOcean;
-	GLuint vaoFullscreen;
 	GLuint vaoOcean;
 	GLuint initialSpectrumTexture;
 	GLuint pingPhaseTexture;

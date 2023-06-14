@@ -14,6 +14,8 @@ using namespace vmath;
 #define GEOMETRY_SIZE 2.0f
 #define RESOLUTION 512
 
+static GLuint vaoEmpty;
+
 GLuint createFramebufferFromTexture(GLuint attachment) {
 	GLuint framebuffer;
 	glGenFramebuffers(1, &framebuffer);
@@ -82,14 +84,7 @@ ocean::ocean(vec2 wind, float choppiness, int size) {
 		-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0
 	};
 
-	glGenVertexArrays(1, &this->vaoFullscreen);
-	glBindVertexArray(this->vaoFullscreen);
-	glGenBuffers(1, &this->fullscreenVertexBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, this->fullscreenVertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * quad.size(), quad.data(), GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, (void*)0);
-	
+	glGenVertexArrays(1, &vaoEmpty);	
 	glGenVertexArrays(1, &this->vaoOcean);
 	glBindVertexArray(this->vaoOcean);
 	vector<float> oceanData;
@@ -168,7 +163,7 @@ void ocean::render(mat4 mMat) {
 	glViewport(0, 0, RESOLUTION, RESOLUTION);
 	glDisable(GL_DEPTH_TEST);
 
-	glBindVertexArray(this->vaoFullscreen);
+	glBindVertexArray(vaoEmpty);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, this->initialSpectrumFramebuffer);
 	this->initialSpectrumProgram->use();
