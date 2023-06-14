@@ -6,7 +6,7 @@ const float PI = 3.14159265359;
 const float G = 9.81;
 const float KM = 370.0;
 
-in vec2 v_coordinates;
+in vec2 texCoord;
 
 uniform float u_size;
 uniform float u_resolution;
@@ -36,11 +36,11 @@ void main (void) {
 	float m = (coordinates.y < u_resolution * 0.5) ? coordinates.y : coordinates.y - u_resolution;
 	vec2 waveVector = (2.0 * PI * vec2(n, m)) / u_size;
 
-	float phase = texture(u_phases, v_coordinates).r;
+	float phase = texture(u_phases, texCoord).r;
 	vec2 phaseVector = vec2(cos(phase), sin(phase));
 
-	vec2 h0 = texture(u_initialSpectrum, v_coordinates).rg;
-	vec2 h0Star = texture(u_initialSpectrum, vec2(1.0 - v_coordinates + 1.0 / u_resolution)).rg;
+	vec2 h0 = texture(u_initialSpectrum, texCoord).rg;
+	vec2 h0Star = texture(u_initialSpectrum, vec2(1.0 - texCoord + 1.0 / u_resolution)).rg;
 	h0Star.y *= -1.0;
 
 	vec2 h = multiplyComplex(h0, phaseVector) + multiplyComplex(h0Star, vec2(phaseVector.x, -phaseVector.y));

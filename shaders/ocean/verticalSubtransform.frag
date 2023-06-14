@@ -9,7 +9,7 @@ uniform sampler2D u_input;
 uniform float u_transformSize;
 uniform float u_subtransformSize;
 
-in vec2 v_coordinates;
+in vec2 texCoord;
 
 out vec4 FragColor;
 
@@ -18,7 +18,7 @@ vec2 multiplyComplex (vec2 a, vec2 b) {
 }
 
 void main (void) {
-	float index = v_coordinates.y * u_transformSize - 0.5;
+	float index = texCoord.y * u_transformSize - 0.5;
 	
 	float evenIndex = floor(index / u_subtransformSize) * (u_subtransformSize * 0.5) + mod(index, u_subtransformSize * 0.5);
 	

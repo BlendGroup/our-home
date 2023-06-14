@@ -1,6 +1,6 @@
 #version 460 core
 
-in vec2 v_coordinates;
+in vec2 texCoord;
 
 uniform sampler2D u_displacementMap;
 uniform float u_resolution;
@@ -12,11 +12,11 @@ void main (void) {
 	float texel = 1.0 / u_resolution;
 	float texelSize = u_size / u_resolution;
 
-	vec3 center = texture(u_displacementMap, v_coordinates).rgb;
-	vec3 right = vec3(texelSize, 0.0, 0.0) + texture(u_displacementMap, v_coordinates + vec2(texel, 0.0)).rgb - center;
-	vec3 left = vec3(-texelSize, 0.0, 0.0) + texture(u_displacementMap, v_coordinates + vec2(-texel, 0.0)).rgb - center;
-	vec3 top = vec3(0.0, 0.0, -texelSize) + texture(u_displacementMap, v_coordinates + vec2(0.0, -texel)).rgb - center;
-	vec3 bottom = vec3(0.0, 0.0, texelSize) + texture(u_displacementMap, v_coordinates + vec2(0.0, texel)).rgb - center;
+	vec3 center = texture(u_displacementMap, texCoord).rgb;
+	vec3 right = vec3(texelSize, 0.0, 0.0) + texture(u_displacementMap, texCoord + vec2(texel, 0.0)).rgb - center;
+	vec3 left = vec3(-texelSize, 0.0, 0.0) + texture(u_displacementMap, texCoord + vec2(-texel, 0.0)).rgb - center;
+	vec3 top = vec3(0.0, 0.0, -texelSize) + texture(u_displacementMap, texCoord + vec2(0.0, -texel)).rgb - center;
+	vec3 bottom = vec3(0.0, 0.0, texelSize) + texture(u_displacementMap, texCoord + vec2(0.0, texel)).rgb - center;
 
 	vec3 topRight = cross(right, top);
 	vec3 topLeft = cross(top, left);

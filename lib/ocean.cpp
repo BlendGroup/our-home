@@ -42,7 +42,7 @@ ocean::ocean(vec2 wind, float choppiness, int size) {
 	this->size = size;
 	this->pingPhase = true;
 	
-	string fullscreenVertexShader = "shaders/ocean/fullscreen.vert";
+	string fullscreenVertexShader = "shaders/fsquad.vert";
 
 	this->horizontalSubtransformProgram = new glshaderprogram({ fullscreenVertexShader, "shaders/ocean/horizontalSubtransform.frag" });
 	this->horizontalSubtransformProgram->use();
