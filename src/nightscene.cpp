@@ -599,7 +599,7 @@ void preOceanRender() {
 		glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboTreePosition);
 		glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("color_ubo"), uboTreeColor);
 		float z = programglobal::currentCamera->position()[2];
-		int count = 60;
+		int count = 120;
 		if(z >= -95.0f) {
 			z += 95.0f;
 			int n = 6 * (int)(z / 10.0f);
