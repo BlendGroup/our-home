@@ -6,13 +6,12 @@
 using namespace std;
 using namespace vmath;
 
-#define GEOMETRY_ORIGIN vec2(-200.0f, -200.0f)
+#define GEOMETRY_ORIGIN vec2(-1.0f, -1.0f)
 #define SUN_DIRECTION vec3(-1.0, 1.0, 1.0)
 #define OCEAN_COLOR vec3(0.004, 0.016, 0.047)
-#define SKY_COLOR vec3(3.2, 9.6, 12.8)
-#define EXPOSURE 0.15
+#define SKY_COLOR vec3(0.196116, 0.588348, 0.784465)
 #define GEOMETRY_RESOLUTION 256
-#define GEOMETRY_SIZE 400.0f
+#define GEOMETRY_SIZE 2.0f
 #define RESOLUTION 512
 
 GLuint createFramebufferFromTexture(GLuint attachment) {
@@ -37,11 +36,10 @@ GLuint createTextureFromParams(GLenum internalFormat, GLenum format, GLenum type
     return texture;
 }
 
-ocean::ocean(mat4& mMat, vec2& wind, float choppiness, int size) {
+ocean::ocean(vec2 wind, float choppiness, int size) {
 	this->wind = wind;
 	this->choppiness = choppiness;
 	this->size = size;
-	this->mMat = mMat;
 	this->pingPhase = true;
 	
 	string fullscreenVertexShader = "shaders/fullscreen.vert";
@@ -77,7 +75,6 @@ ocean::ocean(mat4& mMat, vec2& wind, float choppiness, int size) {
 	glUniform3fv(this->oceanProgram->getUniformLocation("u_oceanColor"), 1, OCEAN_COLOR);
 	glUniform3fv(this->oceanProgram->getUniformLocation("u_skyColor"), 1, SKY_COLOR);
 	glUniform3fv(this->oceanProgram->getUniformLocation("u_sunDirection"), 1, SUN_DIRECTION);
-	glUniform1f(this->oceanProgram->getUniformLocation("u_exposure"), EXPOSURE);
 
 	glUseProgram(0);
 
@@ -167,7 +164,7 @@ ocean::ocean(mat4& mMat, vec2& wind, float choppiness, int size) {
 	this->pongTransformFramebuffer = createFramebufferFromTexture(this->pongTransformTexture);
 }
 
-void ocean::render(void) {
+void ocean::render(mat4 mMat) {
 	glViewport(0, 0, RESOLUTION, RESOLUTION);
 	glDisable(GL_DEPTH_TEST);
 
@@ -246,7 +243,7 @@ void ocean::render(void) {
 	glUniform1f(this->oceanProgram->getUniformLocation("u_size"), this->size);
 	glUniformMatrix4fv(this->oceanProgram->getUniformLocation("u_projectionMatrix"), 1, false, programglobal::perspective);
 	glUniformMatrix4fv(this->oceanProgram->getUniformLocation("u_viewMatrix"), 1, false, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(this->oceanProgram->getUniformLocation("u_modelMatrix"), 1, false, this->mMat);
+	glUniformMatrix4fv(this->oceanProgram->getUniformLocation("u_modelMatrix"), 1, false, mMat);
 	glUniform3fv(this->oceanProgram->getUniformLocation("u_cameraPosition"), 1, programglobal::currentCamera->position());
 	glUniform1i(this->oceanProgram->getUniformLocation("u_displacementMap"), 20);
 	glBindTextureUnit(20, this->displacementMap);

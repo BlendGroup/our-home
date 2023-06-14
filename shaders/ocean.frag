@@ -10,15 +10,12 @@ uniform vec3 u_cameraPosition;
 
 uniform vec3 u_oceanColor;
 uniform vec3 u_skyColor;
-uniform float u_exposure;
 
 uniform vec3 u_sunDirection;
 
-out vec4 FragColor;
-
-vec3 hdr (vec3 color, float exposure) {
-	return 1.0 - exp(-color * exposure);
-}
+layout(location = 0)out vec4 FragColor;
+layout(location = 1)out vec4 EmmissionColor;
+layout(location = 2)out vec4 OcclusionColor;
 
 void main (void) {
 	vec3 normal = texture(u_normalMap, v_coordinates).rgb;
@@ -28,9 +25,11 @@ void main (void) {
 	vec3 sky = fresnel * u_skyColor;
 
 	float diffuse = clamp(dot(normal, normalize(u_sunDirection)), 0.0, 1.0);
-	vec3 water = (1.0 - fresnel) * u_oceanColor * u_skyColor * diffuse;
+	vec3 water = (1.0 - fresnel) * u_oceanColor * diffuse;
 
 	vec3 color = sky + water;
 
-	FragColor = vec4(hdr(color, u_exposure), 1.0);
+	FragColor = vec4(color, 1.0);
+	EmmissionColor = vec4(0.0, 0.0, 0.0, 1.0);
+	OcclusionColor = vec4(0.0, 0.0, 0.0, 1.0);
 }

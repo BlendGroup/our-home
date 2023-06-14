@@ -332,9 +332,7 @@ void nightscene::init() {
 	modelDrone = new glmodel("resources/models/drone/drone2.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
 
-	mat4 o = translate(0.0f, 10.0f, 0.0f);
-	vec2 w = vec2(10.0f, 20.0f);
-	obocean = new ocean(o, w, 1.5f, 100);
+	obocean = new ocean(vec2(3.0f, 3.0f), 0.2f, 100);
 
 	float startz = -115.0f;
 	float dz = 10.0f;
@@ -694,7 +692,7 @@ void nightscene::render() {
 	}
 
 
-	obocean->render();
+	obocean->render(translate(0.0f, -13.0f, 1300.0f) * scale(721.0f));
 
 	firefliesA->renderAsSpheres(translate(firefliesAPath1->interpolate((*nightevents)[FIREFLIES1BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	firefliesA->renderAttractorAsQuad(translate(firefliesAPath1->interpolate((*nightevents)[FIREFLIES1BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
@@ -728,18 +726,6 @@ void nightscene::render() {
 		moon->render();
 		godraysMoon->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix() * translate(0.0f, 297.0f, 517.0f), vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	}
-
-	programTex->use();
-	glUniformMatrix4fv(programTex->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	glUniformMatrix4fv(programTex->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(programTex->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, -13.0f, 1300.0f) * rotate(90.0f, 1.0f, 0.0f, 0.0f) * scale(721.0f));
-	glUniform1i(programTex->getUniformLocation("texture_diffuse"), 0);
-	glUniform1i(programTex->getUniformLocation("texture_emmission"), 1);
-	glUniform1i(programTex->getUniformLocation("texture_occlusion"), 2);
-	glBindTextureUnit(0, texOcean);
-	glBindTextureUnit(1, 0);
-	glBindTextureUnit(2, 0);
-	programglobal::shapeRenderer->renderQuad();
 
 	if((*nightevents)[CROSSIN_T] < 1.0f) {
 		crossfader::render(texDaySceneFinal, (*nightevents)[CROSSIN_T]);

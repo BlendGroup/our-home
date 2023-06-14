@@ -10,7 +10,6 @@ private:
 	vmath::vec2 wind;
 	int size;
 	float choppiness;
-	vmath::mat4 mMat;
 	
 	glshaderprogram* horizontalSubtransformProgram;
 	glshaderprogram* verticalSubtransformProgram;
@@ -43,8 +42,8 @@ private:
 	GLuint pingTransformTexture;
 	GLuint pongTransformTexture;
 public:
-	ocean(vmath::mat4& mMat, vmath::vec2& wind, float choppiness, int size);
-	void render(void);
+	ocean(vmath::vec2 wind, float choppiness, int size);
+	void render(vmath::mat4 mMat);
 };
 
 #endif
