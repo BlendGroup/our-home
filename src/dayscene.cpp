@@ -247,7 +247,7 @@ void dayscene::init() {
 		{CROSSIN_T, { 0.0f, 1.0f }},
 		{GODRAYIN_T, { 0.5f, 2.0f }},
 		{CAMERA1MOVE_T, { 2.0f, 40.0f }},
-		{DRONETURN_T, { 2.0f, 1.0f }},
+		{DRONETURN_T, { 1.5f, 2.0f }},
 		{DRONEMOVE_T, { 2.0f, 40.6f }},
 		{ROVERMOVE_T, {53.0f, 8.0f}},
 		{SUNRISEINIT_T, {42.0f, 5.0f}},
