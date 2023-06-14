@@ -12,7 +12,7 @@
 using namespace std;
 using namespace vmath;
 
-/***************************** OpenCL Flocking *****************************/
+/***************************** Compute Shader Flocking *****************************/
 Flock::Flock(size_t count) {
 	this->count = count,
 	this->flockUpdateProgram = new glshaderprogram({"shaders/flock/flockupdate.comp"});
@@ -94,4 +94,4 @@ void Flock::renderAttractorAsQuad(const mat4& mMat, const vec4 &color, const vec
 	glUniform4fv(colorProgram->getUniformLocation("occlusion"), 1, vec4(0.0f, 0.0f, 0.0f, 0.0f));
 	programglobal::shapeRenderer->renderQuad();
 }
-/*********************************** EOF ***********************************/
+/*************************************** EOF ***************************************/
