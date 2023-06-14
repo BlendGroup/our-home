@@ -29,7 +29,7 @@ Flock::Flock(size_t count, const vec3 &initAttractorPosition) {
 	glBufferData(GL_SHADER_STORAGE_BUFFER, this->count * sizeof(flock_member), NULL, GL_DYNAMIC_COPY);
 	flock_member * ptr = (flock_member *)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, this->count * sizeof(flock_member), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
 	for (int i = 0; i < this->count; i++) {
-		ptr[i].position = initAttractorPosition + (vmath::vec3::random() - vmath::vec3(0.5f)) * 2.0f;
+		ptr[i].position = initAttractorPosition + (vmath::vec3::random() - vmath::vec3(0.5f)) * 4.0f;
 		ptr[i].velocity = vec3(0.0f, 0.0f, 0.0f);
 	}
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);

@@ -78,7 +78,7 @@ enum tvalues {
 static eventmanager* nightevents;
 
 static audioplayer* playerBkgnd;
-static const int MAX_PARTICLES = 256;
+static const int MAX_PARTICLES = 128;
 static Flock *firefliesA = NULL;
 static Flock *firefliesB = NULL;
 static vec3 attractorPositionA =  vec3(-30.0f, 15.0f, -30.0f);
