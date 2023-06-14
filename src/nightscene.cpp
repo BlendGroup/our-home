@@ -360,7 +360,7 @@ void nightscene::init() {
 	}
 
 	// modelFlowerPurple = new glmodel("resources/models/flowers/flower1.glb", aiProcessPreset_TargetRealtime_Quality, true);
-	// modelPhoenix = new glmodel("resources/models/phoenix/phoenix.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelPhoenix = new glmodel("resources/models/phoenix/phoenix.glb", aiProcessPreset_TargetRealtime_Quality, true);
 
 	glGenBuffers(1, &uboTreePosition);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboTreePosition);
@@ -716,17 +716,15 @@ void nightscene::render() {
 	// firefliesB->renderAsSpheres(vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	// firefliesB->renderAttractorAsQuad(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
-	//phoenix test
-	// programDynamicPBR->use();
-	// glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
-    // glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
-	// glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,5.0f,0.0f) * scale(10.0f,10.0f,10.0f));
-    // modelPhoenix->update(0.01f, 0);
-    // modelPhoenix->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
-	// glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1,programglobal::currentCamera->position());
-	// glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
-	// lightManager->setLightUniform(programDynamicPBR, false);
-	// modelPhoenix->draw(programDynamicPBR,1);
+	programDynamicPBR->use();
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,5.0f,0.0f) * scale(10.0f,10.0f,10.0f));
+	modelPhoenix->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+	glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1,programglobal::currentCamera->position());
+	glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
+	lightManager->setLightUniform(programDynamicPBR, false);
+	modelPhoenix->draw(programDynamicPBR,1);
 
 	if((*nightevents)[CAMERAMOVE_T] > 0.136f && (*nightevents)[CAMERAMOVE_T] < 0.26f) {
 		programTex->use();
@@ -763,6 +761,7 @@ void nightscene::update() {
 	static const float DRONE_ANIM_SPEED = 0.8f;
 	static const float ASTRO_ANIM_SPEED = 0.5f;
 	static const float OCEAN_ANIM_SPEED = 0.2f;
+	static const float PHOENIX_ANIM_SPEED = 0.5f;
 	
 	nightevents->increment();
 	firefliesA->update();
@@ -776,6 +775,7 @@ void nightscene::update() {
 	}
 	modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
 	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 1);
+	modelPhoenix->update(PHOENIX_ANIM_SPEED * programglobal::deltaTime, 0);
 	obocean->update(OCEAN_ANIM_SPEED * programglobal::deltaTime);
 }
 
