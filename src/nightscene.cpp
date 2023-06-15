@@ -51,6 +51,7 @@ static glmodel* modelRover;
 static glmodel* modelFlowerPurple;
 static glmodel* modelPhoenix;
 static glmodel* modelFox;
+static glmodel* modelRocket;
 
 static godrays* godraysMoon;
 #ifdef DEBUG
@@ -349,6 +350,7 @@ void nightscene::init() {
 	modelTie = new glmodel("resources/models/rover/tie.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelPhoenix = new glmodel("resources/models/phoenix/phoenix.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelFox = new glmodel("resources/models/phoenix/fox.fbx", aiProcessPreset_TargetRealtime_Quality, true);
+	modelRocket = new glmodel("resources/models/rover/spacex.glb", aiProcessPreset_TargetRealtime_Quality, true);
 
 	obocean = new ocean(vec2(3.0f, 3.0f), 1.5f, 100);
 
@@ -448,7 +450,8 @@ void nightscene::init() {
 
 	moon = new sphere(25, 50, 1.0f);
 	// quickModelPlacer = new modelplacer(vec3(-2.0f, -3.5f, 1161.0f), vec3(0.0f, 180.0f, 0.0f), 3.0f);
-	quickModelPlacer = new modelplacer(vec3(-9.8f, 0.03f, -95.1098f), vec3(0.0f, -77.0f, 0.0f), 0.05f);
+	// quickModelPlacer = new modelplacer(vec3(-9.8f, 0.03f, -95.1098f), vec3(0.0f, -77.0f, 0.0f), 0.05f);
+	quickModelPlacer = new modelplacer();
 	lightManager = new SceneLight(false);
 	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, -0.5f, -1.0f)));
 	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, 0.5f, 1.0f)));
@@ -756,6 +759,9 @@ void postOceanRender() {
 	lightManager->setLightUniform(programStaticPBR, false);
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-6.0f, 5.5f, 1186.0f) * rotate(90.0f, 1.0f, 0.0f, 0.0f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(2.0f));
 	modelTie->draw(programStaticPBR);
+
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, mix(vec1(400.1f), vec1(100.1f), 0.5f)[0], 774.8f) * rotate(90.0f, 1.0f, 0.0f, 0.0f) * rotate(-26.0f, 0.0f, 0.0f, 1.0f) * scale(5.5f));
+	modelRocket->draw(programStaticPBR);
 }
 
 void nightscene::render() {
