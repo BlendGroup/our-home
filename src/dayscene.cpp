@@ -1,4 +1,3 @@
-#define DEBUG
 #include<scenes/day.h>
 #include<glmodelloader.h>
 #include<glshaderloader.h>

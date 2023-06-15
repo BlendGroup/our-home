@@ -1,6 +1,5 @@
 #include "glshaderloader.h"
 #include "shapes.h"
-#define DEBUG
 #include<scenes/night.h>
 #include<iostream>
 #include<vmath.h>
