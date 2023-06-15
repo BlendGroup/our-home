@@ -81,7 +81,8 @@ enum tvalues {
 	CAMERAMOVE_T,
 	FIREFLIES1BEGIN_T,
 	FIREFLIES2BEGIN_T,
-	FOXWALK_T
+	FOXWALK_T,
+	PHOENIXFLY_T,
 };
 static eventmanager* nightevents;
 
@@ -94,6 +95,7 @@ static BsplineInterpolator *firefliesBPath = NULL;
 static SplineAdjuster *pathAdjuster = NULL;
 static ocean *obocean;
 static BsplineInterpolator* phoenixPath;
+static SplineRenderer *pathPhoenix;
 
 void nightscene::setupProgram() {
 	try {
@@ -183,29 +185,24 @@ void nightscene::setupCamera() {
 	};
 	
 	vector<vec3> frontVector = {
-		//Look Down
 		vec3(13.8f, 23.81f, -102.2f),
 		vec3(12.5f, 14.51f, -102.2f),
 		vec3(8.6f, 6.61f, -102.2f),
 		vec3(5.01f, 2.2f, -101.5f),
 		vec3(3.1f, 1.5f, -98.8f),
-		//Look Around
 		vec3(-0.01f, 1.4f, -98.1f),
 		vec3(-2.4f, 1.4f, -98.2f),
 		vec3(-4.9f, 1.4f, -96.2f),
 		vec3(-2.9f, 1.4f, -92.1f),
-		//Moon Look
 		vec3(-0.4f, 2.5f, -89.1f),
 		vec3(0.0f, 4.3f, -85.3f),
 		vec3(0.0f, 5.1f, -82.5f),
 		vec3(0.0f, 5.2f, -80.4f),
 		vec3(0.0f, 5.2f, -78.5f),
 		vec3(0.0f, 4.6f, -75.9f),
-		//Look Down
 		vec3(0.0f, 3.2f, -74.1f),
 		vec3(0.4f, 1.7f, -67.1f),
 		vec3(1.3f, 1.4f, -58.1f),
-		//Running
 		vec3(-1.6f, 1.4f, -45.1f),
 		vec3(1.7f, 1.4f, -30.1f),
 		vec3(0.0f, 1.4f, -15.1f),
@@ -227,20 +224,18 @@ void nightscene::setupCamera() {
 		vec3(-0.8f, 1.4f, 300.1f),
 		vec3(0.0f, 1.4f, 320.1f),
 		vec3(0.0f, 1.4f, 340.1f),
-		vec3(0.0f, 1.4f, 360.1f),
-		vec3(0.0f, 1.4f, 380.1f),
-		vec3(0.0f, 1.4f, 400.1f),
-		vec3(0.0f, 1.4f, 420.1f),
-		vec3(0.0f, 1.4f, 440.1f),
-		vec3(0.0f, 1.4f, 460.1f),
-		//Fireflies End
+		vec3(0.0f, 2.2f, 360.1f),
+		vec3(0.0f, 3.4f, 380.1f),
+		vec3(0.0f, 3.4f, 400.1f),
+		vec3(0.0f, 3.4f, 420.1f),
+		vec3(0.0f, 3.4f, 440.1f),
+		vec3(0.0f, 3.4f, 460.1f),
 		vec3(0.0f, 3.4f, 480.1f),
-		vec3(0.0f, 1.4f, 500.1f),
-		vec3(0.0f, 1.4f, 520.1f),
-		vec3(0.0f, 1.4f, 540.1f),
-		vec3(0.0f, 1.4f, 560.1f),
+		vec3(0.0f, 3.4f, 500.1f),
+		vec3(0.0f, 3.4f, 520.1f),
+		vec3(0.0f, 3.4f, 540.1f),
+		vec3(0.0f, 2.2f, 560.1f),
 		vec3(0.0f, 1.4f, 580.1f),
-		//Ocean
 		vec3(0.0f, 1.4f, 605.1f),
 		vec3(0.0f, 1.4f, 655.1f),
 		vec3(0.0f, 1.4f, 705.1f),
@@ -252,8 +247,7 @@ void nightscene::setupCamera() {
 		vec3(0.0f, 1.4f, 1005.1f),
 		vec3(0.0f, 1.4f, 1055.1f),
 		vec3(0.0f, 1.4f, 1105.1f),
-		vec3(0.0f, 1.4f, 1155.1f),
-		
+		vec3(0.0f, 1.4f, 1155.1f)
 	};
 	camera1 = new sceneCamera(positionVector, frontVector);
 
@@ -307,7 +301,8 @@ void nightscene::init() {
 		{CAMERAMOVE_T, { 2.0f, 110.0f }},
 		{FOXWALK_T, {11.1f, 6.0f}},
 		{FIREFLIES1BEGIN_T, {25.0f, 55.0f}},//End at 80
-		{FIREFLIES2BEGIN_T, {61.3f, 18.7f}} //End at 80f
+		{FIREFLIES2BEGIN_T, {61.3f, 18.7f}}, //End at 80f
+		{PHOENIXFLY_T, {69.0f, 22.0f}}
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -596,14 +591,21 @@ void nightscene::init() {
 	firefliesB = new Flock(MAX_PARTICLES);
 
 	vector<vec3> phoenixPathPoints = {
-		vec3(0.0f, 5.4f, 480.1f),
-		vec3(0.0f, 5.4f, 500.1f),
-		vec3(0.0f, 5.4f, 520.1f),
-		vec3(0.0f, 5.4f, 540.1f),
-		vec3(0.0f, 5.4f, 560.1f),
-		vec3(0.0f, 5.4f, 580.1f)
+		vec3(0.0f, 45.0f, 380.1f),
+		vec3(0.0f, 20.7f, 400.1f),
+		vec3(0.0f, 12.9f, 420.1f),
+		vec3(0.0f, 7.4f, 440.1f),
+		vec3(0.0f, 7.4f, 460.1f),
+		vec3(0.0f, 7.4f, 480.1f),
+		vec3(0.0f, 7.4f, 500.1f),
+		vec3(0.0f, 7.4f, 525.1f),
+		vec3(0.0f, 7.4f, 550.1f),
+		vec3(0.0f, 7.4f, 575.1f),
+		vec3(0.0f, 7.4f, 600.1f)
 	};
 	phoenixPath = new BsplineInterpolator(phoenixPathPoints);
+	pathPhoenix = new SplineRenderer(phoenixPath);
+	pathAdjuster = new SplineAdjuster(phoenixPath);
 }
 
 void preOceanRender() {
@@ -776,17 +778,18 @@ void nightscene::render() {
 		firefliesB->renderAttractorAsQuad(translate(firefliesBPath->interpolate((*nightevents)[FIREFLIES2BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 	}
 
-	//phoenix test
-	programDynamicPBR->use();
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
-    glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
-    modelPhoenix->update(0.01f, 0);
-    modelPhoenix->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
-	glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1,programglobal::currentCamera->position());
-	glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
-	lightManager->setLightUniform(programDynamicPBR, false);
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(phoenixPath->interpolate(0.0f)) * rotate(-90.0f,vec3(0.0f,1.0f,0.0f)) * scale(10.0f,10.0f,10.0f));
-	modelPhoenix->draw(programDynamicPBR);
+	if((*nightevents)[PHOENIXFLY_T] >= 0.00001f) {
+		programDynamicPBR->use();
+		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
+		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
+		modelPhoenix->update(0.01f, 0);
+		modelPhoenix->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+		glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1,programglobal::currentCamera->position());
+		glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
+		lightManager->setLightUniform(programDynamicPBR, false);
+		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(phoenixPath->interpolate((*nightevents)[PHOENIXFLY_T])) * rotate(-90.0f,vec3(0.0f,1.0f,0.0f)) * scale(10.0f,10.0f,10.0f));
+		modelPhoenix->draw(programDynamicPBR);
+	}
 
 	if((*nightevents)[CAMERAMOVE_T] > 0.136f && (*nightevents)[CAMERAMOVE_T] < 0.26f) {
 		programTex->use();
