@@ -154,6 +154,7 @@ void labscene::init() {
 	modelMug = new glmodel("resources/models/mug/mug.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelRobot = new glmodel("resources/models/robot/robot.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	modelAstro = new glmodel("resources/models/astronaut/MCFinal.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelAstro->update(0.0f, 1);
 	modelBLEND = new glmodel("resources/models/blendlogo/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
 
 	godraysDoor = new godrays();
@@ -399,7 +400,7 @@ void labscene::reset() {
 void labscene::update() {
 	labevents->increment();
 	static const float ROBOT_ANIM_SPEED = 0.99f;
-	static const float ASTRO_ANIM_SPEED = 0.5f;
+	static const float ASTRO_ANIM_SPEED = 0.7f;
 	static const float HOLOGRAM_UPDATE_SPEED = 0.5f;
 	static const float STEAM_UPDATE_SPEED = 0.5f;
 	
@@ -425,8 +426,9 @@ void labscene::update() {
 	}
 	hologramT += HOLOGRAM_UPDATE_SPEED * programglobal::deltaTime;
 	steamT += STEAM_UPDATE_SPEED * programglobal::deltaTime;
-	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 1);
-
+	if((*labevents)[ROBOT_T] >= 0.9f) {
+		modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 1, 0, 0.0f, false);
+	}
 	if((*labevents)[CROSSOUT_T] >= 1.0f) {
 		cout<<"Lab Scene Duration: "<<labevents->getT()<<endl;
 		playNextScene();

@@ -81,9 +81,9 @@ void init(void) {
 		crossfader::init();
 		sceneList.insert(sceneList.begin(), {
 			// new titlescene(),
-			// new labscene(),
-			new dayscene(),
-			new nightscene()
+			new labscene(),
+			// new dayscene(),
+			// new nightscene()
 		});
 
 		//Inititalize

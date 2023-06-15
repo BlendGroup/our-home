@@ -319,12 +319,12 @@ void nightscene::init() {
 	nightevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 2.0f }},
 		{CAMERAMOVE1_T, { 2.0f, 110.0f }},
-		{CAMERAMOVE2_T, { 113.5f, 20.0f }},
+		{CAMERAMOVE2_T, { 112.65f, 20.0f }},
 		{FOXWALK_T, {11.1f, 6.0f}},
 		{FIREFLIES1BEGIN_T, {25.0f, 55.0f}},//End at 80
 		{FIREFLIES2BEGIN_T, {57.75f, 18.7f}}, //End at 80f
 		{PHOENIXFLY_T, {69.0f, 30.0f}},
-		{ROCKET1_T, {134.0f, 20.0f}},
+		{ROCKET1_T, {128.0f, 30.0f}},
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
