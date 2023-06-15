@@ -47,6 +47,9 @@ static glmodel* modelTreePine;
 static glmodel* modelTreeRed;
 static glmodel* modelTreePurple;
 static glmodel* modelDrone;
+static glmodel* modelFish;
+static glmodel* modelBird;
+static glmodel* modelTurtle;
 
 static SceneLight* lightManager;
 
@@ -92,7 +95,8 @@ enum tvalues {
 	SUNRISEINIT_T,
 	SUNRISEMID_T,
 	SUNRISEEND_T,
-	ROVERMOVE_T
+	ROVERMOVE_T,
+	SUNSET_T
 };
 static eventmanager* dayevents;
 
@@ -244,15 +248,16 @@ GLuint texRoadMap;
 void dayscene::init() {
 	dayevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 1.0f }},
-		{GODRAYIN_T, { 0.0f, 1.5f }},
-		{CAMERA1MOVE_T, { 1.0f, 40.0f }},
-		{DRONETURN_T, { 0.5f, 0.5f }},
-		{DRONEMOVE_T, { 0.75f, 40.6f }},
+		{GODRAYIN_T, { 0.5f, 2.0f }},
+		{CAMERA1MOVE_T, { 2.0f, 40.0f }},
+		{DRONETURN_T, { 1.5f, 2.0f }},
+		{DRONEMOVE_T, { 2.0f, 40.6f }},
 		{ROVERMOVE_T, {53.0f, 8.0f}},
-		{SUNRISEINIT_T, {41.0f, 5.0f}},
-		{SUNRISEMID_T, {46.0f, 4.0f}},
-		{SUNRISEEND_T, {50.0f, 4.0f}},
+		{SUNRISEINIT_T, {42.0f, 5.0f}},
+		{SUNRISEMID_T, {47.0f, 3.5f}},
+		{SUNRISEEND_T, {50.5f, 3.5f}},
 		{CAMERA2MOVE_T, { 54.0f, 30.0f }},
+		{SUNSET_T, {54.0f, 35.0f}},
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -274,6 +279,9 @@ void dayscene::init() {
 	modelTreeRed = new glmodel("resources/models/tree/redtree.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	modelDrone = new glmodel("resources/models/drone/drone2.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelDrone->update(0.0f, 1);
+	modelFish = new glmodel("resources/models/phoenix/fish.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelBird = new glmodel("resources/models/phoenix/bird1.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelTurtle = new glmodel("resources/models/phoenix/turtle.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	// modelTreePine = new glmodel("resources/models/tree/pine.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	// modelTreePurple = new glmodel("resources/models/tree/purpletree.glb", aiProcessPreset_TargetRealtime_Quality, true);
 
@@ -327,7 +335,8 @@ void dayscene::init() {
 	godraysDrone->setWeight(0.01f);
 
 	lightManager = new SceneLight();
-	lightManager->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,-1.0,0.0f)));
+	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f),1.0f,vec3(0.0,-1.0,-1.0f)));
+	//lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f),1.0f,vec3(0.0,1.0,1.0f)));
 
 	lake1 = new lake(-6.0f);
 
@@ -404,14 +413,31 @@ void dayscene::renderScene(bool cameraFlip) {
 	godraysDrone->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix(), vec4(eye, 1.0f));
 	glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 0);
 
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-26.8f, -6.5f, -85.6f) * rotate(177.0f, 0.0f, 1.0f, 0.0f) * scale(19.0f));
+	modelTurtle->update(0.005f, 0);
+    modelTurtle->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+	modelTurtle->draw(programDynamicPBR);
+
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-54.8998f, -10.9f, -80.2996f) * scale(1.3f));
+	modelFish->update(0.005f, 0);
+    modelFish->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+	modelFish->draw(programDynamicPBR);
+
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-30.0f, 2.0f, -64.5f) * rotate(105.0f, 0.0f, 1.0f, 0.0f) * scale(0.5f));
+	modelBird->update(0.005f, 0);
+    modelBird->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+	modelBird->draw(programDynamicPBR);
+
 	if((*dayevents)[SUNRISEINIT_T] <= 0.0f) {
     	atmosphere->render(currentViewMatrix, mix(vec1(radians(-10.0f)), vec1(radians(0.0f)), (*dayevents)[CAMERA1MOVE_T])[0]);
 	} else if((*dayevents)[SUNRISEMID_T] <= 0.0f) {
     	atmosphere->render(currentViewMatrix, mix(vec1(radians(0.0f)), vec1(radians(3.0f)), (*dayevents)[SUNRISEINIT_T])[0]);
 	} else if((*dayevents)[SUNRISEEND_T] <= 0.0f) {
     	atmosphere->render(currentViewMatrix, mix(vec1(radians(3.0f)), vec1(radians(10.0f)), (*dayevents)[SUNRISEMID_T])[0]);
-	} else {
+	} else if((*dayevents)[CAMERA2MOVE_T] <= 0.01f){
     	atmosphere->render(currentViewMatrix, mix(vec1(radians(10.0f)), vec1(radians(35.0f)), (*dayevents)[SUNRISEEND_T])[0]);
+	} else {
+    	atmosphere->render(currentViewMatrix, mix(vec1(radians(35.0f)), vec1(radians(180.0f)), (*dayevents)[SUNSET_T])[0]);
 	}
 }
 
@@ -541,9 +567,9 @@ void dayscene::update() {
 	if((*dayevents)[DRONETURN_T] >= 0.1f) {
 		modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
 	}
-	if((*dayevents)[CAMERA2MOVE_T] >= 1.0f) {
+	if((*dayevents)[SUNSET_T] >= 1.0f) {
 		crossfader::startSnapshot(texDaySceneFinal);
-		atmosphere->render(programglobal::currentCamera->matrix(), radians(35.0f));
+		atmosphere->render(programglobal::currentCamera->matrix(), radians(180.0f));
 		crossfader::endSnapshot();
 		playNextScene();
 	}

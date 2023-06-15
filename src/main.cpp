@@ -75,7 +75,7 @@ void init(void) {
 		//Object Creation
 		programglobal::hdr = new HDR(1.5f, 1.0f, 2048);
 		programglobal::oclContext = new clglcontext(1);
-		programglobal::oclContext->compilePrograms({"shaders/opensimplexnoise.cl", "shaders/flock/flock_single.cl"});
+		programglobal::oclContext->compilePrograms({"shaders/opensimplexnoise.cl"});
 		programglobal::shapeRenderer = new shaperenderer();
 		programglobal::randgen = new randomgenerator();
 		crossfader::init();
@@ -190,6 +190,10 @@ void keyboard(glwindow* window, int key) {
 		break;
 	case XK_F8:
 		programglobal::debugMode = LIGHT;
+		break;
+	case XK_F9:
+		delete debugcamera;
+		debugcamera = new debugCamera(currentScene->getCamera()->position(), -90.0f, 0.0f);
 		break;
 	case XK_space:
 		programglobal::isAnimating = !programglobal::isAnimating;
