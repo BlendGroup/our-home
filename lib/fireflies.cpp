@@ -1,5 +1,4 @@
 #include<fireflies.h>
-#include<iostream>
 
 #define COLOR_MIX_SPEED 0.5f
 
@@ -44,7 +43,6 @@ void Fireflies::update(void) {
         this->colorT = 0.0f;
         this->colorTDirection = true;
     }
-    cout << this->colorT << endl;
     this->flock->update();
 }
 
