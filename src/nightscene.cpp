@@ -91,7 +91,7 @@ enum tvalues {
 	FIREFLIES2BEGIN_T,
 	FOXWALK_T,
 	PHOENIXFLY_T,
-	ROCKET1_T,
+	ROCKET_T,
 	FADEOUT_T
 };
 static eventmanager* nightevents;
@@ -326,7 +326,7 @@ void nightscene::init() {
 		{FIREFLIES1BEGIN_T, {25.0f, 55.0f}},//End at 80
 		{FIREFLIES2BEGIN_T, {57.75f, 18.7f}}, //End at 80f
 		{PHOENIXFLY_T, {69.0f, 30.0f}},
-		{ROCKET1_T, {127.0f, 38.0f}},
+		{ROCKET_T, {127.0f, 38.0f}},
 		{FADEOUT_T, {160.0f, 4.0f}},
 	});
 
@@ -739,6 +739,10 @@ void preOceanRender() {
 	modelFox->draw(programDynamicPBR);
 }
 
+void drawRocket(mat4 mMat) {
+	
+}
+
 void postOceanRender() {
 	programTerrain->use();
 	glUniformMatrix4fv(programTerrain->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
@@ -781,20 +785,34 @@ void postOceanRender() {
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-6.0f, 5.5f, 1186.0f) * rotate(90.0f, 1.0f, 0.0f, 0.0f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(2.0f));
 	modelTie->draw(programStaticPBR);
 
-	if((*nightevents)[ROCKET1_T] > 0.0f) {
-		mat4 translateMat = translate(0.0f, mix(vec1(400.1f), vec1(100.1f), (*nightevents)[ROCKET1_T])[0], 774.8f);
-		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translateMat * rotate(90.0f, 1.0f, 0.0f, 0.0f) * rotate(-30.0f, 0.0f, 0.0f, 1.0f) * scale(5.5f));
-		modelRocket->draw(programStaticPBR);
-	
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		programFire->use();
-		glUniformMatrix4fv(programFire->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-		glUniformMatrix4fv(programFire->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-		glUniformMatrix4fv(programFire->getUniformLocation("mMat"), 1, GL_FALSE, translateMat * translate(-0.2f, -40.0f, -0.5f) * scale(8.3f, 20.3f, 1.0f));
-		glUniform1f(programFire->getUniformLocation("time"), fireT);
-		programglobal::shapeRenderer->renderQuad();
-		glDisable(GL_BLEND);
+	if((*nightevents)[ROCKET_T] > 0.0f) {
+		vec3 positions[] = {
+			vec3(0.0f, mix(vec1(420.1f), vec1(100.1f), (*nightevents)[ROCKET_T])[0], 774.8f),
+			vec3(180.0f, mix(vec1(520.1f), vec1(70.1f), (*nightevents)[ROCKET_T])[0], 700.1f),
+			vec3(190.0f, mix(vec1(800.1f), vec1(120.1f), (*nightevents)[ROCKET_T])[0], 400.1f),
+			// vec3(-80.0f, mix(vec1(400.1f), vec1(100.1f), (*nightevents)[ROCKET_T])[0], 360.1f),
+			vec3(-160.0f, mix(vec1(545.1f), vec1(160.1f), (*nightevents)[ROCKET_T])[0], 630.1f),
+			vec3(-200.0f, mix(vec1(420.1f), vec1(190.1f), (*nightevents)[ROCKET_T])[0], 750.1f),
+			// vec3(50.0f, mix(vec1(400.1f), vec1(100.1f), (*nightevents)[ROCKET_T])[0], 550.1f),
+		};
+
+
+		for(int i = 0; i < 5; i++) {
+			programStaticPBR->use();
+			mat4 translateMat = translate(positions[i]);
+			glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translateMat * rotate(90.0f, 1.0f, 0.0f, 0.0f) * rotate(-30.0f, 0.0f, 0.0f, 1.0f) * scale(5.5f));
+			modelRocket->draw(programStaticPBR);
+		
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			programFire->use();
+			glUniformMatrix4fv(programFire->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+			glUniformMatrix4fv(programFire->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+			glUniformMatrix4fv(programFire->getUniformLocation("mMat"), 1, GL_FALSE, translateMat * translate(-0.2f, -40.0f, -0.5f) * scale(8.3f, 20.3f, 1.0f));
+			glUniform1f(programFire->getUniformLocation("time"), fireT);
+			programglobal::shapeRenderer->renderQuad();
+			glDisable(GL_BLEND);
+		}
 	}
 }
 
