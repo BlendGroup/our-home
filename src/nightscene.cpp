@@ -205,20 +205,20 @@ void nightscene::setupCamera() {
 		vec3(0.0f, 4.6f, -75.9f),
 		//Look Down
 		vec3(0.0f, 3.2f, -74.1f),
-		vec3(0.0f, 1.7f, -67.1f),
-		vec3(0.0f, 1.4f, -58.1f),
+		vec3(0.4f, 1.7f, -67.1f),
+		vec3(1.3f, 1.4f, -58.1f),
 		//Running
-		vec3(0.0f, 1.4f, -45.1f),
-		vec3(0.0f, 1.4f, -30.1f),
+		vec3(-1.6f, 1.4f, -45.1f),
+		vec3(1.7f, 1.4f, -30.1f),
 		vec3(0.0f, 1.4f, -15.1f),
 		vec3(0.0f, 1.4f, -0.1f),
 		vec3(0.0f, 1.4f, 20.1f),
 		vec3(0.0f, 1.4f, 40.1f),
-		vec3(0.0f, 1.4f, 60.1f),
+		vec3(2.6f, 2.1f, 60.1f),
 		vec3(0.0f, 1.4f, 80.1f),
 		vec3(0.0f, 1.4f, 100.1f),
 		vec3(0.0f, 1.4f, 120.1f),
-		vec3(0.0f, 1.4f, 140.1f),
+		vec3(1.5f, 1.4f, 140.1f),
 		vec3(0.0f, 1.4f, 160.1f),
 		vec3(0.0f, 1.4f, 180.1f),
 		vec3(0.0f, 1.4f, 200.1f),
@@ -226,16 +226,17 @@ void nightscene::setupCamera() {
 		vec3(0.0f, 1.4f, 240.1f),
 		vec3(0.0f, 1.4f, 260.1f),
 		vec3(0.0f, 1.4f, 280.1f),
-		vec3(0.0f, 1.4f, 300.1f),
+		vec3(-0.8f, 1.4f, 300.1f),
 		vec3(0.0f, 1.4f, 320.1f),
-		vec3(0.0f, 1.4f, 340.1f), 
+		vec3(0.0f, 1.4f, 340.1f),
 		vec3(0.0f, 1.4f, 360.1f),
 		vec3(0.0f, 1.4f, 380.1f),
 		vec3(0.0f, 1.4f, 400.1f),
 		vec3(0.0f, 1.4f, 420.1f),
 		vec3(0.0f, 1.4f, 440.1f),
 		vec3(0.0f, 1.4f, 460.1f),
-		vec3(0.0f, 1.4f, 480.1f),
+		//Fireflies End
+		vec3(0.0f, 3.4f, 480.1f),
 		vec3(0.0f, 1.4f, 500.1f),
 		vec3(0.0f, 1.4f, 520.1f),
 		vec3(0.0f, 1.4f, 540.1f),
@@ -254,6 +255,7 @@ void nightscene::setupCamera() {
 		vec3(0.0f, 1.4f, 1055.1f),
 		vec3(0.0f, 1.4f, 1105.1f),
 		vec3(0.0f, 1.4f, 1155.1f),
+		
 	};
 	camera1 = new sceneCamera(positionVector, frontVector);
 
@@ -522,14 +524,14 @@ void nightscene::init() {
 		vec3(12.7f, 4.9f, 360.5f),
 		vec3(4.1f, 10.1f, 340.797f),
 		vec3(-11.3f, 13.0f, 352.997f),
-		vec3(7.45058e-08f, 14.0f, 360.696f),
+		vec3(0.0f, 14.0f, 360.696f),
 		vec3(9.8f, 14.3f, 356.295f),
 		vec3(4.0f, 20.3f, 340.493f)
 	});
 	firefliesAPath1 = new BsplineInterpolator(firefliesAPath1Points);
 	pathA1 = new SplineRenderer(firefliesAPath1);
 	vector<vec3> firefliesBPath1Points = vector<vec3>({
-		vec3(28.2001f, 8.4f, 249.2f),
+		vec3(28.2f, 8.4f, 249.2f),
 		vec3(-2.1f, 2.2f, 269.804f),
 		vec3(0.6f, 1.4f, 292.301f),
 		vec3(-1.5f, 1.79999f, 304.196f),
