@@ -1,3 +1,4 @@
+#define DEBUG
 #include<scenes/day.h>
 #include<glmodelloader.h>
 #include<glshaderloader.h>
@@ -95,6 +96,8 @@ enum tvalues {
 	CAMERA2MOVE_T,
 	DRONETURN_T,
 	DRONEMOVE_T,
+	TURTLESWIM_T,
+	BIRDFLY_T,
 	SUNRISEINIT_T,
 	SUNRISEMID_T,
 	SUNRISEEND_T,
@@ -255,10 +258,12 @@ void dayscene::init() {
 		{CAMERA1MOVE_T, { 2.0f, 40.0f }},
 		{DRONETURN_T, { 1.5f, 2.0f }},
 		{DRONEMOVE_T, { 2.0f, 40.6f }},
-		{ROVERMOVE_T, {53.0f, 8.0f}},
+		{TURTLESWIM_T, {28.0f, 40.0f}},
 		{SUNRISEINIT_T, {42.0f, 5.0f}},
 		{SUNRISEMID_T, {47.0f, 3.5f}},
 		{SUNRISEEND_T, {50.5f, 3.5f}},
+		{ROVERMOVE_T, {53.0f, 8.0f}},
+		{BIRDFLY_T, {54.0f, 16.0f}},
 		{CAMERA2MOVE_T, { 54.0f, 30.0f }},
 		{SUNSET_T, {54.0f, 35.0f}},
 	});
@@ -341,13 +346,14 @@ void dayscene::init() {
 	splineTurtle = new BsplineInterpolator(tuctleVector);
 
 	vector<vec3> birdVector = {
-	vec3(-30.0f, 5.2f, -64.5f),
-	vec3(-2.59992f, 5.3f, -58.0003f),
-	vec3(8.5f, 6.9f, -70.8001f),
-	vec3(14.4f, 15.6f, -48.0005f),
-	vec3(46.5999f, 17.2f, -9.60065f),
-	vec3(66.3996f, 17.2f, 60.799f),
-	vec3(64.9996f, 17.2f, 79.8987f),
+	vec3(28.2001f, 5.2f, -12.7004f),
+	vec3(13.9001f, 5.3f, -58.1003f),
+	vec3(-16.4f, 6.9f, -86.9999f),
+	vec3(-51.4998f, 1.19998f, -51.7004f),
+	vec3(10.6f, -1.80003f, -35.8007f),
+	vec3(12.5f, 4.19997f, -71.7001f),
+	vec3(13.1f, 14.1f, -97.3997f),
+	vec3(14.6001f, 14.1f, -123.999f),
 	};
 	splineBird = new BsplineInterpolator(birdVector);
 
@@ -363,7 +369,7 @@ void dayscene::init() {
 	godraysDrone->setWeight(0.01f);
 
 	lightManager = new SceneLight();
-	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f),1.0f,vec3(0.0,-1.0,-1.0f)));
+	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f),5.0f,vec3(0.0,-1.0,0.0f)));
 	//lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f),1.0f,vec3(0.0,1.0,1.0f)));
 
 	lake1 = new lake(-6.0f);
@@ -423,7 +429,7 @@ void dayscene::renderScene(bool cameraFlip) {
 	// glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, lakePlacer->getModelMatrix());
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-30.4f, 3.9f, -62.8999f) * rotate(27.0f, 0.0f, 1.0f, 0.0f) * scale(3.0f));
 	modelTreeRed->draw(programStaticPBR);
-	
+
 	programDynamicPBR->use();
 	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"), 1, GL_FALSE, currentViewMatrix);
@@ -431,36 +437,40 @@ void dayscene::renderScene(bool cameraFlip) {
 	glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"), GL_FALSE);
 	glUniform1f(programDynamicPBR->getUniformLocation("clipy"), lake1->getLakeHeight());
 	lightManager->setLightUniform(programDynamicPBR, false);
-	modelDrone->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
-	vec3 eye = splineDrone->interpolate((*dayevents)[DRONEMOVE_T]);
-	vec3 front = splineDrone->interpolate((*dayevents)[DRONEMOVE_T] + 0.001f);
-	mat4 mMatrix = translate(eye) * translate(0.0f, -1.9f, 0.0f) * rotate(-103.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 1.0f, 0.0f) * targetat(eye, front, vec3(0.0f, 1.0f, 0.0f));
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, mMatrix * scale(15.0f));
-	glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 1);
-	modelDrone->draw(programDynamicPBR);
-	godraysDrone->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix(), vec4(eye, 1.0f));
-	glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 0);
-
-	vec3 pos = splineTurtle->interpolate((*dayevents)[SUNRISEEND_T]);
-	front = splineTurtle->interpolate((*dayevents)[SUNRISEEND_T] + 0.01f);
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(pos) * targetat(pos, front, vec3(0.0f,1.0f,0.0f)) * scale(19.0f));
-	modelTurtle->update(0.005f, 0);
-    modelTurtle->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
-	modelTurtle->draw(programDynamicPBR);
-
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-54.8998f, -10.9f, -80.2996f) * scale(1.3f));
-	modelFish->update(0.008f, 0);
-    modelFish->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
-	modelFish->draw(programDynamicPBR);
+		
+	if((*dayevents)[DRONEMOVE_T] > 0.0f && (*dayevents)[DRONEMOVE_T] < 1.0f) {
+		modelDrone->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+		vec3 eye = splineDrone->interpolate((*dayevents)[DRONEMOVE_T]);
+		vec3 front = splineDrone->interpolate((*dayevents)[DRONEMOVE_T] + 0.001f);
+		mat4 mMatrix = translate(eye) * translate(0.0f, -1.9f, 0.0f) * rotate(-103.0f * (1.0f - (*dayevents)[DRONETURN_T]), 0.0f, 1.0f, 0.0f) * targetat(eye, front, vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, mMatrix * scale(15.0f));
+		glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 1);
+		modelDrone->draw(programDynamicPBR);
+		godraysDrone->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix(), vec4(eye, 1.0f));
+		glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 0);
+	}
+	if((*dayevents)[TURTLESWIM_T] > 0.0f && (*dayevents)[TURTLESWIM_T] < 1.0f) {
+		vec3 pos = splineTurtle->interpolate((*dayevents)[TURTLESWIM_T]);
+		vec3 front = splineTurtle->interpolate((*dayevents)[TURTLESWIM_T] + 0.01f);
+		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(pos) * targetat(pos, front, vec3(0.0f,1.0f,0.0f)) * scale(19.0f));
+		modelTurtle->update(0.005f, 0);
+		modelTurtle->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+		modelTurtle->draw(programDynamicPBR);
+	}
+	// glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-54.8998f, -10.9f, -80.2996f) * scale(1.3f));
+	// modelFish->update(0.008f, 0);
+    // modelFish->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+	// modelFish->draw(programDynamicPBR);
 
 	//-30.0f, 2.0f, -64.5f
-	pos = splineBird->interpolate((*dayevents)[SUNRISEINIT_T]);
-	front = splineBird->interpolate((*dayevents)[SUNRISEINIT_T] + 0.01f);
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(pos) * targetat(pos, front, vec3(0.0,1.0,0.0)) * scale(0.8f));
-	modelBird->update(0.01f, 0);
-    modelBird->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
-	modelBird->draw(programDynamicPBR);
-
+	if((*dayevents)[BIRDFLY_T] > 0.0f && (*dayevents)[BIRDFLY_T] < 1.0f) {
+		vec3 pos = splineBird->interpolate((*dayevents)[BIRDFLY_T]);
+		vec3 front = splineBird->interpolate((*dayevents)[BIRDFLY_T] + 0.01f);
+		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(pos) * targetat(pos, front, vec3(0.0,1.0,0.0)) * scale(0.5f));
+		modelBird->update(0.01f, 0);
+		modelBird->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+		modelBird->draw(programDynamicPBR);
+	}
 	if((*dayevents)[SUNRISEINIT_T] <= 0.0f) {
     	atmosphere->render(currentViewMatrix, mix(vec1(radians(-10.0f)), vec1(radians(0.0f)), (*dayevents)[CAMERA1MOVE_T])[0]);
 	} else if((*dayevents)[SUNRISEMID_T] <= 0.0f) {
@@ -470,11 +480,9 @@ void dayscene::renderScene(bool cameraFlip) {
 	} else if((*dayevents)[CAMERA2MOVE_T] <= 0.01f){
     	atmosphere->render(currentViewMatrix, mix(vec1(radians(10.0f)), vec1(radians(35.0f)), (*dayevents)[SUNRISEEND_T])[0]);
 	} else {
-    	atmosphere->render(currentViewMatrix, mix(vec1(radians(35.0f)), vec1(radians(180.0f)), (*dayevents)[SUNSET_T])[0]);
+    	atmosphere->render(currentViewMatrix, mix(vec1(radians(35.0f)), vec1(radians(185.0f)), (*dayevents)[SUNSET_T])[0]);
 	}
 }
-
-vec4 xyzVector = vec4(-30.4f, 10.8f, -62.8999f, 1.0f);
 
 void dayscene::render() {
 	camera1->setT((*dayevents)[CAMERA1MOVE_T]);
