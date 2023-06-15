@@ -786,16 +786,16 @@ void nightscene::render() {
 	glBindTextureUnit(1, obocean->getNormalMap());
 	obocean->render(programOcean);
 
-	if((*nightevents)[FIREFLIES1BEGIN_T] > 0.0f && (*nightevents)[FIREFLIES1BEGIN_T] < 0.99999f) {
+	if((*nightevents)[FIREFLIES1BEGIN_T] > 0.0f && (*nightevents)[FIREFLIES1BEGIN_T] < 1.0f) {
 		firefliesA->renderAsSpheres(translate(firefliesAPath->interpolate((*nightevents)[FIREFLIES1BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 		firefliesA->renderAttractorAsQuad(translate(firefliesAPath->interpolate((*nightevents)[FIREFLIES1BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 	}
-	if((*nightevents)[FIREFLIES2BEGIN_T] > 0.0f && (*nightevents)[FIREFLIES2BEGIN_T] < 0.99999f) {
+	if((*nightevents)[FIREFLIES2BEGIN_T] > 0.0f && (*nightevents)[FIREFLIES2BEGIN_T] < 1.0f) {
 		firefliesB->renderAsSpheres(translate(firefliesBPath->interpolate((*nightevents)[FIREFLIES2BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 		firefliesB->renderAttractorAsQuad(translate(firefliesBPath->interpolate((*nightevents)[FIREFLIES2BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 	}
 
-	if((*nightevents)[PHOENIXFLY_T] >= 0.00001f) {
+	if((*nightevents)[PHOENIXFLY_T] > 0.0f && (*nightevents)[PHOENIXFLY_T] < 1.0f) {
 		programDynamicPBR->use();
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
