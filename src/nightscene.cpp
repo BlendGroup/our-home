@@ -40,6 +40,7 @@ static terrain* land2;
 static terrain* island;
 static SceneLight* lightManager;
 static sceneCamera* camera1;
+static sceneCamera* camera2;
 static sphere* moon;
 static modelplacer* quickModelPlacer;
 static glmodel* modelTie;
@@ -78,7 +79,8 @@ static bool renderTrees = true;
 
 enum tvalues {
 	CROSSIN_T,
-	CAMERAMOVE_T,
+	CAMERAMOVE1_T,
+	CAMERAMOVE2_T,
 	FIREFLIES1BEGIN_T,
 	FIREFLIES2BEGIN_T,
 	FOXWALK_T,
@@ -256,7 +258,20 @@ void nightscene::setupCamera() {
 	};
 	camera1 = new sceneCamera(positionVector, frontVector);
 
-	camRig1 = new sceneCameraRig(camera1);
+	vector<vec3> positionVector2 = {
+		vec3(0.0f, 1.4f, 1153.1f),
+		vec3(-2.5f, 0.4f, 1157.3f),
+		vec3(-2.9f, -0.6f, 1165.5f),
+		vec3(0.0f, -1.6f, 1171.1f)
+	};
+	vector<vec3> frontVector2 = {
+		vec3(0.0f, 1.4f, 1155.1f),
+		vec3(0.0f, 2.3f, 1155.1f),
+		vec3(0.0f, 3.2f, 1155.1f),
+		vec3(0.0f, 4.1f, 1155.1f),
+	};
+	camera2 = new sceneCamera(positionVector2, frontVector2);
+	camRig1 = new sceneCameraRig(camera2);
 	camRig1->setRenderFront(true);
 	camRig1->setRenderFrontPoints(true);
 	camRig1->setRenderPath(true);
@@ -303,7 +318,8 @@ GLuint createCombinedMapTextureNight(GLuint texLand, GLuint texMap) {
 void nightscene::init() {
 	nightevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 2.0f }},
-		{CAMERAMOVE_T, { 2.0f, 110.0f }},
+		{CAMERAMOVE1_T, { 2.0f, 110.0f }},
+		{CAMERAMOVE2_T, { 112.0f, 20.0f }},
 		{FOXWALK_T, {11.1f, 6.0f}},
 		{FIREFLIES1BEGIN_T, {25.0f, 55.0f}},//End at 80
 		{FIREFLIES2BEGIN_T, {61.3f, 18.7f}}, //End at 80f
@@ -695,7 +711,8 @@ void postOceanRender() {
 }
 
 void nightscene::render() {
-	camera1->setT((*nightevents)[CAMERAMOVE_T]);
+	camera1->setT((*nightevents)[CAMERAMOVE1_T]);
+	camera2->setT((*nightevents)[CAMERAMOVE2_T]);
 
 	try {
 	programSkybox->use();
@@ -710,17 +727,17 @@ void nightscene::render() {
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
 
-	if((*nightevents)[CAMERAMOVE_T] < 0.81) {
+	if((*nightevents)[CAMERAMOVE1_T] < 0.81) {
 		preOceanRender();
 	}
-	if((*nightevents)[CAMERAMOVE_T] > 0.6) {
+	if((*nightevents)[CAMERAMOVE1_T] > 0.6) {
 		postOceanRender();
 	}
 
 	programOcean->use();
 	glUniformMatrix4fv(programOcean->getUniformLocation("pMat"), 1, false, programglobal::perspective);
 	glUniformMatrix4fv(programOcean->getUniformLocation("vMat"), 1, false, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(programOcean->getUniformLocation("mMat"), 1, false, translate(0.0f, -13.0f, 1300.0f) * scale(721.0f));
+	glUniformMatrix4fv(programOcean->getUniformLocation("mMat"), 1, false, translate(0.0f, -10.0f, 1300.0f) * scale(721.0f));
 	glUniform3fv(programOcean->getUniformLocation("cameraPosition"), 1, programglobal::currentCamera->position());
 	glUniform3fv(programOcean->getUniformLocation("oceanColor"), 1, oceanColor);
 	glUniform3fv(programOcean->getUniformLocation("skyColor"), 1, skyColor);
@@ -750,7 +767,7 @@ void nightscene::render() {
 		modelPhoenix->draw(programDynamicPBR);
 	}
 
-	if((*nightevents)[CAMERAMOVE_T] > 0.136f && (*nightevents)[CAMERAMOVE_T] < 0.26f) {
+	if((*nightevents)[CAMERAMOVE1_T] > 0.136f && (*nightevents)[CAMERAMOVE1_T] < 0.26f) {
 		programTex->use();
 		glUniformMatrix4fv(programTex->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 		glUniformMatrix4fv(programTex->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
@@ -860,7 +877,7 @@ void nightscene::keyboardfunc(int key) {
 		if(programglobal::debugMode == CAMERA) {
 			cout<<camRig1->getCamera()<<endl;
 		} else if(programglobal::debugMode == SPLINE) {
-			cout << pathAdjuster->getSpline() << endl;
+			cout<<pathAdjuster->getSpline() << endl;
 		} else if(programglobal::debugMode == MODEL) {
 			cout<<quickModelPlacer<<endl;
 		}
@@ -870,11 +887,15 @@ void nightscene::keyboardfunc(int key) {
 }
 
 camera* nightscene::getCamera() {
-	return camera1;
+	if((*nightevents)[CAMERAMOVE1_T] >= 1.0f) {
+		return camera2;
+	} else {
+		return camera1;
+	}
 }
 
 void nightscene::crossfade() {
-	if((*nightevents)[CAMERAMOVE_T] > 0.136f && (*nightevents)[CAMERAMOVE_T] < 0.26f) {
+	if((*nightevents)[CAMERAMOVE1_T] > 0.136f && (*nightevents)[CAMERAMOVE1_T] < 0.26f) {
 		godraysMoon->renderRays();
 	}
 }
