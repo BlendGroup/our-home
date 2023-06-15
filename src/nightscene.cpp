@@ -265,7 +265,7 @@ void nightscene::setupCamera() {
 		vec3(0.0f, 4.1f, 1155.1f),
 	};
 	camera2 = new sceneCamera(positionVector2, frontVector2);
-	camRig1 = new sceneCameraRig(camera2);
+	camRig1 = new sceneCameraRig(camera1);
 	camRig1->setRenderFront(true);
 	camRig1->setRenderFrontPoints(true);
 	camRig1->setRenderPath(true);
@@ -316,7 +316,7 @@ void nightscene::init() {
 		{CAMERAMOVE2_T, { 112.0f, 20.0f }},
 		{FOXWALK_T, {11.1f, 6.0f}},
 		{FIREFLIES1BEGIN_T, {25.0f, 55.0f}},//End at 80
-		{FIREFLIES2BEGIN_T, {61.3f, 18.7f}}, //End at 80f
+		{FIREFLIES2BEGIN_T, {57.75f, 18.7f}}, //End at 80f
 		{PHOENIXFLY_T, {69.0f, 22.0f}}
 	});
 
@@ -597,15 +597,16 @@ void nightscene::init() {
 		// vec3(-10.0f, 23.3f, 360.596f),
 		// vec3(-8.5f, 22.8f, 345.394f),
 		// vec3(-4.2f, 27.3f, 364.394f)
-		vec3(28.2f, 8.4f, 249.2f),
-		vec3(-2.1f, 2.2f, 269.804f),
-		vec3(0.6f, 1.4f, 292.301f),
-		vec3(-1.5f, 1.79999f, 304.196f),
-		vec3(2.3f, 2.4f, 326.696f),
-		vec3(-1.00002f, 3.4f, 357.597f),
-		vec3(-19.8f, 6.19999f, 361.797f),
-		vec3(-5.6f, 15.6f, 338.594f),
-		vec3(13.1f, 18.4f, 356.593f),
+		vec3(28.1f, 10.1f, 205.397f),
+		vec3(-5.10007f, 1.5f, 231.598f),
+		vec3(4.8f, 2.2f, 250.803f),
+		vec3(0.6f, 1.4f, 273.8f),
+		vec3(-1.5f, 1.79999f, 286.595f),
+		vec3(2.7f, 2.4f, 304.295f),
+		vec3(0.29998f, 1.3f, 323.095f),
+		vec3(9.00004f, 2.49999f, 356.597f),
+		vec3(-5.6f, 3.29998f, 362.995f),
+		vec3(-17.5f, 12.4f, 356.493f),
 		vec3(-10.0f, 23.3f, 360.596f),
 		vec3(-8.5f, 22.8f, 345.394f),
 		vec3(-4.2f, 27.3f, 364.394f)
