@@ -19,10 +19,10 @@
 #include<godrays.h>
 #include<sphere.h>
 #include<gltextureloader.h>
-#include<flock.h>
 #include<glmodelloader.h>
 #include<errorlog.h>
 #include<ocean.h>
+#include<fireflies.h>
 
 using namespace std;
 using namespace vmath;
@@ -90,10 +90,8 @@ static eventmanager* nightevents;
 
 static audioplayer* playerBkgnd;
 static const int MAX_PARTICLES = 128;
-static Flock *firefliesA = NULL;
-static Flock *firefliesB = NULL;
-static BsplineInterpolator *firefliesAPath = NULL;
-static BsplineInterpolator *firefliesBPath = NULL;
+static Fireflies *firefliesA = NULL;
+static Fireflies *firefliesB = NULL;
 static SplineAdjuster *pathAdjuster = NULL;
 static ocean *obocean;
 static BsplineInterpolator* phoenixPath;
@@ -573,7 +571,16 @@ void nightscene::init() {
 		vec3(9.8f, 14.3f, 356.295f),
 		vec3(4.0f, 20.3f, 340.493f)
 	});
-	firefliesAPath = new BsplineInterpolator(firefliesAPathPoints);
+	vector<vec3> firefliesAColors = vector<vec3> ({
+		vec3(0.8f, 0.2f, 0.0f),
+		vec3(0.7f, 0.5f, 0.0f),
+		vec3(0.4f, 0.6f, 0.1f),
+		vec3(0.3f, 0.7f, 0.2f),
+		vec3(0.4f, 0.5f, 0.3f)
+	});
+	firefliesA = new Fireflies(MAX_PARTICLES, firefliesAPathPoints, firefliesAColors);
+	pathAdjuster = new SplineAdjuster(firefliesA->getPath());
+	
 	vector<vec3> firefliesBPathPoints = vector<vec3>({
 		// vec3(28.2f, 8.4f, 249.2f),
 		// vec3(-2.1f, 2.2f, 269.804f),
@@ -600,11 +607,14 @@ void nightscene::init() {
 		vec3(-8.5f, 22.8f, 345.394f),
 		vec3(-4.2f, 27.3f, 364.394f)
 	});
-	firefliesBPath = new BsplineInterpolator(firefliesBPathPoints);
-	pathAdjuster = new SplineAdjuster(firefliesAPath);
-
-	firefliesA = new Flock(MAX_PARTICLES);
-	firefliesB = new Flock(MAX_PARTICLES);
+	vector<vec3> firefliesBColors = vector<vec3> ({
+		vec3(0.4f, 0.5f, 0.3f),
+		vec3(0.3f, 0.7f, 0.2f),
+		vec3(0.4f, 0.6f, 0.1f),
+		vec3(0.7f, 0.5f, 0.0f),
+		vec3(0.8f, 0.2f, 0.0f)
+	});
+	firefliesB = new Fireflies(MAX_PARTICLES, firefliesBPathPoints, firefliesBColors);
 
 	vector<vec3> phoenixPathPoints = {
 		vec3(0.0f, 45.0f, 380.1f),
@@ -787,12 +797,12 @@ void nightscene::render() {
 	obocean->render(programOcean);
 
 	if((*nightevents)[FIREFLIES1BEGIN_T] > 0.0f && (*nightevents)[FIREFLIES1BEGIN_T] < 1.0f) {
-		firefliesA->renderAsSpheres(translate(firefliesAPath->interpolate((*nightevents)[FIREFLIES1BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
-		// firefliesA->renderAttractorAsQuad(translate(firefliesAPath->interpolate((*nightevents)[FIREFLIES1BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
+		firefliesA->renderAsSpheres((*nightevents)[FIREFLIES1BEGIN_T], 0.05f);
+		firefliesA->renderAttractorAsQuad((*nightevents)[FIREFLIES1BEGIN_T], 0.25f);
 	}
 	if((*nightevents)[FIREFLIES2BEGIN_T] > 0.0f && (*nightevents)[FIREFLIES2BEGIN_T] < 1.0f) {
-		firefliesB->renderAsSpheres(translate(firefliesBPath->interpolate((*nightevents)[FIREFLIES2BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
-		// firefliesB->renderAttractorAsQuad(translate(firefliesBPath->interpolate((*nightevents)[FIREFLIES2BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
+		firefliesB->renderAsSpheres((*nightevents)[FIREFLIES2BEGIN_T], 0.05f);
+		firefliesB->renderAttractorAsQuad((*nightevents)[FIREFLIES2BEGIN_T], 0.25f);
 	}
 
 	if((*nightevents)[PHOENIXFLY_T] > 0.0f && (*nightevents)[PHOENIXFLY_T] < 1.0f) {
@@ -871,8 +881,6 @@ void nightscene::reset() {
 void nightscene::uninit() {
 	delete land;
 	delete pathAdjuster;
-	delete firefliesBPath;
-	delete firefliesAPath;
 	delete firefliesB;
 	delete firefliesA;
 }
@@ -899,13 +907,13 @@ void nightscene::keyboardfunc(int key) {
 		break;
 	case XK_F10:
 		delete pathAdjuster;
-		pathAdjuster = new SplineAdjuster(firefliesAPath);
+		pathAdjuster = new SplineAdjuster(firefliesA->getPath());
 		pathAdjuster->setScalingFactor(0.1f);
 		pathAdjuster->setRenderPoints(true);
 		break;
 	case XK_F11:
 		delete pathAdjuster;
-		pathAdjuster = new SplineAdjuster(firefliesBPath);
+		pathAdjuster = new SplineAdjuster(firefliesB->getPath());
 		pathAdjuster->setScalingFactor(0.1f);
 		pathAdjuster->setRenderPoints(true);
 		break;
