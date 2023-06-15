@@ -99,7 +99,7 @@ static BsplineInterpolator *firefliesBPath1 = NULL;
 static SplineRenderer *pathB1 = NULL;
 static SplineAdjuster *pathAdjuster = NULL;
 static ocean *obocean;
-static BsplineInterpolator* pheonixPath;
+static BsplineInterpolator* phoenixPath;
 
 void nightscene::setupProgram() {
 	try {
@@ -558,6 +558,16 @@ void nightscene::init() {
 
 	firefliesA = new Flock(MAX_PARTICLES);
 	firefliesB = new Flock(MAX_PARTICLES);
+
+	vector<vec3> phoenixPathPoints = {
+		vec3(0.0f, 5.4f, 480.1f),
+		vec3(0.0f, 5.4f, 500.1f),
+		vec3(0.0f, 5.4f, 520.1f),
+		vec3(0.0f, 5.4f, 540.1f),
+		vec3(0.0f, 5.4f, 560.1f),
+		vec3(0.0f, 5.4f, 580.1f)
+	};
+	phoenixPath = new BsplineInterpolator(phoenixPathPoints);
 }
 
 void preOceanRender() {
@@ -731,13 +741,13 @@ void nightscene::render() {
 	programDynamicPBR->use();
 	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
     glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(-4.9f, 0.0f, -96.2f) * rotate(-90.0f,vec3(0.0f,1.0f,0.0f)) *scale(10.0f,10.0f,10.0f));
     modelPhoenix->update(0.01f, 0);
     modelPhoenix->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
 	glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1,programglobal::currentCamera->position());
 	glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
 	lightManager->setLightUniform(programDynamicPBR, false);
-	// modelPhoenix->draw(programDynamicPBR);
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(phoenixPath->interpolate(0.0f)) * rotate(-90.0f,vec3(0.0f,1.0f,0.0f)) * scale(10.0f,10.0f,10.0f));
+	modelPhoenix->draw(programDynamicPBR);
 
 	if((*nightevents)[CAMERAMOVE_T] > 0.136f && (*nightevents)[CAMERAMOVE_T] < 0.26f) {
 		programTex->use();
