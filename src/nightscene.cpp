@@ -79,6 +79,7 @@ static GLuint texMoon;
 static GLuint texOcean;
 static GLuint skybox_vao;
 static GLuint vbo;
+static GLuint texBlack;
 static bool renderTrees = true;
 static float fireT = 0.0f;
 
@@ -90,7 +91,8 @@ enum tvalues {
 	FIREFLIES2BEGIN_T,
 	FOXWALK_T,
 	PHOENIXFLY_T,
-	ROCKET1_T
+	ROCKET1_T,
+	FADEOUT_T
 };
 static eventmanager* nightevents;
 
@@ -266,9 +268,9 @@ void nightscene::setupCamera() {
 	};
 	vector<vec3> frontVector2 = {
 		vec3(0.0f, 0.2f, 1155.1f),
-		vec3(0.0f, 1.5f, 1155.1f),
-		vec3(0.0f, 2.8f, 1155.1f),
-		vec3(0.0f, 4.1f, 1155.1f),
+		vec3(0.0f, 1.7f, 1155.1f),
+		vec3(0.0f, 3.2f, 1155.1f),
+		vec3(0.0f, 4.7f, 1155.1f),
 	};
 	camera2 = new sceneCamera(positionVector2, frontVector2);
 	camRig1 = new sceneCameraRig(camera1);
@@ -324,7 +326,8 @@ void nightscene::init() {
 		{FIREFLIES1BEGIN_T, {25.0f, 55.0f}},//End at 80
 		{FIREFLIES2BEGIN_T, {57.75f, 18.7f}}, //End at 80f
 		{PHOENIXFLY_T, {69.0f, 30.0f}},
-		{ROCKET1_T, {128.0f, 30.0f}},
+		{ROCKET1_T, {127.0f, 38.0f}},
+		{FADEOUT_T, {160.0f, 4.0f}},
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -339,6 +342,12 @@ void nightscene::init() {
 	land2 = new terrain(texJungle2, 64, true, 5, 8);
 	GLuint texNewIsland = createCombinedMapTextureNight(texIsland, texMap);
 	island = new terrain(texNewIsland, 256, true, 5, 16);
+	
+	GLubyte black[] = {0, 0, 0};
+	glGenTextures(1, &texBlack);
+	glBindTexture(GL_TEXTURE_2D, texBlack);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, black);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	playerBkgnd = new audioplayer("resources/audio/TheDragonWarrior.wav");
 
@@ -977,5 +986,8 @@ camera* nightscene::getCamera() {
 void nightscene::crossfade() {
 	if((*nightevents)[CAMERAMOVE1_T] > 0.136f && (*nightevents)[CAMERAMOVE1_T] < 0.26f) {
 		godraysMoon->renderRays();
+	}
+	if((*nightevents)[FADEOUT_T] > 0.0f) {
+		crossfader::render(texBlack, 1.0f - (*nightevents)[FADEOUT_T]);
 	}
 }
