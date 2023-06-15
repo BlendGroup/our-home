@@ -1,3 +1,4 @@
+#define DEBUG
 #include<scenes/day.h>
 #include<glmodelloader.h>
 #include<glshaderloader.h>
@@ -95,6 +96,7 @@ enum tvalues {
 	CAMERA2MOVE_T,
 	DRONETURN_T,
 	DRONEMOVE_T,
+	TURTLESWIM_T,
 	SUNRISEINIT_T,
 	SUNRISEMID_T,
 	SUNRISEEND_T,
@@ -255,10 +257,11 @@ void dayscene::init() {
 		{CAMERA1MOVE_T, { 2.0f, 40.0f }},
 		{DRONETURN_T, { 1.5f, 2.0f }},
 		{DRONEMOVE_T, { 2.0f, 40.6f }},
-		{ROVERMOVE_T, {53.0f, 8.0f}},
+		{TURTLESWIM_T, {28.0f, 40.0f}},
 		{SUNRISEINIT_T, {42.0f, 5.0f}},
 		{SUNRISEMID_T, {47.0f, 3.5f}},
 		{SUNRISEEND_T, {50.5f, 3.5f}},
+		{ROVERMOVE_T, {53.0f, 8.0f}},
 		{CAMERA2MOVE_T, { 54.0f, 30.0f }},
 		{SUNSET_T, {54.0f, 35.0f}},
 	});
@@ -441,8 +444,8 @@ void dayscene::renderScene(bool cameraFlip) {
 	godraysDrone->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix(), vec4(eye, 1.0f));
 	glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 0);
 
-	vec3 pos = splineTurtle->interpolate((*dayevents)[SUNRISEEND_T]);
-	front = splineTurtle->interpolate((*dayevents)[SUNRISEEND_T] + 0.01f);
+	vec3 pos = splineTurtle->interpolate((*dayevents)[TURTLESWIM_T]);
+	front = splineTurtle->interpolate((*dayevents)[TURTLESWIM_T] + 0.01f);
 	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(pos) * targetat(pos, front, vec3(0.0f,1.0f,0.0f)) * scale(19.0f));
 	modelTurtle->update(0.005f, 0);
     modelTurtle->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
@@ -473,8 +476,6 @@ void dayscene::renderScene(bool cameraFlip) {
     	atmosphere->render(currentViewMatrix, mix(vec1(radians(35.0f)), vec1(radians(180.0f)), (*dayevents)[SUNSET_T])[0]);
 	}
 }
-
-vec4 xyzVector = vec4(-30.4f, 10.8f, -62.8999f, 1.0f);
 
 void dayscene::render() {
 	camera1->setT((*dayevents)[CAMERA1MOVE_T]);
