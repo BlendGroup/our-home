@@ -90,16 +90,11 @@ static eventmanager* nightevents;
 
 static audioplayer* playerBkgnd;
 static const int MAX_PARTICLES = 128;
-static Flock *firefliesA;
-static Flock *firefliesB;
-static vec3 attractorPositionA =  vec3(-30.0f, 15.0f, -30.0f);
-static vec3 attractorPositionB =  vec3(-30.0f, 15.0f, 30.0f);
-static BsplineInterpolator *firefliesAPath1;
-static BsplineInterpolator *firefliesAPath2;
-static SplineRenderer *pathA1;
-static BsplineInterpolator *firefliesBPath1;
-static SplineRenderer *pathB1;
-static SplineAdjuster *pathAdjuster;
+static Flock *firefliesA = NULL;
+static Flock *firefliesB = NULL;
+static BsplineInterpolator *firefliesAPath = NULL;
+static BsplineInterpolator *firefliesBPath = NULL;
+static SplineAdjuster *pathAdjuster = NULL;
 static ocean *obocean;
 static BsplineInterpolator* phoenixPath;
 static SplineRenderer *pathPhoenix;
@@ -512,7 +507,39 @@ void nightscene::init() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), NULL);
 	glEnableVertexAttribArray(0);
 
-	vector<vec3> firefliesAPath1Points = vector<vec3>({
+	vector<vec3> firefliesAPathPoints = vector<vec3>({
+		// vec3(-23.8f, 8.6f, -85.0f),
+		// vec3(-16.6f, 1.1f, -70.9f),
+		// vec3(-1.8f, 0.7f, -72.7f),
+		// vec3(0.0f, 1.7f, -67.1f),
+		// vec3(3.3f, 3.2f, -57.1f),
+		// vec3(-3.3f, 2.4f, -45.1f),
+		// vec3(3.2f, 1.4f, -30.1f),
+		// vec3(-1.1f, 3.0f, -3.9f),
+		// vec3(0.0f, 1.4f, -0.1f),
+		// vec3(0.0f, 1.4f, 20.1f),
+		// vec3(5.3f, 3.4f, 43.4f),
+		// vec3(5.0f, 4.1f, 62.6f),
+		// vec3(0.0f, 1.8f, 80.1f),
+		// vec3(0.0f, 1.4f, 100.1f),
+		// vec3(-2.2f, 2.5f, 128.8f),
+		// vec3(2.8f, 1.1f, 140.1f),
+		// vec3(1.6f, 1.4f, 160.1f),
+		// vec3(-0.3f, 1.4f, 180.1f),
+		// vec3(1.8f, 1.4f, 200.1f),
+		// vec3(-2.9f, 1.6f, 222.2f),
+		// vec3(1.5f, 1.4f, 247.5f),
+		// vec3(-0.7f, 1.4f, 268.0f),
+		// vec3(0.0f, 1.4f, 280.1f),
+		// vec3(-1.4f, 1.4f, 306.0f),
+		// vec3(0.6f, 1.4f, 326.0f),
+		// vec3(-16.0f, 4.9f, 356.4f),
+		// vec3(12.7f, 4.9f, 360.5f),
+		// vec3(4.1f, 10.1f, 340.797f),
+		// vec3(-11.3f, 13.0f, 352.997f),
+		// vec3(0.0f, 14.0f, 360.696f),
+		// vec3(9.8f, 14.3f, 356.295f),
+		// vec3(4.0f, 20.3f, 340.493f)
 		vec3(-23.8f, 8.6f, -85.0f),
 		vec3(-16.6f, 1.1f, -70.9f),
 		vec3(-1.8f, 0.7f, -72.7f),
@@ -537,33 +564,44 @@ void nightscene::init() {
 		vec3(-0.7f, 1.4f, 268.0f),
 		vec3(0.0f, 1.4f, 280.1f),
 		vec3(-1.4f, 1.4f, 306.0f),
-		vec3(0.6f, 1.4f, 326.0f),
-		vec3(-16.0f, 4.9f, 356.4f),
-		vec3(12.7f, 4.9f, 360.5f),
+		vec3(0.7f, 1.4f, 326.0f),
+		vec3(-7.79997f, 2.3f, 357.8f),
+		vec3(22.4f, 5.2f, 360.5f),
 		vec3(4.1f, 10.1f, 340.797f),
 		vec3(-11.3f, 13.0f, 352.997f),
 		vec3(0.0f, 14.0f, 360.696f),
 		vec3(9.8f, 14.3f, 356.295f),
 		vec3(4.0f, 20.3f, 340.493f)
 	});
-	firefliesAPath1 = new BsplineInterpolator(firefliesAPath1Points);
-	pathA1 = new SplineRenderer(firefliesAPath1);
-	vector<vec3> firefliesBPath1Points = vector<vec3>({
+	firefliesAPath = new BsplineInterpolator(firefliesAPathPoints);
+	vector<vec3> firefliesBPathPoints = vector<vec3>({
+		// vec3(28.2f, 8.4f, 249.2f),
+		// vec3(-2.1f, 2.2f, 269.804f),
+		// vec3(0.6f, 1.4f, 292.301f),
+		// vec3(-1.5f, 1.79999f, 304.196f),
+		// vec3(3.7f, 2.4f, 326.696f),
+		// vec3(14.8f, 6.2f, 360.497f),
+		// vec3(-15.2f, 11.9f, 362.397f),
+		// vec3(-5.6f, 15.6f, 338.594f),
+		// vec3(13.1f, 18.4f, 356.593f),
+		// vec3(-10.0f, 23.3f, 360.596f),
+		// vec3(-8.5f, 22.8f, 345.394f),
+		// vec3(-4.2f, 27.3f, 364.394f)
 		vec3(28.2f, 8.4f, 249.2f),
 		vec3(-2.1f, 2.2f, 269.804f),
 		vec3(0.6f, 1.4f, 292.301f),
 		vec3(-1.5f, 1.79999f, 304.196f),
-		vec3(3.7f, 2.4f, 326.696f),
-		vec3(14.8f, 6.2f, 360.497f),
-		vec3(-15.2f, 11.9f, 362.397f),
+		vec3(2.3f, 2.4f, 326.696f),
+		vec3(-1.00002f, 3.4f, 357.597f),
+		vec3(-19.8f, 6.19999f, 361.797f),
 		vec3(-5.6f, 15.6f, 338.594f),
 		vec3(13.1f, 18.4f, 356.593f),
 		vec3(-10.0f, 23.3f, 360.596f),
 		vec3(-8.5f, 22.8f, 345.394f),
 		vec3(-4.2f, 27.3f, 364.394f)
 	});
-	firefliesBPath1 = new BsplineInterpolator(firefliesBPath1Points);
-	pathB1 = new SplineRenderer(firefliesBPath1);
+	firefliesBPath = new BsplineInterpolator(firefliesBPathPoints);
+	pathAdjuster = new SplineAdjuster(firefliesAPath);
 
 	firefliesA = new Flock(MAX_PARTICLES);
 	firefliesB = new Flock(MAX_PARTICLES);
@@ -748,11 +786,14 @@ void nightscene::render() {
 	glBindTextureUnit(1, obocean->getNormalMap());
 	obocean->render(programOcean);
 
-	firefliesA->renderAsSpheres(translate(firefliesAPath1->interpolate((*nightevents)[FIREFLIES1BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
-	firefliesA->renderAttractorAsQuad(translate(firefliesAPath1->interpolate((*nightevents)[FIREFLIES1BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
-
-	firefliesB->renderAsSpheres(translate(firefliesBPath1->interpolate((*nightevents)[FIREFLIES2BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
-	firefliesB->renderAttractorAsQuad(translate(firefliesBPath1->interpolate((*nightevents)[FIREFLIES2BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
+	if((*nightevents)[FIREFLIES1BEGIN_T] > 0.0f && (*nightevents)[FIREFLIES1BEGIN_T] < 0.99999f) {
+		firefliesA->renderAsSpheres(translate(firefliesAPath->interpolate((*nightevents)[FIREFLIES1BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
+		firefliesA->renderAttractorAsQuad(translate(firefliesAPath->interpolate((*nightevents)[FIREFLIES1BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
+	}
+	if((*nightevents)[FIREFLIES2BEGIN_T] > 0.0f && (*nightevents)[FIREFLIES2BEGIN_T] < 0.99999f) {
+		firefliesB->renderAsSpheres(translate(firefliesBPath->interpolate((*nightevents)[FIREFLIES2BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
+		firefliesB->renderAttractorAsQuad(translate(firefliesBPath->interpolate((*nightevents)[FIREFLIES2BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
+	}
 
 	if((*nightevents)[PHOENIXFLY_T] >= 0.00001f) {
 		programDynamicPBR->use();
@@ -806,8 +847,6 @@ void nightscene::update() {
 	static const float WOLF_ANIM_SPEED = 0.8f;
 	
 	nightevents->increment();
-	firefliesA->update();
-	firefliesB->update();
 	if((*nightevents)[CROSSIN_T] >= 0.01f) {
 		if(programglobal::isAnimating) {
 			playerBkgnd->play();
@@ -820,6 +859,8 @@ void nightscene::update() {
 	modelPhoenix->update(PHOENIX_ANIM_SPEED * programglobal::deltaTime, 0);
 	modelFox->update(WOLF_ANIM_SPEED * programglobal::deltaTime, 0);
 	obocean->update(OCEAN_ANIM_SPEED * programglobal::deltaTime);
+	firefliesA->update();
+	firefliesB->update();
 }
 
 void nightscene::reset() {
@@ -830,10 +871,8 @@ void nightscene::reset() {
 void nightscene::uninit() {
 	delete land;
 	delete pathAdjuster;
-	delete pathA1;
-	delete pathB1;
-	delete firefliesAPath1;
-	delete firefliesAPath2;
+	delete firefliesBPath;
+	delete firefliesAPath;
 	delete firefliesB;
 	delete firefliesA;
 }
@@ -860,13 +899,13 @@ void nightscene::keyboardfunc(int key) {
 		break;
 	case XK_F10:
 		delete pathAdjuster;
-		pathAdjuster = new SplineAdjuster(firefliesAPath1);
+		pathAdjuster = new SplineAdjuster(firefliesAPath);
 		pathAdjuster->setScalingFactor(0.1f);
 		pathAdjuster->setRenderPoints(true);
 		break;
 	case XK_F11:
 		delete pathAdjuster;
-		pathAdjuster = new SplineAdjuster(firefliesBPath1);
+		pathAdjuster = new SplineAdjuster(firefliesBPath);
 		pathAdjuster->setScalingFactor(0.1f);
 		pathAdjuster->setRenderPoints(true);
 		break;
