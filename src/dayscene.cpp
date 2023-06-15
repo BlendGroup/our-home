@@ -437,7 +437,7 @@ void dayscene::renderScene(bool cameraFlip) {
 	glUniform1f(programDynamicPBR->getUniformLocation("clipy"), lake1->getLakeHeight());
 	lightManager->setLightUniform(programDynamicPBR, false);
 		
-	if((*dayevents)[DRONEMOVE_T] > 0.0f && (*dayevents)[DRONEMOVE_T] < 1.0f) {
+	if((*dayevents)[DRONEMOVE_T] < 1.0f) {
 		modelDrone->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
 		vec3 eye = splineDrone->interpolate((*dayevents)[DRONEMOVE_T]);
 		vec3 front = splineDrone->interpolate((*dayevents)[DRONEMOVE_T] + 0.001f);
@@ -609,7 +609,7 @@ void dayscene::update() {
 	}
 	if((*dayevents)[SUNSET_T] >= 1.0f) {
 		crossfader::startSnapshot(texDaySceneFinal);
-		atmosphere->render(programglobal::currentCamera->matrix(), radians(180.0f));
+		atmosphere->render(programglobal::currentCamera->matrix(), radians(185.0f));
 		crossfader::endSnapshot();
 		playNextScene();
 	}
