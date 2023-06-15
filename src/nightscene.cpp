@@ -180,9 +180,9 @@ void nightscene::setupCamera() {
 		vec3(0.0f, 1.4f, 900.1f),
 		vec3(0.0f, 1.4f, 950.1f),
 		vec3(0.0f, 1.4f, 1000.1f),
-		vec3(0.0f, 1.4f, 1050.1f),
-		vec3(0.0f, 1.4f, 1100.1f),
-		vec3(0.0f, 1.4f, 1153.1f),
+		vec3(0.0f, 1.0f, 1050.1f),
+		vec3(0.0f, 0.6f, 1100.1f),
+		vec3(0.0f, 0.2f, 1153.1f)
 	};
 	
 	vector<vec3> frontVector = {
@@ -236,32 +236,32 @@ void nightscene::setupCamera() {
 		vec3(0.0f, 3.4f, 520.1f),
 		vec3(0.0f, 3.4f, 540.1f),
 		vec3(0.0f, 2.2f, 560.1f),
-		vec3(0.0f, 1.4f, 580.1f),
-		vec3(0.0f, 1.4f, 605.1f),
-		vec3(0.0f, 1.4f, 655.1f),
-		vec3(0.0f, 1.4f, 705.1f),
+		vec3(1.1f, 1.4f, 580.2f),
+		vec3(1.1f, 1.4f, 605.1f),
+		vec3(-0.7f, 2.3f, 655.1f),
+		vec3(-0.7f, 3.4f, 705.1f),
 		vec3(0.0f, 1.4f, 755.1f),
 		vec3(0.0f, 1.4f, 805.1f),
 		vec3(0.0f, 1.4f, 855.1f),
 		vec3(0.0f, 1.4f, 905.1f),
 		vec3(0.0f, 1.4f, 955.1f),
 		vec3(0.0f, 1.4f, 1005.1f),
-		vec3(0.0f, 1.4f, 1055.1f),
-		vec3(0.0f, 1.4f, 1105.1f),
-		vec3(0.0f, 1.4f, 1155.1f)
+		vec3(0.0f, 1.0f, 1055.1f),
+		vec3(0.0f, 0.6f, 1105.1f),
+		vec3(0.0f, 0.2f, 1155.1f)
 	};
 	camera1 = new sceneCamera(positionVector, frontVector);
 
 	vector<vec3> positionVector2 = {
-		vec3(0.0f, 1.4f, 1153.1f),
-		vec3(-2.5f, 0.4f, 1157.3f),
-		vec3(-2.9f, -0.6f, 1165.5f),
+		vec3(0.0f, 0.2f, 1153.1f),
+		vec3(-2.5f, -0.4f, 1157.3f),
+		vec3(-2.9f, -1.0f, 1165.5f),
 		vec3(0.0f, -1.6f, 1171.1f)
 	};
 	vector<vec3> frontVector2 = {
-		vec3(0.0f, 1.4f, 1155.1f),
-		vec3(0.0f, 2.3f, 1155.1f),
-		vec3(0.0f, 3.2f, 1155.1f),
+		vec3(0.0f, 0.2f, 1155.1f),
+		vec3(0.0f, 1.5f, 1155.1f),
+		vec3(0.0f, 2.8f, 1155.1f),
 		vec3(0.0f, 4.1f, 1155.1f),
 	};
 	camera2 = new sceneCamera(positionVector2, frontVector2);
@@ -317,7 +317,7 @@ void nightscene::init() {
 		{FOXWALK_T, {11.1f, 6.0f}},
 		{FIREFLIES1BEGIN_T, {25.0f, 55.0f}},//End at 80
 		{FIREFLIES2BEGIN_T, {57.75f, 18.7f}}, //End at 80f
-		{PHOENIXFLY_T, {69.0f, 22.0f}}
+		{PHOENIXFLY_T, {69.0f, 30.0f}}
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -624,13 +624,17 @@ void nightscene::init() {
 		vec3(8.3f, 20.7f, 400.1f),
 		vec3(-3.7f, 9.89999f, 407.799f),
 		vec3(1.6f, 7.4f, 440.1f),
-		vec3(-5.4f, 7.4f, 460.1f),
-		vec3(1.3f, 7.4f, 480.1f),
+		vec3(-5.4f, 8.4f, 460.1f),
+		vec3(1.3f, 10.4f, 480.1f),
 		vec3(-1.2f, 9.1f, 500.1f),
-		vec3(6.1f, 10.2f, 525.0f),
-		vec3(0.2f, 7.4f, 550.1f),
-		vec3(0.4f, 7.5f, 575.1f),
-		vec3(0.0f, 13.1f, 600.1f)
+		vec3(6.1f, 11.2f, 525.0f),
+		vec3(0.2f, 11.6f, 550.1f),
+		vec3(0.4f, 5.4f, 575.1f),
+		vec3(24.2001f, 5.1f, 603.294f),
+		vec3(40.4f, 5.1f, 685.279f),
+		vec3(102.8f, 14.3f, 946.12f),
+		vec3(-95.1991f, 30.6f, 946.323f),
+		vec3(-18.9f, 47.7f, 887.839f)
 	};
 	phoenixPath = new BsplineInterpolator(phoenixPathPoints);
 	pathPhoenix = new SplineRenderer(phoenixPath);
@@ -848,9 +852,7 @@ void nightscene::render() {
 
 	if(programglobal::debugMode == CAMERA) {
 		camRig1->render();
-		pathAdjuster->render(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f, 0.0f, 1.0f, 1.0f), vec4(1.0f, 1.0f, 0.0f, 1.0f));
 	} else if(programglobal::debugMode == SPLINE) {
-		camRig1->render();
 		pathAdjuster->render(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f, 0.0f, 1.0f, 1.0f), vec4(1.0f, 1.0f, 0.0f, 1.0f));
 	}
 	} catch(string errorString) {
@@ -900,6 +902,7 @@ void nightscene::keyboardfunc(int key) {
 	} else if(programglobal::debugMode == CAMERA) {
 		camRig1->keyboardfunc(key);
 	} else if(programglobal::debugMode == SPLINE) {
+		pathAdjuster->keyboardfunc(key);
 	} else if(programglobal::debugMode == NONE) {
 	}
 	switch(key) {
