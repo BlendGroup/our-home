@@ -153,7 +153,7 @@ void labscene::init() {
 	modelDoor = new glmodel("resources/models/spaceship/door.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	modelMug = new glmodel("resources/models/mug/mug.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelRobot = new glmodel("resources/models/robot/robot.fbx", aiProcessPreset_TargetRealtime_Quality, true);
-	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelAstro = new glmodel("resources/models/astronaut/MCFinal.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelBLEND = new glmodel("resources/models/blendlogo/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
 
 	godraysDoor = new godrays();
@@ -310,7 +310,7 @@ void labscene::render() {
 		programDynamicPBR->use();
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE, programglobal::currentCamera->matrix());
-		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(-3.41f, -1.39f, 2.03f) * scale(0.86f));
+		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(-3.41f, 0.0f, 2.03f) * scale(0.86f));
 		glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1, programglobal::currentCamera->position());
 		// Lights data
 		glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
@@ -399,7 +399,7 @@ void labscene::reset() {
 void labscene::update() {
 	labevents->increment();
 	static const float ROBOT_ANIM_SPEED = 0.99f;
-	static const float ASTRO_ANIM_SPEED = 0.1f;
+	static const float ASTRO_ANIM_SPEED = 0.5f;
 	static const float HOLOGRAM_UPDATE_SPEED = 0.5f;
 	static const float STEAM_UPDATE_SPEED = 0.5f;
 	
@@ -425,7 +425,7 @@ void labscene::update() {
 	}
 	hologramT += HOLOGRAM_UPDATE_SPEED * programglobal::deltaTime;
 	steamT += STEAM_UPDATE_SPEED * programglobal::deltaTime;
-	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 0);
+	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 1);
 
 	if((*labevents)[CROSSOUT_T] >= 1.0f) {
 		cout<<"Lab Scene Duration: "<<labevents->getT()<<endl;
