@@ -42,6 +42,7 @@ static SceneLight* lightManager;
 static sceneCamera* camera1;
 static sphere* moon;
 static modelplacer* quickModelPlacer;
+static glmodel* modelTie;
 static glmodel* modelTreeRed;
 static glmodel* modelDrone;
 static glmodel* modelAstro;
@@ -338,6 +339,7 @@ void nightscene::init() {
 	modelRover = new glmodel("resources/models/rover/rover.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelDrone = new glmodel("resources/models/drone/drone2.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelTie = new glmodel("resources/models/rover/tie.glb", aiProcessPreset_TargetRealtime_Quality, true);
 
 	obocean = new ocean(vec2(3.0f, 3.0f), 1.5f, 100);
 
@@ -441,6 +443,7 @@ void nightscene::init() {
 	quickModelPlacer = new modelplacer(vec3(-2.0f, -3.5f, 1161.0f), vec3(0.0f, 180.0f, 0.0f), 3.0f);
 	lightManager = new SceneLight(false);
 	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, -0.5f, -1.0f)));
+	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, 0.5f, 1.0f)));
 
 	float skybox_positions[] = {
 		// positions          
@@ -656,6 +659,15 @@ void postOceanRender() {
 	modelAstro->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
 	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-0.3f, -4.1f, 1157.5f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(3.0f));
 	modelAstro->draw(programDynamicPBR);
+
+	programStaticPBR->use();
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniform3fv(programStaticPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
+	glUniform1i(programStaticPBR->getUniformLocation("specularGloss"), GL_FALSE);
+	lightManager->setLightUniform(programStaticPBR, false);
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-6.0f, 5.5f, 1186.0f) * rotate(90.0f, 1.0f, 0.0f, 0.0f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(2.0f));
+	modelTie->draw(programStaticPBR);
 }
 
 void nightscene::render() {
@@ -701,15 +713,17 @@ void nightscene::render() {
 	firefliesB->renderAsSpheres(translate(firefliesBPath1->interpolate((*nightevents)[FIREFLIES2BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 0.0f), vec4(1.0f, 0.0f, 0.0f, 0.0f), 0.05f);
 	firefliesB->renderAttractorAsQuad(translate(firefliesBPath1->interpolate((*nightevents)[FIREFLIES2BEGIN_T])), vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.25f);
 
+	//phoenix test
 	programDynamicPBR->use();
 	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(0.0f,5.0f,0.0f) * scale(10.0f,10.0f,10.0f));
-	modelPhoenix->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+    glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(-4.9f, 0.0f, -96.2f) * rotate(-90.0f,vec3(0.0f,1.0f,0.0f)) *scale(10.0f,10.0f,10.0f));
+    modelPhoenix->update(0.01f, 0);
+    modelPhoenix->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
 	glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1,programglobal::currentCamera->position());
 	glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
 	lightManager->setLightUniform(programDynamicPBR, false);
-	modelPhoenix->draw(programDynamicPBR,1);
+	modelPhoenix->draw(programDynamicPBR);
 
 	if((*nightevents)[CAMERAMOVE_T] > 0.136f && (*nightevents)[CAMERAMOVE_T] < 0.26f) {
 		programTex->use();
