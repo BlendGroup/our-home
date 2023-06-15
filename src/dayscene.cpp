@@ -350,10 +350,10 @@ void dayscene::init() {
 	vec3(13.9001f, 5.3f, -58.1003f),
 	vec3(-16.4f, 6.9f, -86.9999f),
 	vec3(-51.4998f, 1.19998f, -51.7004f),
-	vec3(10.6f, 4.19997f, -35.8007f),
+	vec3(10.6f, -1.80003f, -35.8007f),
 	vec3(12.5f, 4.19997f, -71.7001f),
-	vec3(13.1f, 14.0f, -97.3997f),
-	vec3(14.6001f, 14.0f, -123.999f),
+	vec3(13.1f, 14.1f, -97.3997f),
+	vec3(14.6001f, 14.1f, -123.999f),
 	};
 	splineBird = new BsplineInterpolator(birdVector);
 
@@ -369,7 +369,7 @@ void dayscene::init() {
 	godraysDrone->setWeight(0.01f);
 
 	lightManager = new SceneLight();
-	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f),1.0f,vec3(0.0,-1.0,-1.0f)));
+	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f),6.0f,vec3(0.0,-1.0,0.0f)));
 	//lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f),1.0f,vec3(0.0,1.0,1.0f)));
 
 	lake1 = new lake(-6.0f);
