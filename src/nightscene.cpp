@@ -582,7 +582,6 @@ void nightscene::init() {
 		vec3(0.4f, 0.5f, 0.3f)
 	});
 	firefliesA = new Fireflies(MAX_PARTICLES, firefliesAPathPoints, firefliesAColors);
-	pathAdjuster = new SplineAdjuster(firefliesA->getPath());
 	
 	vector<vec3> firefliesBPathPoints = vector<vec3>({
 		// vec3(28.2f, 8.4f, 249.2f),
@@ -622,20 +621,21 @@ void nightscene::init() {
 
 	vector<vec3> phoenixPathPoints = {
 		vec3(0.0f, 45.0f, 380.1f),
-		vec3(0.0f, 20.7f, 400.1f),
-		vec3(0.0f, 12.9f, 420.1f),
-		vec3(0.0f, 7.4f, 440.1f),
-		vec3(0.0f, 7.4f, 460.1f),
-		vec3(0.0f, 7.4f, 480.1f),
-		vec3(0.0f, 7.4f, 500.1f),
-		vec3(0.0f, 7.4f, 525.1f),
-		vec3(0.0f, 7.4f, 550.1f),
-		vec3(0.0f, 7.4f, 575.1f),
-		vec3(0.0f, 7.4f, 600.1f)
+		vec3(8.3f, 20.7f, 400.1f),
+		vec3(-3.7f, 9.89999f, 407.799f),
+		vec3(1.6f, 7.4f, 440.1f),
+		vec3(-5.4f, 7.4f, 460.1f),
+		vec3(1.3f, 7.4f, 480.1f),
+		vec3(-1.2f, 9.1f, 500.1f),
+		vec3(6.1f, 10.2f, 525.0f),
+		vec3(0.2f, 7.4f, 550.1f),
+		vec3(0.4f, 7.5f, 575.1f),
+		vec3(0.0f, 13.1f, 600.1f)
 	};
 	phoenixPath = new BsplineInterpolator(phoenixPathPoints);
 	pathPhoenix = new SplineRenderer(phoenixPath);
 	pathAdjuster = new SplineAdjuster(phoenixPath);
+	pathAdjuster->setRenderPoints(true);
 }
 
 void preOceanRender() {
@@ -821,7 +821,9 @@ void nightscene::render() {
 		glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1,programglobal::currentCamera->position());
 		glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
 		lightManager->setLightUniform(programDynamicPBR, false);
-		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(phoenixPath->interpolate((*nightevents)[PHOENIXFLY_T])) * rotate(-90.0f,vec3(0.0f,1.0f,0.0f)) * scale(10.0f,10.0f,10.0f));
+		vec3 phoenixPosition = phoenixPath->interpolate((*nightevents)[PHOENIXFLY_T] - 0.01f);
+		vec3 phoenixFront = phoenixPath->interpolate((*nightevents)[PHOENIXFLY_T]);
+		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(phoenixPosition) * targetat(phoenixPosition, phoenixFront, vec3(0.0f, 1.0f, 0.0f)) * rotate(-90.0f,vec3(0.0f,1.0f,0.0f)) * scale(10.0f,10.0f,10.0f));
 		modelPhoenix->draw(programDynamicPBR);
 	}
 
@@ -898,7 +900,6 @@ void nightscene::keyboardfunc(int key) {
 	} else if(programglobal::debugMode == CAMERA) {
 		camRig1->keyboardfunc(key);
 	} else if(programglobal::debugMode == SPLINE) {
-		pathAdjuster->keyboardfunc(key);
 	} else if(programglobal::debugMode == NONE) {
 	}
 	switch(key) {
@@ -913,16 +914,16 @@ void nightscene::keyboardfunc(int key) {
 		camRig1->setRenderPathToFront(renderPath);
 		break;
 	case XK_F10:
-		delete pathAdjuster;
-		pathAdjuster = new SplineAdjuster(firefliesA->getPath());
-		pathAdjuster->setScalingFactor(0.1f);
-		pathAdjuster->setRenderPoints(true);
+		// delete pathAdjuster;
+		// pathAdjuster = new SplineAdjuster(firefliesA->getPath());
+		// pathAdjuster->setScalingFactor(0.1f);
+		// pathAdjuster->setRenderPoints(true);
 		break;
 	case XK_F11:
-		delete pathAdjuster;
-		pathAdjuster = new SplineAdjuster(firefliesB->getPath());
-		pathAdjuster->setScalingFactor(0.1f);
-		pathAdjuster->setRenderPoints(true);
+		// delete pathAdjuster;
+		// pathAdjuster = new SplineAdjuster(firefliesB->getPath());
+		// pathAdjuster->setScalingFactor(0.1f);
+		// pathAdjuster->setRenderPoints(true);
 		break;
 	case XK_F12:
 		renderTrees = !renderTrees;
