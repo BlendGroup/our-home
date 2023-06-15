@@ -95,7 +95,8 @@ enum tvalues {
 	SUNRISEINIT_T,
 	SUNRISEMID_T,
 	SUNRISEEND_T,
-	ROVERMOVE_T
+	ROVERMOVE_T,
+	SUNSET_T
 };
 static eventmanager* dayevents;
 
@@ -247,15 +248,16 @@ GLuint texRoadMap;
 void dayscene::init() {
 	dayevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 1.0f }},
-		{GODRAYIN_T, { 0.0f, 1.5f }},
-		{CAMERA1MOVE_T, { 1.0f, 40.0f }},
-		{DRONETURN_T, { 0.5f, 0.5f }},
-		{DRONEMOVE_T, { 0.75f, 40.6f }},
+		{GODRAYIN_T, { 0.5f, 2.0f }},
+		{CAMERA1MOVE_T, { 2.0f, 40.0f }},
+		{DRONETURN_T, { 1.5f, 2.0f }},
+		{DRONEMOVE_T, { 2.0f, 40.6f }},
 		{ROVERMOVE_T, {53.0f, 8.0f}},
-		{SUNRISEINIT_T, {41.0f, 5.0f}},
-		{SUNRISEMID_T, {46.0f, 4.0f}},
-		{SUNRISEEND_T, {50.0f, 4.0f}},
+		{SUNRISEINIT_T, {42.0f, 5.0f}},
+		{SUNRISEMID_T, {47.0f, 3.5f}},
+		{SUNRISEEND_T, {50.5f, 3.5f}},
 		{CAMERA2MOVE_T, { 54.0f, 30.0f }},
+		{SUNSET_T, {54.0f, 35.0f}},
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -432,8 +434,10 @@ void dayscene::renderScene(bool cameraFlip) {
     	atmosphere->render(currentViewMatrix, mix(vec1(radians(0.0f)), vec1(radians(3.0f)), (*dayevents)[SUNRISEINIT_T])[0]);
 	} else if((*dayevents)[SUNRISEEND_T] <= 0.0f) {
     	atmosphere->render(currentViewMatrix, mix(vec1(radians(3.0f)), vec1(radians(10.0f)), (*dayevents)[SUNRISEMID_T])[0]);
-	} else {
+	} else if((*dayevents)[CAMERA2MOVE_T] <= 0.01f){
     	atmosphere->render(currentViewMatrix, mix(vec1(radians(10.0f)), vec1(radians(35.0f)), (*dayevents)[SUNRISEEND_T])[0]);
+	} else {
+    	atmosphere->render(currentViewMatrix, mix(vec1(radians(35.0f)), vec1(radians(180.0f)), (*dayevents)[SUNSET_T])[0]);
 	}
 }
 
@@ -563,9 +567,9 @@ void dayscene::update() {
 	if((*dayevents)[DRONETURN_T] >= 0.1f) {
 		modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
 	}
-	if((*dayevents)[CAMERA2MOVE_T] >= 1.0f) {
+	if((*dayevents)[SUNSET_T] >= 1.0f) {
 		crossfader::startSnapshot(texDaySceneFinal);
-		atmosphere->render(programglobal::currentCamera->matrix(), radians(35.0f));
+		atmosphere->render(programglobal::currentCamera->matrix(), radians(180.0f));
 		crossfader::endSnapshot();
 		playNextScene();
 	}

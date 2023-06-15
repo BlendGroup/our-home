@@ -140,8 +140,8 @@ void labscene::init() {
 		{CAMERA_T, { 3.36f, 40.0f }},
 		{ROBOT_T, { 20.5f, 19.5f }},
 		{SFX_ROBOT_THUMP_T, { 20.5f, 16.5f }},
-		{DOOR_T, { 41.0f, 9.0f }},
-		{CROSSOUT_T, { 48.2f, 4.0f }},
+		{DOOR_T, { 41.0f, 7.0f }},
+		{CROSSOUT_T, { 47.5f, 2.5f }},
 	});
 
 	playerBkgnd = new audioplayer("resources/audio/TheLegendOfKai.wav");
