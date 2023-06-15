@@ -49,6 +49,7 @@ static glmodel* modelAstro;
 static glmodel* modelRover;
 static glmodel* modelFlowerPurple;
 static glmodel* modelPhoenix;
+static glmodel* modelFox;
 
 static godrays* godraysMoon;
 #ifdef DEBUG
@@ -80,6 +81,7 @@ enum tvalues {
 	CAMERAMOVE_T,
 	FIREFLIES1BEGIN_T,
 	FIREFLIES2BEGIN_T,
+	FOXWALK_T
 };
 static eventmanager* nightevents;
 
@@ -97,6 +99,7 @@ static BsplineInterpolator *firefliesBPath1 = NULL;
 static SplineRenderer *pathB1 = NULL;
 static SplineAdjuster *pathAdjuster = NULL;
 static ocean *obocean;
+static BsplineInterpolator* pheonixPath;
 
 void nightscene::setupProgram() {
 	try {
@@ -308,6 +311,7 @@ void nightscene::init() {
 	nightevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 2.0f }},
 		{CAMERAMOVE_T, { 2.0f, 110.0f }},
+		{FOXWALK_T, {11.1f, 6.0f}},
 		{FIREFLIES1BEGIN_T, {25.0f, 55.0f}},//End at 80
 		{FIREFLIES2BEGIN_T, {61.3f, 18.7f}} //End at 80f
 	});
@@ -340,6 +344,8 @@ void nightscene::init() {
 	modelDrone = new glmodel("resources/models/drone/drone2.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelTie = new glmodel("resources/models/rover/tie.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelPhoenix = new glmodel("resources/models/phoenix/phoenix.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelFox = new glmodel("resources/models/phoenix/fox.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 
 	obocean = new ocean(vec2(3.0f, 3.0f), 1.5f, 100);
 
@@ -364,8 +370,6 @@ void nightscene::init() {
 	}
 
 	// modelFlowerPurple = new glmodel("resources/models/flowers/flower1.glb", aiProcessPreset_TargetRealtime_Quality, true);
-	modelPhoenix = new glmodel("resources/models/phoenix/phoenix.glb", aiProcessPreset_TargetRealtime_Quality, true);
-
 	glGenBuffers(1, &uboTreePosition);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboTreePosition);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(vec4) * 420, treePositionsArray.data(), GL_STATIC_DRAW);
@@ -440,7 +444,8 @@ void nightscene::init() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	moon = new sphere(25, 50, 1.0f);
-	quickModelPlacer = new modelplacer(vec3(-2.0f, -3.5f, 1161.0f), vec3(0.0f, 180.0f, 0.0f), 3.0f);
+	// quickModelPlacer = new modelplacer(vec3(-2.0f, -3.5f, 1161.0f), vec3(0.0f, 180.0f, 0.0f), 3.0f);
+	quickModelPlacer = new modelplacer(vec3(-9.8f, 0.03f, -95.1098f), vec3(0.0f, -77.0f, 0.0f), 0.05f);
 	lightManager = new SceneLight(false);
 	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, -0.5f, -1.0f)));
 	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, 0.5f, 1.0f)));
@@ -625,6 +630,15 @@ void preOceanRender() {
 		// modelFlowerPurple->draw(programStaticInstancedPBR, count);
 	}
 
+	programDynamicPBR->use();
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
+	glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"), GL_FALSE);
+	lightManager->setLightUniform(programDynamicPBR, false);
+	modelFox->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-16.8f, 0.03f, mix(vec1(-91.0828f), vec1(-84.0828f), (*nightevents)[FOXWALK_T])[0]) * rotate(-77.0f, 0.0f, 1.0f, 0.0f) * scale(0.036f));
+	modelFox->draw(programDynamicPBR);
 }
 
 void postOceanRender() {
@@ -717,13 +731,13 @@ void nightscene::render() {
 	programDynamicPBR->use();
 	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
     glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE,translate(-4.9f, 0.0f, -96.2f) * rotate(-90.0f,vec3(0.0f,1.0f,0.0f)) *scale(10.0f,10.0f,10.0f));
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(-4.9f, 0.0f, -96.2f) * rotate(-90.0f,vec3(0.0f,1.0f,0.0f)) *scale(10.0f,10.0f,10.0f));
     modelPhoenix->update(0.01f, 0);
     modelPhoenix->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
 	glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1,programglobal::currentCamera->position());
 	glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
 	lightManager->setLightUniform(programDynamicPBR, false);
-	modelPhoenix->draw(programDynamicPBR);
+	// modelPhoenix->draw(programDynamicPBR);
 
 	if((*nightevents)[CAMERAMOVE_T] > 0.136f && (*nightevents)[CAMERAMOVE_T] < 0.26f) {
 		programTex->use();
@@ -760,7 +774,8 @@ void nightscene::update() {
 	static const float DRONE_ANIM_SPEED = 0.8f;
 	static const float ASTRO_ANIM_SPEED = 0.5f;
 	static const float OCEAN_ANIM_SPEED = 0.2f;
-	static const float PHOENIX_ANIM_SPEED = 0.5f;
+	static const float PHOENIX_ANIM_SPEED = 0.6f;
+	static const float WOLF_ANIM_SPEED = 0.8f;
 	
 	nightevents->increment();
 	firefliesA->update();
@@ -775,6 +790,7 @@ void nightscene::update() {
 	modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
 	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 1);
 	modelPhoenix->update(PHOENIX_ANIM_SPEED * programglobal::deltaTime, 0);
+	modelFox->update(WOLF_ANIM_SPEED * programglobal::deltaTime, 0);
 	obocean->update(OCEAN_ANIM_SPEED * programglobal::deltaTime);
 }
 
