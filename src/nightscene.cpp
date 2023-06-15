@@ -829,11 +829,11 @@ void nightscene::render() {
 
 	if((*nightevents)[FIREFLIES1BEGIN_T] > 0.0f && (*nightevents)[FIREFLIES1BEGIN_T] < 1.0f) {
 		firefliesA->renderAsSpheres((*nightevents)[FIREFLIES1BEGIN_T], 0.05f);
-		firefliesA->renderAttractorAsQuad((*nightevents)[FIREFLIES1BEGIN_T], 0.25f);
+		// firefliesA->renderAttractorAsQuad((*nightevents)[FIREFLIES1BEGIN_T], 0.25f);
 	}
 	if((*nightevents)[FIREFLIES2BEGIN_T] > 0.0f && (*nightevents)[FIREFLIES2BEGIN_T] < 1.0f) {
 		firefliesB->renderAsSpheres((*nightevents)[FIREFLIES2BEGIN_T], 0.05f);
-		firefliesB->renderAttractorAsQuad((*nightevents)[FIREFLIES2BEGIN_T], 0.25f);
+		// firefliesB->renderAttractorAsQuad((*nightevents)[FIREFLIES2BEGIN_T], 0.25f);
 	}
 
 	if((*nightevents)[PHOENIXFLY_T] > 0.0f && (*nightevents)[PHOENIXFLY_T] < 1.0f) {
