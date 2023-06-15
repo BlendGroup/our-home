@@ -843,7 +843,7 @@ void nightscene::render() {
 	programOcean->use();
 	glUniformMatrix4fv(programOcean->getUniformLocation("pMat"), 1, false, programglobal::perspective);
 	glUniformMatrix4fv(programOcean->getUniformLocation("vMat"), 1, false, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(programOcean->getUniformLocation("mMat"), 1, false, translate(0.0f, -10.0f, 1300.0f) * scale(721.0f));
+	glUniformMatrix4fv(programOcean->getUniformLocation("mMat"), 1, false, translate(0.0f, -7.0f, 1300.0f) * scale(721.0f));
 	glUniform3fv(programOcean->getUniformLocation("cameraPosition"), 1, programglobal::currentCamera->position());
 	glUniform3fv(programOcean->getUniformLocation("oceanColor"), 1, oceanColor);
 	glUniform3fv(programOcean->getUniformLocation("skyColor"), 1, skyColor);
