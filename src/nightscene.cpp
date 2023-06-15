@@ -1,3 +1,6 @@
+#include "glshaderloader.h"
+#include "shapes.h"
+#define DEBUG
 #include<scenes/night.h>
 #include<iostream>
 #include<vmath.h>
@@ -35,6 +38,7 @@ static glshaderprogram* programNightSky;
 static glshaderprogram* programSkybox;
 static glshaderprogram* programTex;
 static glshaderprogram* programOcean;
+static glshaderprogram* programFire;
 static terrain* land;
 static terrain* land2;
 static terrain* island;
@@ -77,6 +81,7 @@ static GLuint texOcean;
 static GLuint skybox_vao;
 static GLuint vbo;
 static bool renderTrees = true;
+static float fireT = 0.0f;
 
 enum tvalues {
 	CROSSIN_T,
@@ -107,6 +112,7 @@ void nightscene::setupProgram() {
 		programSkybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/nightsky/rendercubemap.frag"});
 		programTex = new glshaderprogram({"shaders/debug/basictex.vert", "shaders/debug/basictex.frag"});
 		programOcean = new glshaderprogram({"shaders/ocean/ocean.vert", "shaders/ocean/ocean.frag"});
+    	programFire = new glshaderprogram({"shaders/fire/render.vert", "shaders/fire/render.frag"});
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -701,7 +707,7 @@ void preOceanRender() {
 		// 	glUniform1i(programStaticInstancedPBR->getUniformLocation("instanceOffset"), 0);
 		// }
 		// glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.3f, 0.0f) * rotate(0.0f,vec3(1.0f,0.0f,0.0f)) * scale(1.0f));
-		// glUniform3fv(programStaticInstancedPBR->getUniformLocation("emissionColor"),1,vec3(0.0,0.0,0.0));
+		// glUniform3fv(programStaticInstanc1.0 / resolution.xyedPBR->getUniformLocation("emissionColor"),1,vec3(0.0,0.0,0.0));
 		// glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboFlowerPosition);
 		// glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("color_ubo"), uboTreeColor);
 		// modelFlowerPurple->draw(programStaticInstancedPBR, count);
@@ -760,8 +766,19 @@ void postOceanRender() {
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-6.0f, 5.5f, 1186.0f) * rotate(90.0f, 1.0f, 0.0f, 0.0f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(2.0f));
 	modelTie->draw(programStaticPBR);
 
-	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, mix(vec1(400.1f), vec1(100.1f), 0.5f)[0], 774.8f) * rotate(90.0f, 1.0f, 0.0f, 0.0f) * rotate(-26.0f, 0.0f, 0.0f, 1.0f) * scale(5.5f));
+	mat4 translateMat = translate(0.0f, mix(vec1(400.1f), vec1(100.1f), 0.5f)[0], 774.8f);
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translateMat * rotate(90.0f, 1.0f, 0.0f, 0.0f) * rotate(-30.0f, 0.0f, 0.0f, 1.0f) * scale(5.5f));
 	modelRocket->draw(programStaticPBR);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	programFire->use();
+	glUniformMatrix4fv(programFire->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programFire->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programFire->getUniformLocation("mMat"), 1, GL_FALSE, translateMat * translate(-0.2f, -40.0f, -0.5f) * scale(8.3f, 20.3f, 1.0f));
+	glUniform1f(programFire->getUniformLocation("time"), fireT);
+	programglobal::shapeRenderer->renderQuad();
+	glDisable(GL_BLEND);
 }
 
 void nightscene::render() {
@@ -861,6 +878,7 @@ void nightscene::update() {
 	static const float OCEAN_ANIM_SPEED = 0.2f;
 	static const float PHOENIX_ANIM_SPEED = 0.6f;
 	static const float WOLF_ANIM_SPEED = 0.8f;
+	static const float FIRE_ANIM_SPEED = 0.4f;
 	
 	nightevents->increment();
 	if((*nightevents)[CROSSIN_T] >= 0.01f) {
@@ -877,6 +895,7 @@ void nightscene::update() {
 	obocean->update(OCEAN_ANIM_SPEED * programglobal::deltaTime);
 	firefliesA->update();
 	firefliesB->update();
+	fireT += FIRE_ANIM_SPEED * programglobal::deltaTime;
 }
 
 void nightscene::reset() {
