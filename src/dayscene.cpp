@@ -3,6 +3,7 @@
 #include<glshaderloader.h>
 #include<gltextureloader.h>
 #include<iostream>
+#include <vector>
 #include<vmath.h>
 #include<scenecamera.h>
 #include<scenecamerarig.h>
@@ -58,6 +59,8 @@ static sceneCamera* camera2;
 
 static BsplineInterpolator* splineDrone;
 static BsplineInterpolator* splineRover;
+static BsplineInterpolator* splineTurtle;
+static BsplineInterpolator* splineBird;
 
 static godrays* godraysDrone;
 
@@ -321,7 +324,32 @@ void dayscene::init() {
 		vec3(83.0988f, -1.8676f, -47.9908f)
 	};
 	splineRover = new BsplineInterpolator(roverVector);
-	splineAdjuster = new SplineAdjuster(splineRover);
+
+	vector<vec3> tuctleVector = {
+	vec3(-31.0006f, -5.1676f, -78.7903f),
+	vec3(-14.1005f, -6.5676f, -85.8902f),
+	vec3(7.59944f, -6.4676f, -48.1907f),
+	vec3(-32.9006f, -6.6676f, -41.0909f),
+	vec3(-51.5003f, -6.5676f, -69.0905f),
+	vec3(-47.0004f, -6.8676f, -87.7902f),
+	vec3(-31.8006f, -5.8676f, -92.8901f),
+	vec3(-14.1005f, -6.5676f, -85.8902f),
+	};
+
+	splineTurtle = new BsplineInterpolator(tuctleVector);
+
+	vector<vec3> birdVector = {
+	vec3(-30.0f, 5.2f, -64.5f),
+	vec3(-2.59992f, 5.3f, -58.0003f),
+	vec3(8.5f, 6.9f, -70.8001f),
+	vec3(14.4f, 15.6f, -48.0005f),
+	vec3(46.5999f, 17.2f, -9.60065f),
+	vec3(66.3996f, 17.2f, 60.799f),
+	vec3(64.9996f, 17.2f, 79.8987f),
+	};
+	splineBird = new BsplineInterpolator(birdVector);
+
+	splineAdjuster = new SplineAdjuster(splineBird);
 	splineAdjuster->setRenderPath(true);
 	splineAdjuster->setRenderPoints(true);
 	splineAdjuster->setScalingFactor(0.1f);
@@ -391,7 +419,7 @@ void dayscene::renderScene(bool cameraFlip) {
 	lightManager->setLightUniform(programStaticPBR, false);
 	
 	// glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, lakePlacer->getModelMatrix());
-	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-30.4f, 1.8f, -62.8999f) * rotate(27.0f, 0.0f, 1.0f, 0.0f) * scale(2.5f));
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-30.4f, 3.9f, -62.8999f) * rotate(27.0f, 0.0f, 1.0f, 0.0f) * scale(3.0f));
 	modelTreeRed->draw(programStaticPBR);
 	
 	programDynamicPBR->use();
@@ -411,18 +439,23 @@ void dayscene::renderScene(bool cameraFlip) {
 	godraysDrone->setScreenSpaceCoords(programglobal::perspective * programglobal::currentCamera->matrix(), vec4(eye, 1.0f));
 	glUniform1i(programDynamicPBR->getUniformLocation("renderEmissiveToOcclusion"), 0);
 
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-26.8f, -6.5f, -85.6f) * rotate(177.0f, 0.0f, 1.0f, 0.0f) * scale(19.0f));
+	vec3 pos = splineTurtle->interpolate((*dayevents)[SUNRISEEND_T]);
+	front = splineTurtle->interpolate((*dayevents)[SUNRISEEND_T] + 0.01f);
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(pos) * targetat(pos, front, vec3(0.0f,1.0f,0.0f)) * scale(19.0f));
 	modelTurtle->update(0.005f, 0);
     modelTurtle->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
 	modelTurtle->draw(programDynamicPBR);
 
 	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-54.8998f, -10.9f, -80.2996f) * scale(1.3f));
-	modelFish->update(0.005f, 0);
+	modelFish->update(0.008f, 0);
     modelFish->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
 	modelFish->draw(programDynamicPBR);
 
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-30.0f, 2.0f, -64.5f) * rotate(105.0f, 0.0f, 1.0f, 0.0f) * scale(0.5f));
-	modelBird->update(0.005f, 0);
+	//-30.0f, 2.0f, -64.5f
+	pos = splineBird->interpolate((*dayevents)[SUNRISEINIT_T]);
+	front = splineBird->interpolate((*dayevents)[SUNRISEINIT_T] + 0.01f);
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(pos) * targetat(pos, front, vec3(0.0,1.0,0.0)) * scale(0.8f));
+	modelBird->update(0.01f, 0);
     modelBird->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
 	modelBird->draw(programDynamicPBR);
 
