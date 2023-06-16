@@ -368,8 +368,8 @@ void dayscene::init() {
 
 	lightManager = new SceneLight();
 	lightManager->addDirectionalLights({
-		DirectionalLight(vec3(0.25f),1.0f,vec3(0.0,-1.0,-1.0f)),
-		DirectionalLight(vec3(0.25f),1.0f,vec3(0.0,-1.0,1.0f)),
+		DirectionalLight(vec3(0.15f),1.0f,vec3(0.0,-1.0,-1.0f)),
+		DirectionalLight(vec3(0.15f),1.0f,vec3(0.0,-1.0,1.0f)),
 		DirectionalLight(vec3(0.0f),1.0f,vec3(0.0,-1.0,1.0f))
 	});
 	lightManager->setAmbient(vec3(0.01f));

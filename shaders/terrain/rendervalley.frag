@@ -144,13 +144,19 @@ void main(void) {
     float specular = 0.0;
 	vec3 diffuse = vec3(0.0);
     for(int i = 0; i < numOfDL; i++){
-        specular += calcDirectionalLight(dl[i],normalize(fs_in.nor),fs_in.pos, diffuse);
+        vec3 d;
+		specular += calcDirectionalLight(dl[i],normalize(fs_in.nor),fs_in.pos, d);
+		diffuse += d;
     }
     for(int i = 0; i < numOfPoints; i++){
-        specular += calcPointLight(pl[i],normalize(fs_in.nor),fs_in.pos, diffuse);
+        vec3 d;
+		specular += calcPointLight(pl[i],normalize(fs_in.nor),fs_in.pos, d);
+		diffuse += d;
     }
     for(int i = 0; i < numOfSpots; i++){
-        specular += calcSpotLight(sl[i],normalize(fs_in.nor),fs_in.pos, diffuse);
+        vec3 d;
+		specular += calcSpotLight(sl[i],normalize(fs_in.nor),fs_in.pos, d);
+		diffuse += d;
     }
 
 	float mixVal = texture(texMap, fs_in.tc).r;
