@@ -99,7 +99,7 @@ void creditscene::init() {
 		textures[i] = createTexture2D("resources/textures/credit/" + names[i], GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
 	}
 	glGenVertexArrays(1, &emptyVao);
-	playerIntro = new audioplayer("resources/audio/Intro.wav");
+	playerIntro = new audioplayer("resources/audio/EndCredits.wav");
 }
 
 void creditscene::render() {
