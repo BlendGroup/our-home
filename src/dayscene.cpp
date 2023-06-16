@@ -374,7 +374,7 @@ void dayscene::init() {
 		DirectionalLight(vec3(0.0f),1.0f,vec3(0.0,-1.0,0.0f))
 	});
 	lightManager->addSpotLights({
-		SpotLight(vec3(1.0f), 3.0f, vec3(64.1991f, -0.667602f, -79.8903f), 100.0f, vec3(0.0f, -1.0f, 0.0f), 20.0f, 22.0f)
+		SpotLight(vec3(1.0f), 10.0f, vec3(64.1991f, -0.667602f, -79.8903f), 100.0f, vec3(0,-0.9,-0.3), 20.0f, 22.0f)
 	});
 	lightManager->setAmbient(vec3(0.01f));
 
