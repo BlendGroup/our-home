@@ -660,6 +660,94 @@ void nightscene::init() {
 	pathAdjuster->setRenderPoints(true);
 }
 
+void renderForIBL() {
+///////////////Skybox///////////////////////////////////////////////////////////
+	programSkybox->use();
+	glUniformMatrix4fv(programSkybox->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
+	glUniformMatrix4fv(programSkybox->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
+	glUniform1i(programSkybox->getUniformLocation("skyboxColor"), 0);
+	glUniform1i(programSkybox->getUniformLocation("skyboxEmmission"), 1);
+	glUniform1f(programSkybox->getUniformLocation("emmissionPower"), (*nightevents)[CROSSIN_T]);
+	glBindVertexArray(skybox_vao);
+	glBindTextureUnit(0, texColorNightSky);
+	glBindTextureUnit(1, texEmmissionNightSky);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
+////////////////////////////////////////////////////////////////////////////////
+
+///////////////Islands//////////////////////////////////////////////////////////
+	programTerrain->use();
+	glUniformMatrix4fv(programTerrain->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programTerrain->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 1250.0f));
+	glUniform3fv(programTerrain->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
+	glUniform1f(programTerrain->getUniformLocation("maxTess"), island->getMaxTess());
+	glUniform1f(programTerrain->getUniformLocation("minTess"), island->getMinTess());
+	glUniform1i(programTerrain->getUniformLocation("texHeight"), 0);
+	// glUniform1i(programTerrain->getUniformLocation("texNormal"), 1);
+	glUniform1i(programTerrain->getUniformLocation("texDiffuseGrass"), 2);
+	glUniform1i(programTerrain->getUniformLocation("texDiffuseDirt"), 3);
+	glUniform1f(programTerrain->getUniformLocation("texScale"), 15.0f);
+	glBindTextureUnit(0, island->getHeightMap());
+	glBindTextureUnit(1, island->getNormalMap());
+	glBindTextureUnit(2, texDiffuseGrass);
+	glBindTextureUnit(3, texDiffuseDirt);
+	island->render();
+////////////////////////////////////////////////////////////////////////////////
+
+///////////////Ocean////////////////////////////////////////////////////////////
+	programOcean->use();
+	glUniformMatrix4fv(programOcean->getUniformLocation("pMat"), 1, false, programglobal::perspective);
+	glUniformMatrix4fv(programOcean->getUniformLocation("vMat"), 1, false, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programOcean->getUniformLocation("mMat"), 1, false, translate(0.0f, -7.0f, 1300.0f) * scale(721.0f));
+	glUniform3fv(programOcean->getUniformLocation("cameraPosition"), 1, programglobal::currentCamera->position());
+	glUniform3fv(programOcean->getUniformLocation("oceanColor"), 1, oceanColor);
+	glUniform3fv(programOcean->getUniformLocation("skyColor"), 1, skyColor);
+	glUniform3fv(programOcean->getUniformLocation("sunDirection"), 1, sunDirection);
+	glUniform1i(programOcean->getUniformLocation("displacementMap"), 0);
+	glUniform1i(programOcean->getUniformLocation("normalMap"), 1);
+	glBindTextureUnit(0, obocean->getDisplacementMap());
+	glBindTextureUnit(1, obocean->getNormalMap());
+	obocean->render(programOcean);
+////////////////////////////////////////////////////////////////////////////////
+
+///////////////Rockets//////////////////////////////////////////////////////////
+	vec3 positions[] = {
+		vec3(0.0f, mix(vec1(420.1f), vec1(100.1f), (*nightevents)[ROCKET_T])[0], 774.8f),
+		vec3(180.0f, mix(vec1(520.1f), vec1(70.1f), (*nightevents)[ROCKET_T])[0], 700.1f),
+		vec3(190.0f, mix(vec1(800.1f), vec1(120.1f), (*nightevents)[ROCKET_T])[0], 400.1f),
+		// vec3(-80.0f, mix(vec1(400.1f), vec1(100.1f), (*nightevents)[ROCKET_T])[0], 360.1f),
+		vec3(-160.0f, mix(vec1(545.1f), vec1(160.1f), (*nightevents)[ROCKET_T])[0], 630.1f),
+		vec3(-200.0f, mix(vec1(420.1f), vec1(190.1f), (*nightevents)[ROCKET_T])[0], 750.1f),
+		// vec3(50.0f, mix(vec1(400.1f), vec1(100.1f), (*nightevents)[ROCKET_T])[0], 550.1f),
+	};
+
+	programStaticPBR->use();
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniform3fv(programStaticPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
+	glUniform1i(programStaticPBR->getUniformLocation("specularGloss"), GL_FALSE);
+	lightManager->setLightUniform(programStaticPBR, false);
+	for(int i = 0; i < 5; i++) {
+		programStaticPBR->use();
+		mat4 translateMat = translate(positions[i]);
+		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translateMat * rotate(90.0f, 1.0f, 0.0f, 0.0f) * rotate(-30.0f, 0.0f, 0.0f, 1.0f) * scale(5.5f));
+		modelRocket->draw(programStaticPBR);
+	
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		programFire->use();
+		glUniformMatrix4fv(programFire->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+		glUniformMatrix4fv(programFire->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+		glUniformMatrix4fv(programFire->getUniformLocation("mMat"), 1, GL_FALSE, translateMat * translate(-0.2f, -40.0f, -0.5f) * scale(8.3f, 20.3f, 1.0f));
+		glUniform1f(programFire->getUniformLocation("time"), fireT);
+		programglobal::shapeRenderer->renderQuad();
+		glDisable(GL_BLEND);
+	}
+
+////////////////////////////////////////////////////////////////////////////////
+}
+
 void preOceanRender() {
 	programTerrain->use();
 	glUniformMatrix4fv(programTerrain->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
@@ -739,10 +827,6 @@ void preOceanRender() {
 	modelFox->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
 	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-16.8f, 0.03f, mix(vec1(-91.0828f), vec1(-84.0828f), (*nightevents)[FOXWALK_T])[0]) * rotate(-77.0f, 0.0f, 1.0f, 0.0f) * scale(0.036f));
 	modelFox->draw(programDynamicPBR);
-}
-
-void drawRocket(mat4 mMat) {
-	
 }
 
 void postOceanRender() {
