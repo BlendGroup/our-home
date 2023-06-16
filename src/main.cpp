@@ -88,9 +88,9 @@ void init(glwindow* window) {
 		crossfader::render(tex, 0.0f);
 		window->swapBuffers();
 		sceneList.insert(sceneList.begin(), {
-			new titlescene(),
-			new labscene(),
-			new dayscene(),
+			// new titlescene(),
+			// new labscene(),
+			// new dayscene(),
 			new nightscene(),
 			new creditscene(),
 			new endscene()

@@ -1,3 +1,4 @@
+#include "CubeMapRenderTarget.h"
 #include<glshaderloader.h>
 #include<shapes.h>
 #include<scenes/night.h>
@@ -27,7 +28,7 @@
 #include<fireflies.h>
 
 //Set to 0 to disable opencl or call me on my cell phone
-#define OPENCL 1
+#define OPENCL 0
 
 using namespace std;
 using namespace vmath;
@@ -108,6 +109,9 @@ static ocean *obocean;
 static BsplineInterpolator* phoenixPath;
 static SplineRenderer *pathPhoenix;
 
+static CubeMapRenderTarget* iblNight;
+static SceneLight* iblLight;
+static bool iblSetup = true;
 void nightscene::setupProgram() {
 	try {
 		programTerrain = new glshaderprogram({"shaders/terrain/render.vert", "shaders/terrain/render.tesc", "shaders/terrain/render.tese", "shaders/terrain/renderjungle.frag"});
@@ -674,13 +678,24 @@ void nightscene::init() {
 	pathPhoenix = new SplineRenderer(phoenixPath);
 	pathAdjuster = new SplineAdjuster(phoenixPath);
 	pathAdjuster->setRenderPoints(true);
+
+	iblNight = new CubeMapRenderTarget(2048,2048,false);
+	iblNight->setPosition(vec3(-0.3f, -5.1f, 1157.5f));
+
+	iblLight = new SceneLight(true);
+	iblLight->addDirectionalLights({
+		DirectionalLight(vec3(0.3f, 0.3f, 0.3f), 3.0f, vec3(0.0f, -1.0f, -1.0f)),
+		DirectionalLight(vec3(0.3f, 0.3f, 0.3f), 3.0f, vec3(0.0f, -1.0f, 1.0f)),
+	});
+
 }
 
-void renderForIBL() {
+void renderForIBL(mat4 &projection,mat4& view,vec3& camPos) {
+
 ///////////////Skybox///////////////////////////////////////////////////////////
 	programSkybox->use();
-	glUniformMatrix4fv(programSkybox->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
-	glUniformMatrix4fv(programSkybox->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programSkybox->getUniformLocation("pMat"),1,GL_FALSE,projection);
+	glUniformMatrix4fv(programSkybox->getUniformLocation("vMat"),1,GL_FALSE,view);
 	glUniform1i(programSkybox->getUniformLocation("skyboxColor"), 0);
 	glUniform1i(programSkybox->getUniformLocation("skyboxEmmission"), 1);
 	glUniform1f(programSkybox->getUniformLocation("emmissionPower"), (*nightevents)[CROSSIN_T]);
@@ -693,10 +708,10 @@ void renderForIBL() {
 
 ///////////////Islands//////////////////////////////////////////////////////////
 	programTerrain->use();
-	glUniformMatrix4fv(programTerrain->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	glUniformMatrix4fv(programTerrain->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programTerrain->getUniformLocation("pMat"), 1, GL_FALSE, projection);
+	glUniformMatrix4fv(programTerrain->getUniformLocation("vMat"), 1, GL_FALSE, view);
 	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 1250.0f));
-	glUniform3fv(programTerrain->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
+	glUniform3fv(programTerrain->getUniformLocation("cameraPos"), 1, camPos);
 	glUniform1f(programTerrain->getUniformLocation("maxTess"), island->getMaxTess());
 	glUniform1f(programTerrain->getUniformLocation("minTess"), island->getMinTess());
 	glUniform1i(programTerrain->getUniformLocation("texHeight"), 0);
@@ -713,10 +728,10 @@ void renderForIBL() {
 
 ///////////////Ocean////////////////////////////////////////////////////////////
 	programOcean->use();
-	glUniformMatrix4fv(programOcean->getUniformLocation("pMat"), 1, false, programglobal::perspective);
-	glUniformMatrix4fv(programOcean->getUniformLocation("vMat"), 1, false, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programOcean->getUniformLocation("pMat"), 1, false, projection);
+	glUniformMatrix4fv(programOcean->getUniformLocation("vMat"), 1, false, view);
 	glUniformMatrix4fv(programOcean->getUniformLocation("mMat"), 1, false, translate(0.0f, -7.0f, 1300.0f) * scale(721.0f));
-	glUniform3fv(programOcean->getUniformLocation("cameraPosition"), 1, programglobal::currentCamera->position());
+	glUniform3fv(programOcean->getUniformLocation("cameraPosition"), 1, camPos);
 	glUniform3fv(programOcean->getUniformLocation("oceanColor"), 1, oceanColor);
 	glUniform3fv(programOcean->getUniformLocation("skyColor"), 1, skyColor);
 	glUniform3fv(programOcean->getUniformLocation("sunDirection"), 1, sunDirection);
@@ -739,9 +754,9 @@ void renderForIBL() {
 	};
 
 	programStaticPBR->use();
-	glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-	glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
-	glUniform3fv(programStaticPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"), 1, GL_FALSE, projection);
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"), 1, GL_FALSE, view);
+	glUniform3fv(programStaticPBR->getUniformLocation("viewPos"), 1, camPos);
 	glUniform1i(programStaticPBR->getUniformLocation("specularGloss"), GL_FALSE);
 	lightManager->setLightUniform(programStaticPBR, false);
 	for(int i = 0; i < 5; i++) {
@@ -753,14 +768,13 @@ void renderForIBL() {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		programFire->use();
-		glUniformMatrix4fv(programFire->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
-		glUniformMatrix4fv(programFire->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+		glUniformMatrix4fv(programFire->getUniformLocation("pMat"), 1, GL_FALSE, projection);
+		glUniformMatrix4fv(programFire->getUniformLocation("vMat"), 1, GL_FALSE, view);
 		glUniformMatrix4fv(programFire->getUniformLocation("mMat"), 1, GL_FALSE, translateMat * translate(-0.2f, -40.0f, -0.5f) * scale(8.3f, 20.3f, 1.0f));
 		glUniform1f(programFire->getUniformLocation("time"), fireT);
 		programglobal::shapeRenderer->renderQuad();
 		glDisable(GL_BLEND);
 	}
-
 ////////////////////////////////////////////////////////////////////////////////
 }
 
@@ -846,6 +860,23 @@ void preOceanRender() {
 }
 
 void postOceanRender() {
+
+	if(iblSetup){
+		glBindFramebuffer(GL_FRAMEBUFFER,iblNight->FBO);
+		glViewport(0, 0, iblNight->width, iblNight->height);
+		for(int side = 0; side < 6; side++)
+		{
+			glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_CUBE_MAP_POSITIVE_X + side,iblNight->cubemap_texture,0);
+			glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
+			glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
+			renderForIBL(iblNight->projection,iblNight->view[side],iblNight->position);
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER,0);
+		iblLight->setEnvmap(iblNight->cubemap_texture);
+		iblLight->PrecomputeIndirectLighting();
+		iblSetup = false;
+	}
+
 	programTerrain->use();
 	glUniformMatrix4fv(programTerrain->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
 	glUniformMatrix4fv(programTerrain->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
@@ -869,13 +900,13 @@ void postOceanRender() {
 	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
 	glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
 	glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"), GL_FALSE);
-	lightManager->setLightUniform(programDynamicPBR, false);
+	iblLight->setLightUniform(programDynamicPBR);
 	modelDrone->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
 	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(2.3f, -1.0f, 1161.0f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(15.0f));
 	modelDrone->draw(programDynamicPBR);
 
 	modelAstro->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
-	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-0.3f, -4.1f, 1157.5f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(3.0f));
+	glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-0.3f, -5.1f, 1157.5f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(3.0f));
 	modelAstro->draw(programDynamicPBR);
 
 	programStaticPBR->use();
@@ -883,7 +914,7 @@ void postOceanRender() {
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
 	glUniform3fv(programStaticPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
 	glUniform1i(programStaticPBR->getUniformLocation("specularGloss"), GL_FALSE);
-	lightManager->setLightUniform(programStaticPBR, false);
+	iblLight->setLightUniform(programStaticPBR);
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-6.0f, 5.5f, 1186.0f) * rotate(90.0f, 1.0f, 0.0f, 0.0f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(2.0f));
 	modelTie->draw(programStaticPBR);
 
