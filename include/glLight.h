@@ -145,5 +145,6 @@ private:
     void setLightUniform(glshaderprogram* program, bool useIndirectLight = true);
     void renderSceneLights();
     void SceneLightKeyBoardFunc(int key);
-    friend std::ostream& operator<<(std::ostream &out, SceneLight* s);
+    void setAmbient(vmath::vec3 ambient);
+	friend std::ostream& operator<<(std::ostream &out, SceneLight* s);
 };

@@ -266,6 +266,10 @@ void SceneLight::PrecomputeIndirectLighting(){
 	glDeleteVertexArrays(1,&temp);
 }
 
+void SceneLight::setAmbient(vec3 ambient) {
+	this->ambient = ambient;
+}
+
 void SceneLight::addDirectionalLights(vector<DirectionalLight> dl){
 	this->directional.insert(this->directional.end(), dl.begin(), dl.end());
 }

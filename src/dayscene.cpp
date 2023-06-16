@@ -256,7 +256,7 @@ void dayscene::init() {
 		{CAMERA1MOVE_T, { 2.0f, 40.0f }},
 		{DRONETURN_T, { 1.5f, 2.0f }},
 		{DRONEMOVE_T, { 2.0f, 40.6f }},
-		{TURTLESWIM_T, {28.0f, 40.0f}},
+		{TURTLESWIM_T, {28.0f, 80.0f}},
 		{SUNRISEINIT_T, {42.0f, 5.0f}},
 		{SUNRISEMID_T, {47.0f, 3.5f}},
 		{SUNRISEEND_T, {50.5f, 3.5f}},
@@ -368,8 +368,11 @@ void dayscene::init() {
 
 	lightManager = new SceneLight();
 	lightManager->addDirectionalLights({
-		DirectionalLight(vec3(1.0f),5.0f,vec3(0.0,-1.0,0.0f))
+		DirectionalLight(vec3(0.25f),1.0f,vec3(0.0,-1.0,-1.0f)),
+		DirectionalLight(vec3(0.25f),1.0f,vec3(0.0,-1.0,1.0f)),
+		DirectionalLight(vec3(0.0f),1.0f,vec3(0.0,-1.0,1.0f))
 	});
+	lightManager->setAmbient(vec3(0.01f));
 
 	lake1 = new lake(-6.0f);
 

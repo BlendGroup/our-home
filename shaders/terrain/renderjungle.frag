@@ -42,6 +42,8 @@ uniform float texScale;
 uniform sampler2D texDiffuseGrass;
 uniform sampler2D texDiffuseDirt;
 
+uniform vec3 ambientColor;
+
 float random (in vec2 st) {
     return fract(sin(dot(st.xy,
                          vec2(12.9898,78.233)))*
@@ -150,6 +152,6 @@ void main(void) {
     vec2 allLight = directional + point + spot;
 
 	vec3 difColor = mix(texture(texDiffuseGrass, fs_in.tc * texScale).rgb, texture(texDiffuseDirt, fs_in.tc * texScale).rgb, 1.0 - (noise(fs_in.tc * texScale) * 0.5 + 0.5));
-	FragColor = vec4(allLight.x * difColor + vec3(0.1, 0.1, 0.1) * allLight.y, 1.0);
+	FragColor = vec4(ambientColor + allLight.x * difColor + vec3(0.1, 0.1, 0.1) * allLight.y, 1.0);
 	EmissionColor = vec4(0.0);
 }
