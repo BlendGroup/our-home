@@ -249,7 +249,6 @@ int main(int argc, char **argv) {
 		auto initstart = chrono::steady_clock::now();
 		window->setKeyboardFunc(keyboard);
 		window->setMouseFunc(mouse);
-		int t = (int)window->getSize().width;
 		init(window);
 		window->setFullscreen(true);
 		auto initend = chrono::steady_clock::now();
