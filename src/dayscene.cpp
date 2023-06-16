@@ -502,7 +502,7 @@ void dayscene::render() {
     	sunAngle = mix(vec1(radians(10.0f)), vec1(radians(35.0f)), (*dayevents)[SUNRISEEND_T])[0];
 		lightManager->setDirectionalLightColor(2, mix(vec3(1.0f, 0.7f, 0.4f), vec3(1.0f, 1.0f, 1.0f), (*dayevents)[SUNRISEEND_T]));
 	} else {
-    	sunAngle = mix(vec1(radians(35.0f)), vec1(radians(185.0f)), (*dayevents)[SUNSET_T])[0];
+    	sunAngle = mix(vec1(radians(35.0f)), vec1(radians(182.0f)), (*dayevents)[SUNSET_T])[0];
 	}
 
 	lightManager->setDirectionalLightDirection(2, vec3(0.0f, -sin(sunAngle), -cos(sunAngle)));
@@ -623,7 +623,7 @@ void dayscene::update() {
 	}
 	if((*dayevents)[SUNSET_T] >= 1.0f) {
 		crossfader::startSnapshot(texDaySceneFinal);
-		atmosphere->render(programglobal::currentCamera->matrix(), radians(185.0f));
+		atmosphere->render(programglobal::currentCamera->matrix(), radians(182.0f));
 		crossfader::endSnapshot();
 		playNextScene();
 	}
