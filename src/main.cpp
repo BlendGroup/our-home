@@ -25,6 +25,8 @@
 #include<scenes/lab.h>
 #include<scenes/day.h>
 #include<scenes/night.h>
+#include<scenes/credit.h>
+#include<scenes/end.h>
 
 using namespace std;
 using namespace vmath;
@@ -89,7 +91,9 @@ void init(glwindow* window) {
 			new titlescene(),
 			new labscene(),
 			new dayscene(),
-			new nightscene()
+			new nightscene(),
+			new creditscene(),
+			new endscene()
 		});
 
 		//Inititalize
@@ -214,6 +218,7 @@ void playNextScene(void) {
 	current++;
 	if(current < sceneList.size()) {
 		currentScene = sceneList[current];
+	} else {
 	}
 }
 
