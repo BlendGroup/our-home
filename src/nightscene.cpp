@@ -1,5 +1,5 @@
-#include "glshaderloader.h"
-#include "shapes.h"
+#include<glshaderloader.h>
+#include<shapes.h>
 #include<scenes/night.h>
 #include<iostream>
 #include<vmath.h>
@@ -470,8 +470,8 @@ void nightscene::init() {
 	quickModelPlacer = new modelplacer();
 	lightManager = new SceneLight(false);
 	lightManager->addDirectionalLights({
-		DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, -0.5f, -1.0f)),
-		DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, 0.5f, 1.0f))
+		DirectionalLight(vec3(0.3f, 0.3f, 0.3f), 3.0f, vec3(0.0f, -1.0f, -1.0f)),
+		DirectionalLight(vec3(0.3f, 0.3f, 0.3f), 3.0f, vec3(0.0f, -1.0f, 1.0f)),
 	});
 
 	float skybox_positions[] = {
@@ -903,6 +903,8 @@ void nightscene::render() {
 		camRig1->render();
 	} else if(programglobal::debugMode == SPLINE) {
 		pathAdjuster->render(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f, 0.0f, 1.0f, 1.0f), vec4(1.0f, 1.0f, 0.0f, 1.0f));
+	} else if(programglobal::debugMode == LIGHT) {
+		lightManager->renderSceneLights();
 	}
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -954,7 +956,8 @@ void nightscene::keyboardfunc(int key) {
 		camRig1->keyboardfunc(key);
 	} else if(programglobal::debugMode == SPLINE) {
 		pathAdjuster->keyboardfunc(key);
-	} else if(programglobal::debugMode == NONE) {
+	} else if(programglobal::debugMode == LIGHT) {
+		lightManager->SceneLightKeyBoardFunc(key);
 	}
 	switch(key) {
 	case XK_Up:

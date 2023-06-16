@@ -89,7 +89,8 @@ in TES_OUT {
 	vec3 nor;
 } fs_in;
 
-vec2 blinnPhong(BaseLight base, vec3 direction, vec3 N, vec3 P)
+
+vec2 blinnPhong(vec3 direction, vec3 N, vec3 P)
 {
     float diffuse = max(dot(N, -direction), 0.0);
 
@@ -115,43 +116,42 @@ float getSpotAngleAttenuation(vec3 l, vec3 light_dir,float inner_angle,float out
     return attenuation;
 }
 
-vec2 calcDirectionalLight(DirectionalLight light, vec3 normal, vec3 world_pos){
-    return blinnPhong(light.base, light.direction, normal, world_pos);
+float calcDirectionalLight(DirectionalLight light, vec3 normal, vec3 world_pos, out vec3 diffuse) {
+    vec2 op = blinnPhong(light.direction, normal, world_pos);
+	diffuse = op.x * light.base.color;
+	return op.y;
 }
 
-vec2 calcPointLight(PointLight light, vec3 N, vec3 P){
+float calcPointLight(PointLight light, vec3 N, vec3 P, out vec3 diffuse){
     vec3 light_direction    = light.position - P;
     float attenuation = getSquareFalloffAttenuation(light_direction, 1.0 / max(light.radius,1e-5));
-    return blinnPhong(light.base, normalize(light_direction), N, P) * attenuation;
+    vec2 op = blinnPhong(normalize(light_direction), N, P) * attenuation;
+	diffuse = op.x * light.base.color;
+	return op.y;
 }
 
-vec2 calcSpotLight(SpotLight light, vec3 N, vec3 P){
+float calcSpotLight(SpotLight light, vec3 N, vec3 P, out vec3 diffuse){
     vec3 l = normalize(P - light.point.position);
     float attenuation = getSpotAngleAttenuation(l,-light.direction,light.inner_angle,light.outer_angle);
-    return calcPointLight(light.point,N,P) * attenuation;
+    float op = calcPointLight(light.point,N,P,diffuse) * attenuation;
+	return op;
 }
 
 void main(void) {
     
-    vec2 directional = vec2(0.0);
+    float specular = 0.0;
+	vec3 diffuse = vec3(0.0);
     for(int i = 0; i < numOfDL; i++){
-        directional += calcDirectionalLight(dl[i],normalize(fs_in.nor),fs_in.pos);
+        specular += calcDirectionalLight(dl[i],normalize(fs_in.nor),fs_in.pos, diffuse);
     }
-
-    vec2 point = vec2(0.0);
     for(int i = 0; i < numOfPoints; i++){
-        point += calcPointLight(pl[i],normalize(fs_in.nor),fs_in.pos);
+        specular += calcPointLight(pl[i],normalize(fs_in.nor),fs_in.pos, diffuse);
     }
-
-    vec2 spot = vec2(0.0);
     for(int i = 0; i < numOfSpots; i++){
-        spot += calcSpotLight(sl[i],normalize(fs_in.nor),fs_in.pos);
+        specular += calcSpotLight(sl[i],normalize(fs_in.nor),fs_in.pos, diffuse);
     }
-
-	float diffuse, specular;
-    vec2 allLight = directional + point + spot;
 
 	vec3 difColor = mix(texture(texDiffuseGrass, fs_in.tc * texScale).rgb, texture(texDiffuseDirt, fs_in.tc * texScale).rgb, 1.0 - (noise(fs_in.tc * texScale) * 0.5 + 0.5));
-	FragColor = vec4(ambientColor + allLight.x * difColor + vec3(0.1, 0.1, 0.1) * allLight.y, 1.0);
+	FragColor = vec4(ambientColor + diffuse * difColor + vec3(0.0001) * specular, 1.0);
 	EmissionColor = vec4(0.0);
 }
