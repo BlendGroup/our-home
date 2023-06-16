@@ -433,7 +433,7 @@ void dayscene::renderScene(bool cameraFlip) {
 	lightManager->setLightUniform(programStaticPBR, false);
 	
 	// glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, lakePlacer->getModelMatrix());
-	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-30.4f, 3.9f, -62.8999f) * rotate(27.0f, 0.0f, 1.0f, 0.0f) * scale(3.0f));
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-30.4f, 3.7f, -62.8999f) * rotate(27.0f, 0.0f, 1.0f, 0.0f) * scale(3.0f));
 	modelTreeRed->draw(programStaticPBR);
 
 	programDynamicPBR->use();
