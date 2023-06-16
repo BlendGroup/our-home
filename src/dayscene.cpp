@@ -373,6 +373,9 @@ void dayscene::init() {
 		DirectionalLight(vec3(0.15f),1.0f,vec3(0.0,-1.0,1.0f)),
 		DirectionalLight(vec3(0.0f),1.0f,vec3(0.0,-1.0,0.0f))
 	});
+	lightManager->addSpotLights({
+		SpotLight(vec3(1.0f), 3.0f, vec3(64.1991f, -0.667602f, -79.8903f), 100.0f, vec3(0.0f, -1.0f, 0.0f), 20.0f, 22.0f)
+	});
 	lightManager->setAmbient(vec3(0.01f));
 
 	lake1 = new lake(-6.0f);
@@ -480,6 +483,10 @@ void dayscene::renderScene(bool cameraFlip) {
 void dayscene::render() {
 	camera1->setT((*dayevents)[CAMERA1MOVE_T]);
 	camera2->setT((*dayevents)[CAMERA2MOVE_T]);
+	
+	vec3 dronepos = splineDrone->interpolate((*dayevents)[DRONEMOVE_T]);
+	vec3 dronefront = splineDrone->interpolate((*dayevents)[DRONEMOVE_T] + 0.001f);
+	lightManager->setSpotLightPosition(0, dronepos);
 
 	godraysDrone->setDecay(mix(vec1(1.04f), vec1(0.95f), (*dayevents)[GODRAYIN_T])[0]);
 

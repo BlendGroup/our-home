@@ -135,7 +135,9 @@ float calcPointLight(PointLight light, vec3 N, vec3 P, out vec3 diffuse){
 float calcSpotLight(SpotLight light, vec3 N, vec3 P, out vec3 diffuse){
     vec3 l = normalize(P - light.point.position);
     float attenuation = getSpotAngleAttenuation(l,-light.direction,light.inner_angle,light.outer_angle);
-    float op = calcPointLight(light.point,N,P,diffuse) * attenuation;
+    vec3 d;
+	float op = calcPointLight(light.point,N,P,d) * attenuation;
+	diffuse = d;
 	return op;
 }
 

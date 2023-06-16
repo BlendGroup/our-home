@@ -128,6 +128,8 @@ SceneLight::SceneLight(bool envLight) :
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), NULL);
 	glEnableVertexAttribArray(0);
 
+	lightRender = new glshaderprogram({"shaders/debug/lightSrc.vert", "shaders/debug/lightSrc.frag"});
+
 	//setup light program
 	this->indirectLight = envLight;
 	if(envLight){
@@ -137,7 +139,6 @@ SceneLight::SceneLight(bool envLight) :
 			irradianceProgram = new glshaderprogram({"shaders/debug/rendercubemap.vert","shaders/debug/irradiance_convolution.frag"});
 			prefilterProgram = new glshaderprogram({"shaders/debug/rendercubemap.vert","shaders/debug/prefilter_cubemap.frag"});
 			precomputeBRDF = new glshaderprogram({"shaders/fsquad.vert","shaders/debug/precompute_brdf.frag"});
-			lightRender = new glshaderprogram({"shaders/debug/lightSrc.vert", "shaders/debug/lightSrc.frag"});
 
 			//envirounmentMap = new CubeMapRenderTarget(2048,2048,false);
 			irradianceMap = new CubeMapRenderTarget(32,32,false);
@@ -552,4 +553,8 @@ void SceneLight::setDirectionalLightDirection(int i, vmath::vec3 direction) {
 
 void SceneLight::setPointLightColor(int i, vmath::vec3 color) {
 	this->points[i].update_color(color);
+}
+
+void SceneLight::setSpotLightPosition(int i, vmath::vec3 position) {
+	this->spots[i].update_position(position);
 }
