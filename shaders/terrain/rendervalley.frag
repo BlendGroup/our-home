@@ -125,10 +125,10 @@ float calcDirectionalLight(DirectionalLight light, vec3 normal, vec3 world_pos, 
 }
 
 float calcPointLight(PointLight light, vec3 N, vec3 P, out vec3 diffuse){
-    vec3 light_direction    = light.position - P;
+    vec3 light_direction    = P - light.position;
     float attenuation = getSquareFalloffAttenuation(light_direction, 1.0 / max(light.radius,1e-5));
     vec2 op = blinnPhong(normalize(light_direction), N, P) * attenuation;
-	diffuse = op.x * light.base.color;
+	diffuse = op.x * light.base.color * light.base.intensity;
 	return op.y;
 }
 
