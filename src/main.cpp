@@ -83,7 +83,7 @@ void init(glwindow* window) {
 		crossfader::init();
 		initTextureLoader();
 		window->processEvents();
-		GLuint tex = createTexture2D("resources/textures/load.jpg");
+		GLuint tex = createTexture2D("resources/textures/loading.png", GL_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 		glViewport(0, 0, window->getSize().width, window->getSize().height);
 		crossfader::render(tex, 0.0f);
 		window->swapBuffers();
