@@ -286,7 +286,6 @@ void SceneLight::setLightUniform(glshaderprogram *program, bool useIndirectLight
 	// Directional Lights
 	glUniform1i(program->getUniformLocation("numOfDL"),directional.size());
 	for(size_t i = 0; i < directional.size(); i++){
-		
 		glUniform3fv(program->getUniformLocation("dl["+to_string(i)+"].base.color"),1,directional[i].color);
 		glUniform3fv(program->getUniformLocation("dl["+to_string(i)+"].direction"),1, normalize(directional[i].direction));
 		glUniform1f(program->getUniformLocation("dl["+to_string(i)+"].base.intensity"),directional[i].intensity);

@@ -355,7 +355,7 @@ void dayscene::init() {
 	};
 	splineBird = new BsplineInterpolator(birdVector);
 
-	splineAdjuster = new SplineAdjuster(splineBird);
+	splineAdjuster = new SplineAdjuster(splineTurtle);
 	splineAdjuster->setRenderPath(true);
 	splineAdjuster->setRenderPoints(true);
 	splineAdjuster->setScalingFactor(0.1f);

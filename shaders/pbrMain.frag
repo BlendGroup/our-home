@@ -56,7 +56,7 @@ struct SpotLight{
 
 uniform vec3 viewPos;
 uniform material_t material;
-uniform DirectionalLight dl[2];
+uniform DirectionalLight dl[5];
 uniform PointLight pl[10];
 uniform SpotLight sl[5];
 

@@ -32,7 +32,7 @@ struct SpotLight{
 uniform int numOfDL;
 uniform int numOfPoints;
 uniform int numOfSpots;
-uniform DirectionalLight dl[2];
+uniform DirectionalLight dl[5];
 uniform PointLight pl[10];
 uniform SpotLight sl[5];
 
