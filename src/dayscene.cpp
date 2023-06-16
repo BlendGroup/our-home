@@ -87,7 +87,8 @@ static GLuint texLakeDuDvMap;
 extern GLuint texLabSceneFinal;
 GLuint texDaySceneFinal;
 static GLuint texTerrainHeight;
-	
+static GLfloat sunAngle;
+
 enum tvalues {
 	CROSSIN_T,
 	GODRAYIN_T,
@@ -370,7 +371,7 @@ void dayscene::init() {
 	lightManager->addDirectionalLights({
 		DirectionalLight(vec3(0.15f),1.0f,vec3(0.0,-1.0,-1.0f)),
 		DirectionalLight(vec3(0.15f),1.0f,vec3(0.0,-1.0,1.0f)),
-		DirectionalLight(vec3(0.0f),1.0f,vec3(0.0,-1.0,1.0f))
+		DirectionalLight(vec3(0.0f),1.0f,vec3(0.0,-1.0,0.0f))
 	});
 	lightManager->setAmbient(vec3(0.01f));
 
@@ -473,17 +474,7 @@ void dayscene::renderScene(bool cameraFlip) {
 		modelBird->setBoneMatrixUniform(programDynamicPBR->getUniformLocation("bMat[0]"), 0);
 		modelBird->draw(programDynamicPBR);
 	}
-	if((*dayevents)[SUNRISEINIT_T] <= 0.0f) {
-    	atmosphere->render(currentViewMatrix, mix(vec1(radians(-10.0f)), vec1(radians(0.0f)), (*dayevents)[CAMERA1MOVE_T])[0]);
-	} else if((*dayevents)[SUNRISEMID_T] <= 0.0f) {
-    	atmosphere->render(currentViewMatrix, mix(vec1(radians(0.0f)), vec1(radians(3.0f)), (*dayevents)[SUNRISEINIT_T])[0]);
-	} else if((*dayevents)[SUNRISEEND_T] <= 0.0f) {
-    	atmosphere->render(currentViewMatrix, mix(vec1(radians(3.0f)), vec1(radians(10.0f)), (*dayevents)[SUNRISEMID_T])[0]);
-	} else if((*dayevents)[CAMERA2MOVE_T] <= 0.01f){
-    	atmosphere->render(currentViewMatrix, mix(vec1(radians(10.0f)), vec1(radians(35.0f)), (*dayevents)[SUNRISEEND_T])[0]);
-	} else {
-    	atmosphere->render(currentViewMatrix, mix(vec1(radians(35.0f)), vec1(radians(185.0f)), (*dayevents)[SUNSET_T])[0]);
-	}
+	atmosphere->render(currentViewMatrix, sunAngle);
 }
 
 void dayscene::render() {
@@ -491,6 +482,23 @@ void dayscene::render() {
 	camera2->setT((*dayevents)[CAMERA2MOVE_T]);
 
 	godraysDrone->setDecay(mix(vec1(1.04f), vec1(0.95f), (*dayevents)[GODRAYIN_T])[0]);
+
+	if((*dayevents)[SUNRISEINIT_T] <= 0.0f) {
+    	sunAngle = mix(vec1(radians(-10.0f)), vec1(radians(0.0f)), (*dayevents)[CAMERA1MOVE_T])[0];
+	} else if((*dayevents)[SUNRISEMID_T] <= 0.0f) {
+    	sunAngle = mix(vec1(radians(0.0f)), vec1(radians(3.0f)), (*dayevents)[SUNRISEINIT_T])[0];
+		lightManager->setDirectionalLightColor(2, mix(vec3(0.0f, 0.0f, 0.0f), vec3(1.0f, 0.4f, 0.1f), (*dayevents)[SUNRISEINIT_T]));
+	} else if((*dayevents)[SUNRISEEND_T] <= 0.0f) {
+    	sunAngle = mix(vec1(radians(3.0f)), vec1(radians(10.0f)), (*dayevents)[SUNRISEMID_T])[0];
+		lightManager->setDirectionalLightColor(2, mix(vec3(1.0f, 0.4f, 0.1f), vec3(1.0f, 0.7f, 0.4f), (*dayevents)[SUNRISEMID_T]));
+	} else if((*dayevents)[CAMERA2MOVE_T] <= 0.01f){
+    	sunAngle = mix(vec1(radians(10.0f)), vec1(radians(35.0f)), (*dayevents)[SUNRISEEND_T])[0];
+		lightManager->setDirectionalLightColor(2, mix(vec3(1.0f, 0.7f, 0.4f), vec3(1.0f, 1.0f, 1.0f), (*dayevents)[SUNRISEEND_T]));
+	} else {
+    	sunAngle = mix(vec1(radians(35.0f)), vec1(radians(185.0f)), (*dayevents)[SUNSET_T])[0];
+	}
+
+	lightManager->setDirectionalLightDirection(2, vec3(0.0f, -sin(sunAngle), -cos(sunAngle)));
 
 	glEnable(GL_CLIP_DISTANCE0);
 	lake1->setReflectionFBO();

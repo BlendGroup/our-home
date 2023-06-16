@@ -57,6 +57,10 @@ struct DirectionalLight : BaseLight{
         direction[2] = sinf(el) * sinf(az);
         direction = vmath::normalize(-direction);
     }
+	void setDirection(vmath::vec3 dir) {
+        direction = vmath::normalize(dir);
+    }
+
 };
 
 struct PointLight : BaseLight{
@@ -102,13 +106,15 @@ struct SpotLight : PointLight{
     }
 
     void setDirection(float azimuth, float elevation){
-        
         float az = vmath::radians(azimuth);
         float el = vmath::radians(elevation);
         direction[0] = sinf(el) * cosf(az);
         direction[1] = cosf(el);
         direction[2] = sinf(el) * sinf(az);
         direction = vmath::normalize(-direction);
+    }
+    void setDirection(vmath::vec3 dir) {
+        direction = vmath::normalize(dir);
     }
 };
 
@@ -146,5 +152,7 @@ private:
     void renderSceneLights();
     void SceneLightKeyBoardFunc(int key);
     void setAmbient(vmath::vec3 ambient);
+	void setDirectionalLightColor(int i, vmath::vec3 color);
+	void setDirectionalLightDirection(int i, vmath::vec3 direction);
 	friend std::ostream& operator<<(std::ostream &out, SceneLight* s);
 };

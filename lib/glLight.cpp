@@ -541,3 +541,11 @@ ostream& operator<<(ostream& out, SceneLight* s) {
 */
 	return out;
 }
+
+void SceneLight::setDirectionalLightColor(int i, vmath::vec3 color) {
+	this->directional[i].update_color(color);
+}
+
+void SceneLight::setDirectionalLightDirection(int i, vmath::vec3 direction) {
+	this->directional[i].setDirection(direction);
+}
