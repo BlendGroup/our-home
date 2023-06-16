@@ -469,8 +469,10 @@ void nightscene::init() {
 	// quickModelPlacer = new modelplacer(vec3(-9.8f, 0.03f, -95.1098f), vec3(0.0f, -77.0f, 0.0f), 0.05f);
 	quickModelPlacer = new modelplacer();
 	lightManager = new SceneLight(false);
-	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, -0.5f, -1.0f)));
-	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, 0.5f, 1.0f)));
+	lightManager->addDirectionalLights({
+		DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, -0.5f, -1.0f)),
+		DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, 0.5f, 1.0f))
+	});
 
 	float skybox_positions[] = {
 		// positions          

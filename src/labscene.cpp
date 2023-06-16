@@ -185,13 +185,10 @@ void labscene::init() {
 	envMapper->setPosition(vec3(0.0f, 0.0f, 0.0f));
 	
 	sceneLightManager = new SceneLight(true);
-	sceneLightManager->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,0.0,-1.0f)));
-	sceneLightManager->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(-5.0f,5.0f,-5.0f),25.0f));
-	sceneLightManager->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,-5.0f),25.0f));
-	sceneLightManager->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,5.0f),25.0f));
-	sceneLightManager->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(-5.0f,5.0f,5.0f),25.0f));
-	sceneLightManager->addSpotLight(SpotLight(vec3(0.0f,1.0f,0.0f),100.0f,vec3(-6.0f,8.0f,3.5f),35.0f,vec3(0.0f,0.0f,-1.0f),30.0f,45.0f));
-
+	sceneLightManager->addPointLights({
+		PointLight(vec3(vec3(1.0f, 1.0f, 1.0f)), 21.0f,vec3(vec3(-3.1f, 1.4f, -0.3f)), 8.0f),
+		PointLight(vec3(vec3(1.0f, 1.0f, 1.0f)), 21.0f,vec3(vec3(2.9f, 1.4f, -1.2f)), 8.0f)
+	});
 	float skybox_positions[] = {
 		// positions          
 		-1.0f,  1.0f, -1.0f,
@@ -387,6 +384,8 @@ void labscene::render() {
 			cameraRig->render();
 		} else if(programglobal::debugMode == SPLINE) {
 			robotSpline->render(RED_PINK_COLOR);
+		} else if(programglobal::debugMode == LIGHT) {
+			sceneLightManager->renderSceneLights();
 		}
 	} catch(string errString) {
 		throwErr(errString);
@@ -451,6 +450,7 @@ void labscene::keyboardfunc(int key) {
 	} else if(programglobal::debugMode == MODEL) {
 		doorPlacer->keyboardfunc(key);
 	} else if(programglobal::debugMode == LIGHT){
+		sceneLightManager->SceneLightKeyBoardFunc(key);
 	}
 	switch(key) {
 	case XK_Up:
@@ -468,6 +468,9 @@ void labscene::keyboardfunc(int key) {
 		}
 		if(programglobal::debugMode == MODEL) {
 			cout<<doorPlacer<<endl;
+		}
+		if(programglobal::debugMode == LIGHT) {
+			cout<<sceneLightManager<<endl;
 		}
 		break;
 	}

@@ -80,10 +80,10 @@ void init(void) {
 		programglobal::randgen = new randomgenerator();
 		crossfader::init();
 		sceneList.insert(sceneList.begin(), {
-			new titlescene(),
+			// new titlescene(),
 			new labscene(),
-			new dayscene(),
-			new nightscene()
+			// new dayscene(),
+			// new nightscene()
 		});
 
 		//Inititalize

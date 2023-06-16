@@ -67,6 +67,7 @@ uniform bool specularGloss;
 uniform bool IBL;
 uniform bool isTexture;
 uniform int renderEmissiveToOcclusion = 0;
+uniform vec3 ambientColor;
 
 layout (binding = 0)uniform sampler2D texture_diffuse;
 layout (binding = 1)uniform sampler2D texture_normal;
@@ -276,9 +277,11 @@ void main(void) {
     vec3 ambient = vec3(0.0);
     if(IBL){
         ambient = indirectLightingDiffuse(normalize(fs_in.N),fs_in.P) + texture(texture_emissive,fs_in.Tex).rgb;
-    }
+    } else {
+		ambient = ambientColor;
+	}
 
-    fragColor = vec4(ambient + directional + point + spot,material.opacity);
+    fragColor = vec4(ambient + directional + point + spot, material.opacity);
     emmitColor = vec4(texture(texture_emissive,fs_in.Tex).rgb + material.emissive,material.opacity);
 	occlusionColor = emmitColor * renderEmissiveToOcclusion;
 }

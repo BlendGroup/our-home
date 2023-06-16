@@ -112,7 +112,6 @@ void dayscene::setupProgram() {
 		programStaticPBR = new glshaderprogram({"shaders/pbrStatic.vert", "shaders/pbrMain.frag"});
 		programDynamicPBR = new glshaderprogram({"shaders/pbrDynamic.vert", "shaders/pbrMain.frag"});
 		programColor = new glshaderprogram({"shaders/color.vert", "shaders/color.frag"});
-		programLight = new glshaderprogram({"shaders/debug/lightSrc.vert", "shaders/debug/lightSrc.frag"});
 #ifdef DEBUG
 		programDrawOnTerrain = new glshaderprogram({"shaders/debug/pbrOnTerrain.vert", "shaders/pbrMain.frag"});
 		drawTexQuad = new glshaderprogram({"shaders/debug/basictex.vert", "shaders/debug/basictex.frag"});
@@ -368,8 +367,9 @@ void dayscene::init() {
 	godraysDrone->setWeight(0.01f);
 
 	lightManager = new SceneLight();
-	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f),5.0f,vec3(0.0,-1.0,0.0f)));
-	//lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f),1.0f,vec3(0.0,1.0,1.0f)));
+	lightManager->addDirectionalLights({
+		DirectionalLight(vec3(1.0f),5.0f,vec3(0.0,-1.0,0.0f))
+	});
 
 	lake1 = new lake(-6.0f);
 
@@ -575,11 +575,7 @@ void dayscene::render() {
 	} else if(programglobal::debugMode == SPLINE) {
 		splineAdjuster->render(RED_PINK_COLOR);
 	} else if(programglobal::debugMode == LIGHT) {
-		// render light src
-		programLight->use();
-		glUniformMatrix4fv(programLight->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
-		glUniformMatrix4fv(programLight->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix()); 
-		lightManager->renderSceneLights(programLight);
+		lightManager->renderSceneLights();
 	}
 	// glDisable(GL_DEPTH_TEST);
 	// drawTexQuad->use();

@@ -113,16 +113,15 @@ struct SpotLight : PointLight{
 };
 
 class SceneLight{
-
-    private:
-
-    struct brdf_lut{
+private:
+	struct brdf_lut{
         GLuint brdfTex;
         GLuint fbo,rbo;
         GLuint width,height;
     };
     GLuint vao,skybox,envirounmentMap;
     bool indirectLight;
+	vmath::vec3 ambient;
     std::vector<DirectionalLight> directional;
     std::vector<PointLight> points;
     std::vector<SpotLight> spots;
@@ -130,17 +129,21 @@ class SceneLight{
     CubeMapRenderTarget* irradianceMap;
     CubeMapRenderTarget* prefilterMap;
     brdf_lut brdf;
-    glshaderprogram *envProgram,*irradianceProgram,*prefilterProgram,*precomputeBRDF;
+    glshaderprogram *envProgram;
+	glshaderprogram *irradianceProgram;
+	glshaderprogram *prefilterProgram;
+	glshaderprogram *precomputeBRDF;
+	glshaderprogram *lightRender;
     public:
     SceneLight(bool envLight = false);
     ~SceneLight();
     void setEnvmap(GLuint &envMap);
     void PrecomputeIndirectLighting();
-    void addDirectionalLight(DirectionalLight dl);
-    void addPointLight(PointLight pl);
-    void addSpotLight(SpotLight sl);
+    void addDirectionalLights(std::vector<DirectionalLight> dl);
+    void addPointLights(std::vector<PointLight> pl);
+    void addSpotLights(std::vector<SpotLight> sl);
     void setLightUniform(glshaderprogram* program, bool useIndirectLight = true);
-    void renderSceneLights(glshaderprogram* program);
+    void renderSceneLights();
     void SceneLightKeyBoardFunc(int key);
     friend std::ostream& operator<<(std::ostream &out, SceneLight* s);
 };
