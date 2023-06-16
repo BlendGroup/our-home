@@ -26,6 +26,9 @@
 #include<ocean.h>
 #include<fireflies.h>
 
+//Set to 0 to disable opencl or call me on my cell phone
+#define OPENCL 1
+
 using namespace std;
 using namespace vmath;
 
@@ -335,9 +338,22 @@ void nightscene::init() {
 	texMoon = createTexture2D("resources/textures/moon.jpg", GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
 	texOcean = createTexture2D("resources/textures/ocean.jpg", GL_LINEAR, GL_LINEAR);
 	GLuint texMap = createTexture2D("resources/textures/islandmap.png", GL_LINEAR, GL_LINEAR);
-	GLuint texJungle = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 0), 256.0f, 0.25f, 5, 235);
-	GLuint texJungle2 = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 1024), 256.0f, 0.25f, 5, 235);
-	GLuint texIsland = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 1024), 256.0f, 1.0f, 5, 235);
+	GLuint texJungle;
+	GLuint texJungle2;
+	GLuint texIsland;
+#if OPENCL
+	texJungle = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 0), 256.0f, 0.25f, 5, 235);
+	texJungle2 = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 1024), 256.0f, 0.25f, 5, 235);
+	texIsland = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 1024), 256.0f, 1.0f, 5, 235);
+#else
+	GLuint tex;
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 1, 1, 0, GL_RED, GL_FLOAT, vec1(0.0f));
+	texJungle = tex;
+	texJungle2 = tex;
+	texIsland = tex;
+#endif
 	land = new terrain(texJungle, 64, true, 5, 8);
 	land2 = new terrain(texJungle2, 64, true, 5, 8);
 	GLuint texNewIsland = createCombinedMapTextureNight(texIsland, texMap);
