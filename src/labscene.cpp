@@ -73,7 +73,9 @@ enum tvalues {
 	DOOR_T,
 	HOLOGRAM_T,
 	CROSSIN_T,
-	CROSSOUT_T
+	CROSSOUT_T,
+	LIGHTRED1_T,
+	LIGHTRED2_T,
 };
 
 static eventmanager* labevents;
@@ -140,6 +142,8 @@ void labscene::init() {
 		{CAMERA_T, { 3.36f, 40.0f }},
 		{ROBOT_T, { 20.5f, 19.5f }},
 		{SFX_ROBOT_THUMP_T, { 20.5f, 16.5f }},
+		{LIGHTRED1_T, {38.5f, 1.0f}},
+		{LIGHTRED2_T, {40.5f, 1.0f}},
 		{DOOR_T, { 41.0f, 7.0f }},
 		{CROSSOUT_T, { 47.5f, 2.5f }},
 	});
@@ -276,6 +280,15 @@ void labscene::init() {
 void labscene::render() {
 	try {
 		camera1->setT((*labevents)[CAMERA_T]);
+
+		if(((*labevents)[LIGHTRED1_T] > 0.0f && (*labevents)[LIGHTRED1_T] < 1.0f)
+		|| ((*labevents)[LIGHTRED2_T] > 0.0f && (*labevents)[LIGHTRED2_T] < 1.0f)) {
+			sceneLightManager->setPointLightColor(0, vec3(1.0f, 0.1f, 0.1f));
+			sceneLightManager->setPointLightColor(1, vec3(1.0f, 0.1f, 0.1f));
+		} else {
+			sceneLightManager->setPointLightColor(0, vec3(1.0f, 1.0f, 1.0f));
+			sceneLightManager->setPointLightColor(1, vec3(1.0f, 1.0f, 1.0f));	
+		}
 
 		programStaticPBR->use();
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"),1,GL_FALSE, programglobal::perspective);
@@ -425,7 +438,7 @@ void labscene::update() {
 	}
 	hologramT += HOLOGRAM_UPDATE_SPEED * programglobal::deltaTime;
 	steamT += STEAM_UPDATE_SPEED * programglobal::deltaTime;
-	if((*labevents)[ROBOT_T] >= 0.9f) {
+	if(labevents->getT() > 36.0f) {
 		modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 1, 0, 0.0f, false);
 	}
 	if((*labevents)[CROSSOUT_T] >= 1.0f) {

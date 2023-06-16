@@ -549,3 +549,7 @@ void SceneLight::setDirectionalLightColor(int i, vmath::vec3 color) {
 void SceneLight::setDirectionalLightDirection(int i, vmath::vec3 direction) {
 	this->directional[i].setDirection(direction);
 }
+
+void SceneLight::setPointLightColor(int i, vmath::vec3 color) {
+	this->points[i].update_color(color);
+}

@@ -154,5 +154,6 @@ private:
     void setAmbient(vmath::vec3 ambient);
 	void setDirectionalLightColor(int i, vmath::vec3 color);
 	void setDirectionalLightDirection(int i, vmath::vec3 direction);
+	void setPointLightColor(int i, vmath::vec3 color);
 	friend std::ostream& operator<<(std::ostream &out, SceneLight* s);
 };
