@@ -927,6 +927,11 @@ void nightscene::update() {
 			playerBkgnd->pause();
 		}
 	}
+
+	if((*nightevents)[FADEOUT_T] >= 1.0f) {
+		playNextScene();
+	}
+
 	modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
 	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 1);
 	modelPhoenix->update(PHOENIX_ANIM_SPEED * programglobal::deltaTime, 0);
