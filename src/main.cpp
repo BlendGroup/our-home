@@ -70,7 +70,7 @@ void setupSceneCamera(void) {
 	}
 }
 
-void init(void) {
+void init(glwindow* window) {
 	try {
 		//Object Creation
 		programglobal::hdr = new HDR(1.5f, 1.0f, 2048);
@@ -79,16 +79,21 @@ void init(void) {
 		programglobal::shapeRenderer = new shaperenderer();
 		programglobal::randgen = new randomgenerator();
 		crossfader::init();
+		initTextureLoader();
+		window->processEvents();
+		GLuint tex = createTexture2D("resources/textures/load.jpg");
+		glViewport(0, 0, window->getSize().width, window->getSize().height);
+		crossfader::render(tex, 0.0f);
+		window->swapBuffers();
 		sceneList.insert(sceneList.begin(), {
-			// new titlescene(),
-			// new labscene(),
+			new titlescene(),
+			new labscene(),
 			new dayscene(),
-			// new nightscene()
+			new nightscene()
 		});
 
 		//Inititalize
 		alutInit(0, NULL);
-		initTextureLoader();
 		programglobal::hdr->init();
 		programglobal::hdr->setBloom(true);
 		for(basescene* b : sceneList) {
@@ -108,6 +113,7 @@ void init(void) {
 		throwErr(errorString);
 	}
 }
+
 
 void render(glwindow* window) {
 	try {
@@ -243,7 +249,8 @@ int main(int argc, char **argv) {
 		auto initstart = chrono::steady_clock::now();
 		window->setKeyboardFunc(keyboard);
 		window->setMouseFunc(mouse);
-		init();
+		int t = (int)window->getSize().width;
+		init(window);
 		window->setFullscreen(true);
 		auto initend = chrono::steady_clock::now();
 		chrono::duration<double> diff = initend - initstart;
