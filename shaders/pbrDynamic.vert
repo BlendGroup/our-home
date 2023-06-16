@@ -33,11 +33,10 @@ void main(void) {
 		vec3 localNormal = mat3(bMat[vBoneIds[i]]) * vNor;
 		totalNormal += localNormal;
 	}
-	mat4 mvMat = vMat * mMat;
-	vec4 P = mvMat * totalPosition;
-	gl_Position = pMat * P;
-    vs_out.P = vec3(mMat * totalPosition);
-	vs_out.N = mat3(mvMat) * totalNormal;
+	vec4 P = mMat * totalPosition;
+	gl_Position = pMat * vMat * P;
+    vs_out.P = vec3(P);
+	vs_out.N = mat3(mMat) * totalNormal;
 	vs_out.TBN = mat3(mMat) * mat3(vTangent,vBitangent,vNor);
 	vs_out.Tex = vTex;
 

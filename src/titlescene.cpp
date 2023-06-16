@@ -1,3 +1,4 @@
+#include "scenes/base.h"
 #include<scenes/title.h>
 #include<glshaderloader.h>
 #include<glmodelloader.h>
@@ -12,6 +13,7 @@
 #include<crossfade.h>
 #include<godrays.h>
 #include<gltextureloader.h>
+#include<audio.h>
 
 using namespace std;
 using namespace vmath;
@@ -23,10 +25,12 @@ static debugCamera* staticcamera;
 static glshaderprogram* programRender;
 static glmodel* modelTitle;
 static godrays* godraysTitle;
+static audioplayer *playerIntro;
 
 enum tvalues {
 	GODRAYS_T,
-	DISPLAY_T
+	DISPLAY_T,
+	WAIT_T
 };
 
 static GLuint texGold;
@@ -43,8 +47,9 @@ void titlescene::setupCamera() {
 
 void titlescene::init() {
 	titleevents = new eventmanager({
-		{GODRAYS_T, { 0.0f, 4.0f }},
-		{DISPLAY_T, { 4.0f, 5.0f }},
+		{GODRAYS_T, { 0.0f, 6.0f }},
+		{DISPLAY_T, { 6.0f, 4.0f }},
+		{WAIT_T, { 10.0f, 2.0f }},
 	});
 
 	texGold = createTexture2D("resources/textures/gold.png", GL_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -56,6 +61,8 @@ void titlescene::init() {
 	godraysTitle->setExposure(1.0f);
 	godraysTitle->setSamples(100);
 	godraysTitle->setWeight(0.02f);
+
+	playerIntro = new audioplayer("resources/audio/Intro.wav");
 #ifdef DEBUG
 	titlePlacer = new modelplacer();
 #endif
@@ -83,11 +90,14 @@ void titlescene::render() {
 
 void titlescene::update(void) {
 	titleevents->increment();
-	if((*titleevents)[DISPLAY_T] >= 1.0f) {
+	if((*titleevents)[WAIT_T] >= 1.0f) {
 		crossfader::startSnapshot(texTitleSceneFinal);
 		render();
 		crossfader::endSnapshot();
 		playNextScene();
+	}
+	if(titleevents->getT() > 0.00001f && titleevents->getT() <= 10.0f) {
+		playerIntro->play();
 	}
 }
 

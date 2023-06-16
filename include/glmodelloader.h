@@ -118,7 +118,7 @@ public:
 	bool PBR;
 	void setBoneMatrixUniform(GLuint uniformLocation, unsigned i);
 	void setBoneMatrixUniform(GLuint uniformLocation, GLuint bMat,unsigned i);
-	void update(float dt, int baseAnimation , int layeredAnimation = 0, float blendFactor = 0.0f );
+	void update(float dt, int baseAnimation , int layeredAnimation = 0, float blendFactor = 0.0f, bool repeat = true);
 	void draw(glshaderprogram* program,int instance = 1, int baseInstance = 0, bool setMaterials = true);
 };
 #endif

@@ -61,7 +61,7 @@ layout(std140)uniform color_ubo {
 
 uniform vec3 viewPos;
 uniform material_t material;
-uniform DirectionalLight dl[2];
+uniform DirectionalLight dl[5];
 uniform PointLight pl[10];
 uniform SpotLight sl[5];
 
@@ -74,6 +74,8 @@ uniform bool isTexture;
 uniform int renderEmissiveToOcclusion = 0;
 
 uniform vec3 emissionColor;
+
+uniform vec3 ambientColor;
 
 layout (binding = 0)uniform sampler2D texture_diffuse;
 layout (binding = 1)uniform sampler2D texture_normal;
@@ -296,7 +298,9 @@ void main(void) {
     vec3 ambient = vec3(0.01);
     if(IBL){
         ambient = indirectLightingDiffuse(normalize(fs_in.N),fs_in.P) + texture(texture_emissive,fs_in.Tex).rgb;
-    }
+    } else {
+		ambient = ambientColor;
+	}
 
     fragColor = vec4(ambient + directional + point + spot,material.opacity);
     emmitColor += vec4(texture(texture_emissive,fs_in.Tex).rgb + material.emissive,material.opacity);

@@ -685,7 +685,7 @@ void calculateBoneTransform(glmodel* model, glanimator* a, const AssimpNodeData*
 	}
 }
 
-void BlendTwoAnimations(glmodel* model,glanimator* baseAnimation,glanimator* layeredAnimation,float blendFactor,float dt){
+void BlendTwoAnimations(glmodel* model,glanimator* baseAnimation,glanimator* layeredAnimation,float blendFactor,float dt, bool repeat){
 
 	float a = 1.0f;
 	float b = baseAnimation->duration / layeredAnimation->duration;
@@ -697,12 +697,20 @@ void BlendTwoAnimations(glmodel* model,glanimator* baseAnimation,glanimator* lay
 
 	static float currentTimeBase = 0.0f;
 	currentTimeBase += baseAnimation->ticksPerSecond * dt * animSpeedMultiplierUp;
-	currentTimeBase = fmod(currentTimeBase,baseAnimation->duration);
-
+	if(repeat) {
+		currentTimeBase = fmod(currentTimeBase,baseAnimation->duration);
+	} else {
+		currentTimeBase = std::min(currentTimeBase, baseAnimation->duration - 0.01f);
+	}
+		
 	static float currentTimeLayered = 0.0f;
 	currentTimeLayered += layeredAnimation->ticksPerSecond * dt * animSpeedMultiplierDown;
-	currentTimeLayered = fmod(currentTimeLayered,layeredAnimation->duration);
-
+	if(repeat) {
+		currentTimeLayered = fmod(currentTimeLayered,layeredAnimation->duration);
+	} else {
+		currentTimeLayered = std::min(currentTimeLayered, layeredAnimation->duration - 0.01f);
+	}
+	
 	calculateBoneTransformBlended(model,baseAnimation,&baseAnimation->rootNode,layeredAnimation,&layeredAnimation->rootNode,currentTimeBase,currentTimeLayered,mat4::identity(),blendFactor);
 }
 
@@ -722,14 +730,18 @@ void glmodel::setBoneMatrixUniform(GLuint uniformLocation, unsigned index) {
 	glUniformMatrix4fv(uniformLocation, MAX_BONE_COUNT, GL_FALSE, *m.data());
 }
 
-void glmodel::update(float dt, int baseAnimation , int layeredAnimation , float blendFactor) {
+void glmodel::update(float dt, int baseAnimation , int layeredAnimation , float blendFactor, bool repeat) {
 	if(baseAnimation == layeredAnimation && baseAnimation < this->animator.size()) {
 		this->animator[baseAnimation].currentTime += this->animator[baseAnimation].ticksPerSecond * dt;
-		this->animator[baseAnimation].currentTime = fmod(this->animator[baseAnimation].currentTime, this->animator[baseAnimation].duration);
+		if(repeat) {
+			this->animator[baseAnimation].currentTime = fmod(this->animator[baseAnimation].currentTime, this->animator[baseAnimation].duration);
+		} else {
+			this->animator[baseAnimation].currentTime = std::min(this->animator[baseAnimation].currentTime, this->animator[baseAnimation].duration - 0.01f);
+		}
 		calculateBoneTransform(this, &this->animator[baseAnimation], &this->animator[baseAnimation].rootNode, mat4::identity());
 	}
 	else {
-		BlendTwoAnimations(this,&this->animator[baseAnimation],&this->animator[layeredAnimation],blendFactor,dt);
+		BlendTwoAnimations(this,&this->animator[baseAnimation],&this->animator[layeredAnimation],blendFactor,dt,repeat);
 	}
 }
 

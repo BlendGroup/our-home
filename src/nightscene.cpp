@@ -1,3 +1,5 @@
+#include<glshaderloader.h>
+#include<shapes.h>
 #include<scenes/night.h>
 #include<iostream>
 #include<vmath.h>
@@ -24,6 +26,9 @@
 #include<ocean.h>
 #include<fireflies.h>
 
+//Set to 0 to disable opencl or call me on my cell phone
+#define OPENCL 1
+
 using namespace std;
 using namespace vmath;
 
@@ -35,6 +40,7 @@ static glshaderprogram* programNightSky;
 static glshaderprogram* programSkybox;
 static glshaderprogram* programTex;
 static glshaderprogram* programOcean;
+static glshaderprogram* programFire;
 static terrain* land;
 static terrain* land2;
 static terrain* island;
@@ -51,6 +57,7 @@ static glmodel* modelRover;
 static glmodel* modelFlowerPurple;
 static glmodel* modelPhoenix;
 static glmodel* modelFox;
+static glmodel* modelRocket;
 
 static godrays* godraysMoon;
 #ifdef DEBUG
@@ -75,7 +82,9 @@ static GLuint texMoon;
 static GLuint texOcean;
 static GLuint skybox_vao;
 static GLuint vbo;
+static GLuint texBlack;
 static bool renderTrees = true;
+static float fireT = 0.0f;
 
 enum tvalues {
 	CROSSIN_T,
@@ -85,6 +94,8 @@ enum tvalues {
 	FIREFLIES2BEGIN_T,
 	FOXWALK_T,
 	PHOENIXFLY_T,
+	ROCKET_T,
+	FADEOUT_T
 };
 static eventmanager* nightevents;
 
@@ -106,6 +117,7 @@ void nightscene::setupProgram() {
 		programSkybox = new glshaderprogram({"shaders/debug/rendercubemap.vert", "shaders/nightsky/rendercubemap.frag"});
 		programTex = new glshaderprogram({"shaders/debug/basictex.vert", "shaders/debug/basictex.frag"});
 		programOcean = new glshaderprogram({"shaders/ocean/ocean.vert", "shaders/ocean/ocean.frag"});
+    	programFire = new glshaderprogram({"shaders/fire/render.vert", "shaders/fire/render.frag"});
 	} catch(string errorString) {
 		throwErr(errorString);
 	}
@@ -179,9 +191,9 @@ void nightscene::setupCamera() {
 		vec3(0.0f, 1.4f, 900.1f),
 		vec3(0.0f, 1.4f, 950.1f),
 		vec3(0.0f, 1.4f, 1000.1f),
-		vec3(0.0f, 1.4f, 1050.1f),
-		vec3(0.0f, 1.4f, 1100.1f),
-		vec3(0.0f, 1.4f, 1153.1f),
+		vec3(0.0f, 1.0f, 1050.1f),
+		vec3(0.0f, 0.6f, 1100.1f),
+		vec3(0.0f, 0.2f, 1153.1f)
 	};
 	
 	vector<vec3> frontVector = {
@@ -235,36 +247,36 @@ void nightscene::setupCamera() {
 		vec3(0.0f, 3.4f, 520.1f),
 		vec3(0.0f, 3.4f, 540.1f),
 		vec3(0.0f, 2.2f, 560.1f),
-		vec3(0.0f, 1.4f, 580.1f),
-		vec3(0.0f, 1.4f, 605.1f),
-		vec3(0.0f, 1.4f, 655.1f),
-		vec3(0.0f, 1.4f, 705.1f),
+		vec3(1.1f, 1.4f, 580.2f),
+		vec3(1.1f, 1.4f, 605.1f),
+		vec3(-0.7f, 2.3f, 655.1f),
+		vec3(-0.7f, 3.4f, 705.1f),
 		vec3(0.0f, 1.4f, 755.1f),
 		vec3(0.0f, 1.4f, 805.1f),
 		vec3(0.0f, 1.4f, 855.1f),
 		vec3(0.0f, 1.4f, 905.1f),
 		vec3(0.0f, 1.4f, 955.1f),
 		vec3(0.0f, 1.4f, 1005.1f),
-		vec3(0.0f, 1.4f, 1055.1f),
-		vec3(0.0f, 1.4f, 1105.1f),
-		vec3(0.0f, 1.4f, 1155.1f)
+		vec3(0.0f, 1.0f, 1055.1f),
+		vec3(0.0f, 0.6f, 1105.1f),
+		vec3(0.0f, 0.2f, 1155.1f)
 	};
 	camera1 = new sceneCamera(positionVector, frontVector);
 
 	vector<vec3> positionVector2 = {
-		vec3(0.0f, 1.4f, 1153.1f),
-		vec3(-2.5f, 0.4f, 1157.3f),
-		vec3(-2.9f, -0.6f, 1165.5f),
+		vec3(0.0f, 0.2f, 1153.1f),
+		vec3(-2.5f, -0.4f, 1157.3f),
+		vec3(-2.9f, -1.0f, 1165.5f),
 		vec3(0.0f, -1.6f, 1171.1f)
 	};
 	vector<vec3> frontVector2 = {
-		vec3(0.0f, 1.4f, 1155.1f),
-		vec3(0.0f, 2.3f, 1155.1f),
+		vec3(0.0f, 0.2f, 1155.1f),
+		vec3(0.0f, 1.7f, 1155.1f),
 		vec3(0.0f, 3.2f, 1155.1f),
-		vec3(0.0f, 4.1f, 1155.1f),
+		vec3(0.0f, 4.7f, 1155.1f),
 	};
 	camera2 = new sceneCamera(positionVector2, frontVector2);
-	camRig1 = new sceneCameraRig(camera2);
+	camRig1 = new sceneCameraRig(camera1);
 	camRig1->setRenderFront(true);
 	camRig1->setRenderFrontPoints(true);
 	camRig1->setRenderPath(true);
@@ -312,11 +324,13 @@ void nightscene::init() {
 	nightevents = new eventmanager({
 		{CROSSIN_T, { 0.0f, 2.0f }},
 		{CAMERAMOVE1_T, { 2.0f, 110.0f }},
-		{CAMERAMOVE2_T, { 112.0f, 20.0f }},
+		{CAMERAMOVE2_T, { 112.65f, 20.0f }},
 		{FOXWALK_T, {11.1f, 6.0f}},
 		{FIREFLIES1BEGIN_T, {25.0f, 55.0f}},//End at 80
-		{FIREFLIES2BEGIN_T, {61.3f, 18.7f}}, //End at 80f
-		{PHOENIXFLY_T, {69.0f, 22.0f}}
+		{FIREFLIES2BEGIN_T, {57.75f, 18.7f}}, //End at 80f
+		{PHOENIXFLY_T, {69.0f, 30.0f}},
+		{ROCKET_T, {127.0f, 38.0f}},
+		{FADEOUT_T, {160.0f, 4.0f}},
 	});
 
 	texDiffuseGrass = createTexture2D("resources/textures/grass.png", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
@@ -324,13 +338,32 @@ void nightscene::init() {
 	texMoon = createTexture2D("resources/textures/moon.jpg", GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
 	texOcean = createTexture2D("resources/textures/ocean.jpg", GL_LINEAR, GL_LINEAR);
 	GLuint texMap = createTexture2D("resources/textures/islandmap.png", GL_LINEAR, GL_LINEAR);
-	GLuint texJungle = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 0), 256.0f, 0.25f, 5, 235);
-	GLuint texJungle2 = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 1024), 256.0f, 0.25f, 5, 235);
-	GLuint texIsland = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 1024), 256.0f, 1.0f, 5, 235);
+	GLuint texJungle;
+	GLuint texJungle2;
+	GLuint texIsland;
+#if OPENCL
+	texJungle = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 0), 256.0f, 0.25f, 5, 235);
+	texJungle2 = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 1024), 256.0f, 0.25f, 5, 235);
+	texIsland = opensimplexnoise::createFBMTexture2D(ivec2(1024, 1024), ivec2(0, 1024), 256.0f, 1.0f, 5, 235);
+#else
+	GLuint tex;
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 1, 1, 0, GL_RED, GL_FLOAT, vec1(0.0f));
+	texJungle = tex;
+	texJungle2 = tex;
+	texIsland = tex;
+#endif
 	land = new terrain(texJungle, 64, true, 5, 8);
 	land2 = new terrain(texJungle2, 64, true, 5, 8);
 	GLuint texNewIsland = createCombinedMapTextureNight(texIsland, texMap);
 	island = new terrain(texNewIsland, 256, true, 5, 16);
+	
+	GLubyte black[] = {0, 0, 0};
+	glGenTextures(1, &texBlack);
+	glBindTexture(GL_TEXTURE_2D, texBlack);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, black);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	playerBkgnd = new audioplayer("resources/audio/TheDragonWarrior.wav");
 
@@ -349,6 +382,7 @@ void nightscene::init() {
 	modelTie = new glmodel("resources/models/rover/tie.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelPhoenix = new glmodel("resources/models/phoenix/phoenix.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelFox = new glmodel("resources/models/phoenix/fox.fbx", aiProcessPreset_TargetRealtime_Quality, true);
+	modelRocket = new glmodel("resources/models/rover/spacex.glb", aiProcessPreset_TargetRealtime_Quality, true);
 
 	obocean = new ocean(vec2(3.0f, 3.0f), 1.5f, 100);
 
@@ -448,10 +482,13 @@ void nightscene::init() {
 
 	moon = new sphere(25, 50, 1.0f);
 	// quickModelPlacer = new modelplacer(vec3(-2.0f, -3.5f, 1161.0f), vec3(0.0f, 180.0f, 0.0f), 3.0f);
-	quickModelPlacer = new modelplacer(vec3(-9.8f, 0.03f, -95.1098f), vec3(0.0f, -77.0f, 0.0f), 0.05f);
+	// quickModelPlacer = new modelplacer(vec3(-9.8f, 0.03f, -95.1098f), vec3(0.0f, -77.0f, 0.0f), 0.05f);
+	quickModelPlacer = new modelplacer();
 	lightManager = new SceneLight(false);
-	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, -0.5f, -1.0f)));
-	lightManager->addDirectionalLight(DirectionalLight(vec3(1.0f, 1.0f, 1.0f), 1.0f, vec3(0.0f, 0.5f, 1.0f)));
+	lightManager->addDirectionalLights({
+		DirectionalLight(vec3(0.3f, 0.3f, 0.3f), 3.0f, vec3(0.0f, -1.0f, -1.0f)),
+		DirectionalLight(vec3(0.3f, 0.3f, 0.3f), 3.0f, vec3(0.0f, -1.0f, 1.0f)),
+	});
 
 	float skybox_positions[] = {
 		// positions          
@@ -579,7 +616,6 @@ void nightscene::init() {
 		vec3(0.4f, 0.5f, 0.3f)
 	});
 	firefliesA = new Fireflies(MAX_PARTICLES, firefliesAPathPoints, firefliesAColors);
-	pathAdjuster = new SplineAdjuster(firefliesA->getPath());
 	
 	vector<vec3> firefliesBPathPoints = vector<vec3>({
 		// vec3(28.2f, 8.4f, 249.2f),
@@ -594,15 +630,16 @@ void nightscene::init() {
 		// vec3(-10.0f, 23.3f, 360.596f),
 		// vec3(-8.5f, 22.8f, 345.394f),
 		// vec3(-4.2f, 27.3f, 364.394f)
-		vec3(28.2f, 8.4f, 249.2f),
-		vec3(-2.1f, 2.2f, 269.804f),
-		vec3(0.6f, 1.4f, 292.301f),
-		vec3(-1.5f, 1.79999f, 304.196f),
-		vec3(2.3f, 2.4f, 326.696f),
-		vec3(-1.00002f, 3.4f, 357.597f),
-		vec3(-19.8f, 6.19999f, 361.797f),
-		vec3(-5.6f, 15.6f, 338.594f),
-		vec3(13.1f, 18.4f, 356.593f),
+		vec3(28.1f, 10.1f, 205.397f),
+		vec3(-5.10007f, 1.5f, 231.598f),
+		vec3(4.8f, 2.2f, 250.803f),
+		vec3(0.6f, 1.4f, 273.8f),
+		vec3(-1.5f, 1.79999f, 286.595f),
+		vec3(2.7f, 2.4f, 304.295f),
+		vec3(0.29998f, 1.3f, 323.095f),
+		vec3(9.00004f, 2.49999f, 356.597f),
+		vec3(-5.6f, 3.29998f, 362.995f),
+		vec3(-17.5f, 12.4f, 356.493f),
 		vec3(-10.0f, 23.3f, 360.596f),
 		vec3(-8.5f, 22.8f, 345.394f),
 		vec3(-4.2f, 27.3f, 364.394f)
@@ -618,20 +655,113 @@ void nightscene::init() {
 
 	vector<vec3> phoenixPathPoints = {
 		vec3(0.0f, 45.0f, 380.1f),
-		vec3(0.0f, 20.7f, 400.1f),
-		vec3(0.0f, 12.9f, 420.1f),
-		vec3(0.0f, 7.4f, 440.1f),
-		vec3(0.0f, 7.4f, 460.1f),
-		vec3(0.0f, 7.4f, 480.1f),
-		vec3(0.0f, 7.4f, 500.1f),
-		vec3(0.0f, 7.4f, 525.1f),
-		vec3(0.0f, 7.4f, 550.1f),
-		vec3(0.0f, 7.4f, 575.1f),
-		vec3(0.0f, 7.4f, 600.1f)
+		vec3(8.3f, 20.7f, 400.1f),
+		vec3(-3.7f, 9.89999f, 407.799f),
+		vec3(1.6f, 7.4f, 440.1f),
+		vec3(-5.4f, 8.4f, 460.1f),
+		vec3(1.3f, 10.4f, 480.1f),
+		vec3(-1.2f, 9.1f, 500.1f),
+		vec3(6.1f, 11.2f, 525.0f),
+		vec3(0.2f, 11.6f, 550.1f),
+		vec3(0.4f, 5.4f, 575.1f),
+		vec3(24.2001f, 5.1f, 603.294f),
+		vec3(40.4f, 5.1f, 685.279f),
+		vec3(102.8f, 14.3f, 946.12f),
+		vec3(-95.1991f, 30.6f, 946.323f),
+		vec3(-18.9f, 47.7f, 887.839f)
 	};
 	phoenixPath = new BsplineInterpolator(phoenixPathPoints);
 	pathPhoenix = new SplineRenderer(phoenixPath);
 	pathAdjuster = new SplineAdjuster(phoenixPath);
+	pathAdjuster->setRenderPoints(true);
+}
+
+void renderForIBL() {
+///////////////Skybox///////////////////////////////////////////////////////////
+	programSkybox->use();
+	glUniformMatrix4fv(programSkybox->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
+	glUniformMatrix4fv(programSkybox->getUniformLocation("vMat"),1,GL_FALSE,programglobal::currentCamera->matrix());
+	glUniform1i(programSkybox->getUniformLocation("skyboxColor"), 0);
+	glUniform1i(programSkybox->getUniformLocation("skyboxEmmission"), 1);
+	glUniform1f(programSkybox->getUniformLocation("emmissionPower"), (*nightevents)[CROSSIN_T]);
+	glBindVertexArray(skybox_vao);
+	glBindTextureUnit(0, texColorNightSky);
+	glBindTextureUnit(1, texEmmissionNightSky);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
+////////////////////////////////////////////////////////////////////////////////
+
+///////////////Islands//////////////////////////////////////////////////////////
+	programTerrain->use();
+	glUniformMatrix4fv(programTerrain->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programTerrain->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programTerrain->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.0f, 1250.0f));
+	glUniform3fv(programTerrain->getUniformLocation("cameraPos"), 1, programglobal::currentCamera->position());
+	glUniform1f(programTerrain->getUniformLocation("maxTess"), island->getMaxTess());
+	glUniform1f(programTerrain->getUniformLocation("minTess"), island->getMinTess());
+	glUniform1i(programTerrain->getUniformLocation("texHeight"), 0);
+	// glUniform1i(programTerrain->getUniformLocation("texNormal"), 1);
+	glUniform1i(programTerrain->getUniformLocation("texDiffuseGrass"), 2);
+	glUniform1i(programTerrain->getUniformLocation("texDiffuseDirt"), 3);
+	glUniform1f(programTerrain->getUniformLocation("texScale"), 15.0f);
+	glBindTextureUnit(0, island->getHeightMap());
+	glBindTextureUnit(1, island->getNormalMap());
+	glBindTextureUnit(2, texDiffuseGrass);
+	glBindTextureUnit(3, texDiffuseDirt);
+	island->render();
+////////////////////////////////////////////////////////////////////////////////
+
+///////////////Ocean////////////////////////////////////////////////////////////
+	programOcean->use();
+	glUniformMatrix4fv(programOcean->getUniformLocation("pMat"), 1, false, programglobal::perspective);
+	glUniformMatrix4fv(programOcean->getUniformLocation("vMat"), 1, false, programglobal::currentCamera->matrix());
+	glUniformMatrix4fv(programOcean->getUniformLocation("mMat"), 1, false, translate(0.0f, -7.0f, 1300.0f) * scale(721.0f));
+	glUniform3fv(programOcean->getUniformLocation("cameraPosition"), 1, programglobal::currentCamera->position());
+	glUniform3fv(programOcean->getUniformLocation("oceanColor"), 1, oceanColor);
+	glUniform3fv(programOcean->getUniformLocation("skyColor"), 1, skyColor);
+	glUniform3fv(programOcean->getUniformLocation("sunDirection"), 1, sunDirection);
+	glUniform1i(programOcean->getUniformLocation("displacementMap"), 0);
+	glUniform1i(programOcean->getUniformLocation("normalMap"), 1);
+	glBindTextureUnit(0, obocean->getDisplacementMap());
+	glBindTextureUnit(1, obocean->getNormalMap());
+	obocean->render(programOcean);
+////////////////////////////////////////////////////////////////////////////////
+
+///////////////Rockets//////////////////////////////////////////////////////////
+	vec3 positions[] = {
+		vec3(0.0f, mix(vec1(420.1f), vec1(100.1f), (*nightevents)[ROCKET_T])[0], 774.8f),
+		vec3(180.0f, mix(vec1(520.1f), vec1(70.1f), (*nightevents)[ROCKET_T])[0], 700.1f),
+		vec3(190.0f, mix(vec1(800.1f), vec1(120.1f), (*nightevents)[ROCKET_T])[0], 400.1f),
+		// vec3(-80.0f, mix(vec1(400.1f), vec1(100.1f), (*nightevents)[ROCKET_T])[0], 360.1f),
+		vec3(-160.0f, mix(vec1(545.1f), vec1(160.1f), (*nightevents)[ROCKET_T])[0], 630.1f),
+		vec3(-200.0f, mix(vec1(420.1f), vec1(190.1f), (*nightevents)[ROCKET_T])[0], 750.1f),
+		// vec3(50.0f, mix(vec1(400.1f), vec1(100.1f), (*nightevents)[ROCKET_T])[0], 550.1f),
+	};
+
+	programStaticPBR->use();
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+	glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+	glUniform3fv(programStaticPBR->getUniformLocation("viewPos"), 1, programglobal::currentCamera->position());
+	glUniform1i(programStaticPBR->getUniformLocation("specularGloss"), GL_FALSE);
+	lightManager->setLightUniform(programStaticPBR, false);
+	for(int i = 0; i < 5; i++) {
+		programStaticPBR->use();
+		mat4 translateMat = translate(positions[i]);
+		glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translateMat * rotate(90.0f, 1.0f, 0.0f, 0.0f) * rotate(-30.0f, 0.0f, 0.0f, 1.0f) * scale(5.5f));
+		modelRocket->draw(programStaticPBR);
+	
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		programFire->use();
+		glUniformMatrix4fv(programFire->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+		glUniformMatrix4fv(programFire->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+		glUniformMatrix4fv(programFire->getUniformLocation("mMat"), 1, GL_FALSE, translateMat * translate(-0.2f, -40.0f, -0.5f) * scale(8.3f, 20.3f, 1.0f));
+		glUniform1f(programFire->getUniformLocation("time"), fireT);
+		programglobal::shapeRenderer->renderQuad();
+		glDisable(GL_BLEND);
+	}
+
+////////////////////////////////////////////////////////////////////////////////
 }
 
 void preOceanRender() {
@@ -698,7 +828,7 @@ void preOceanRender() {
 		// 	glUniform1i(programStaticInstancedPBR->getUniformLocation("instanceOffset"), 0);
 		// }
 		// glUniformMatrix4fv(programStaticInstancedPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(0.0f, 0.3f, 0.0f) * rotate(0.0f,vec3(1.0f,0.0f,0.0f)) * scale(1.0f));
-		// glUniform3fv(programStaticInstancedPBR->getUniformLocation("emissionColor"),1,vec3(0.0,0.0,0.0));
+		// glUniform3fv(programStaticInstanc1.0 / resolution.xyedPBR->getUniformLocation("emissionColor"),1,vec3(0.0,0.0,0.0));
 		// glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboFlowerPosition);
 		// glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("color_ubo"), uboTreeColor);
 		// modelFlowerPurple->draw(programStaticInstancedPBR, count);
@@ -756,6 +886,36 @@ void postOceanRender() {
 	lightManager->setLightUniform(programStaticPBR, false);
 	glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translate(-6.0f, 5.5f, 1186.0f) * rotate(90.0f, 1.0f, 0.0f, 0.0f) * rotate(180.0f, 0.0f, 1.0f, 0.0f) * scale(2.0f));
 	modelTie->draw(programStaticPBR);
+
+	if((*nightevents)[ROCKET_T] > 0.0f) {
+		vec3 positions[] = {
+			vec3(0.0f, mix(vec1(420.1f), vec1(100.1f), (*nightevents)[ROCKET_T])[0], 774.8f),
+			vec3(180.0f, mix(vec1(520.1f), vec1(70.1f), (*nightevents)[ROCKET_T])[0], 700.1f),
+			vec3(190.0f, mix(vec1(800.1f), vec1(120.1f), (*nightevents)[ROCKET_T])[0], 400.1f),
+			// vec3(-80.0f, mix(vec1(400.1f), vec1(100.1f), (*nightevents)[ROCKET_T])[0], 360.1f),
+			vec3(-160.0f, mix(vec1(545.1f), vec1(160.1f), (*nightevents)[ROCKET_T])[0], 630.1f),
+			vec3(-200.0f, mix(vec1(420.1f), vec1(190.1f), (*nightevents)[ROCKET_T])[0], 750.1f),
+			// vec3(50.0f, mix(vec1(400.1f), vec1(100.1f), (*nightevents)[ROCKET_T])[0], 550.1f),
+		};
+
+
+		for(int i = 0; i < 5; i++) {
+			programStaticPBR->use();
+			mat4 translateMat = translate(positions[i]);
+			glUniformMatrix4fv(programStaticPBR->getUniformLocation("mMat"), 1, GL_FALSE, translateMat * rotate(90.0f, 1.0f, 0.0f, 0.0f) * rotate(-30.0f, 0.0f, 0.0f, 1.0f) * scale(5.5f));
+			modelRocket->draw(programStaticPBR);
+		
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			programFire->use();
+			glUniformMatrix4fv(programFire->getUniformLocation("pMat"), 1, GL_FALSE, programglobal::perspective);
+			glUniformMatrix4fv(programFire->getUniformLocation("vMat"), 1, GL_FALSE, programglobal::currentCamera->matrix());
+			glUniformMatrix4fv(programFire->getUniformLocation("mMat"), 1, GL_FALSE, translateMat * translate(-0.2f, -40.0f, -0.5f) * scale(8.3f, 20.3f, 1.0f));
+			glUniform1f(programFire->getUniformLocation("time"), fireT);
+			programglobal::shapeRenderer->renderQuad();
+			glDisable(GL_BLEND);
+		}
+	}
 }
 
 void nightscene::render() {
@@ -785,7 +945,7 @@ void nightscene::render() {
 	programOcean->use();
 	glUniformMatrix4fv(programOcean->getUniformLocation("pMat"), 1, false, programglobal::perspective);
 	glUniformMatrix4fv(programOcean->getUniformLocation("vMat"), 1, false, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(programOcean->getUniformLocation("mMat"), 1, false, translate(0.0f, -10.0f, 1300.0f) * scale(721.0f));
+	glUniformMatrix4fv(programOcean->getUniformLocation("mMat"), 1, false, translate(0.0f, -7.0f, 1300.0f) * scale(721.0f));
 	glUniform3fv(programOcean->getUniformLocation("cameraPosition"), 1, programglobal::currentCamera->position());
 	glUniform3fv(programOcean->getUniformLocation("oceanColor"), 1, oceanColor);
 	glUniform3fv(programOcean->getUniformLocation("skyColor"), 1, skyColor);
@@ -798,11 +958,11 @@ void nightscene::render() {
 
 	if((*nightevents)[FIREFLIES1BEGIN_T] > 0.0f && (*nightevents)[FIREFLIES1BEGIN_T] < 1.0f) {
 		firefliesA->renderAsSpheres((*nightevents)[FIREFLIES1BEGIN_T], 0.05f);
-		firefliesA->renderAttractorAsQuad((*nightevents)[FIREFLIES1BEGIN_T], 0.25f);
+		// firefliesA->renderAttractorAsQuad((*nightevents)[FIREFLIES1BEGIN_T], 0.25f);
 	}
 	if((*nightevents)[FIREFLIES2BEGIN_T] > 0.0f && (*nightevents)[FIREFLIES2BEGIN_T] < 1.0f) {
 		firefliesB->renderAsSpheres((*nightevents)[FIREFLIES2BEGIN_T], 0.05f);
-		firefliesB->renderAttractorAsQuad((*nightevents)[FIREFLIES2BEGIN_T], 0.25f);
+		// firefliesB->renderAttractorAsQuad((*nightevents)[FIREFLIES2BEGIN_T], 0.25f);
 	}
 
 	if((*nightevents)[PHOENIXFLY_T] > 0.0f && (*nightevents)[PHOENIXFLY_T] < 1.0f) {
@@ -814,7 +974,9 @@ void nightscene::render() {
 		glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1,programglobal::currentCamera->position());
 		glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
 		lightManager->setLightUniform(programDynamicPBR, false);
-		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(phoenixPath->interpolate((*nightevents)[PHOENIXFLY_T])) * rotate(-90.0f,vec3(0.0f,1.0f,0.0f)) * scale(10.0f,10.0f,10.0f));
+		vec3 phoenixPosition = phoenixPath->interpolate((*nightevents)[PHOENIXFLY_T] - 0.01f);
+		vec3 phoenixFront = phoenixPath->interpolate((*nightevents)[PHOENIXFLY_T]);
+		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(phoenixPosition) * targetat(phoenixPosition, phoenixFront, vec3(0.0f, 1.0f, 0.0f)) * rotate(-90.0f,vec3(0.0f,1.0f,0.0f)) * scale(10.0f,10.0f,10.0f));
 		modelPhoenix->draw(programDynamicPBR);
 	}
 
@@ -839,10 +1001,10 @@ void nightscene::render() {
 
 	if(programglobal::debugMode == CAMERA) {
 		camRig1->render();
-		pathAdjuster->render(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f, 0.0f, 1.0f, 1.0f), vec4(1.0f, 1.0f, 0.0f, 1.0f));
 	} else if(programglobal::debugMode == SPLINE) {
-		camRig1->render();
 		pathAdjuster->render(vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f, 0.0f, 1.0f, 1.0f), vec4(1.0f, 1.0f, 0.0f, 1.0f));
+	} else if(programglobal::debugMode == LIGHT) {
+		lightManager->renderSceneLights();
 	}
 	} catch(string errorString) {
 		throwErr(errorString);
@@ -855,6 +1017,7 @@ void nightscene::update() {
 	static const float OCEAN_ANIM_SPEED = 0.2f;
 	static const float PHOENIX_ANIM_SPEED = 0.6f;
 	static const float WOLF_ANIM_SPEED = 0.8f;
+	static const float FIRE_ANIM_SPEED = 0.4f;
 	
 	nightevents->increment();
 	if((*nightevents)[CROSSIN_T] >= 0.01f) {
@@ -864,6 +1027,11 @@ void nightscene::update() {
 			playerBkgnd->pause();
 		}
 	}
+
+	if((*nightevents)[FADEOUT_T] >= 1.0f) {
+		playNextScene();
+	}
+
 	modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
 	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 1);
 	modelPhoenix->update(PHOENIX_ANIM_SPEED * programglobal::deltaTime, 0);
@@ -871,6 +1039,7 @@ void nightscene::update() {
 	obocean->update(OCEAN_ANIM_SPEED * programglobal::deltaTime);
 	firefliesA->update();
 	firefliesB->update();
+	fireT += FIRE_ANIM_SPEED * programglobal::deltaTime;
 }
 
 void nightscene::reset() {
@@ -892,7 +1061,8 @@ void nightscene::keyboardfunc(int key) {
 		camRig1->keyboardfunc(key);
 	} else if(programglobal::debugMode == SPLINE) {
 		pathAdjuster->keyboardfunc(key);
-	} else if(programglobal::debugMode == NONE) {
+	} else if(programglobal::debugMode == LIGHT) {
+		lightManager->SceneLightKeyBoardFunc(key);
 	}
 	switch(key) {
 	case XK_Up:
@@ -906,16 +1076,16 @@ void nightscene::keyboardfunc(int key) {
 		camRig1->setRenderPathToFront(renderPath);
 		break;
 	case XK_F10:
-		delete pathAdjuster;
-		pathAdjuster = new SplineAdjuster(firefliesA->getPath());
-		pathAdjuster->setScalingFactor(0.1f);
-		pathAdjuster->setRenderPoints(true);
+		// delete pathAdjuster;
+		// pathAdjuster = new SplineAdjuster(firefliesA->getPath());
+		// pathAdjuster->setScalingFactor(0.1f);
+		// pathAdjuster->setRenderPoints(true);
 		break;
 	case XK_F11:
-		delete pathAdjuster;
-		pathAdjuster = new SplineAdjuster(firefliesB->getPath());
-		pathAdjuster->setScalingFactor(0.1f);
-		pathAdjuster->setRenderPoints(true);
+		// delete pathAdjuster;
+		// pathAdjuster = new SplineAdjuster(firefliesB->getPath());
+		// pathAdjuster->setScalingFactor(0.1f);
+		// pathAdjuster->setRenderPoints(true);
 		break;
 	case XK_F12:
 		renderTrees = !renderTrees;
@@ -944,5 +1114,8 @@ camera* nightscene::getCamera() {
 void nightscene::crossfade() {
 	if((*nightevents)[CAMERAMOVE1_T] > 0.136f && (*nightevents)[CAMERAMOVE1_T] < 0.26f) {
 		godraysMoon->renderRays();
+	}
+	if((*nightevents)[FADEOUT_T] > 0.0f) {
+		crossfader::render(texBlack, 1.0f - (*nightevents)[FADEOUT_T]);
 	}
 }

@@ -57,6 +57,10 @@ struct DirectionalLight : BaseLight{
         direction[2] = sinf(el) * sinf(az);
         direction = vmath::normalize(-direction);
     }
+	void setDirection(vmath::vec3 dir) {
+        direction = vmath::normalize(dir);
+    }
+
 };
 
 struct PointLight : BaseLight{
@@ -102,7 +106,6 @@ struct SpotLight : PointLight{
     }
 
     void setDirection(float azimuth, float elevation){
-        
         float az = vmath::radians(azimuth);
         float el = vmath::radians(elevation);
         direction[0] = sinf(el) * cosf(az);
@@ -110,19 +113,21 @@ struct SpotLight : PointLight{
         direction[2] = sinf(el) * sinf(az);
         direction = vmath::normalize(-direction);
     }
+    void setDirection(vmath::vec3 dir) {
+        direction = vmath::normalize(dir);
+    }
 };
 
 class SceneLight{
-
-    private:
-
-    struct brdf_lut{
+private:
+	struct brdf_lut{
         GLuint brdfTex;
         GLuint fbo,rbo;
         GLuint width,height;
     };
     GLuint vao,skybox,envirounmentMap;
     bool indirectLight;
+	vmath::vec3 ambient;
     std::vector<DirectionalLight> directional;
     std::vector<PointLight> points;
     std::vector<SpotLight> spots;
@@ -130,17 +135,26 @@ class SceneLight{
     CubeMapRenderTarget* irradianceMap;
     CubeMapRenderTarget* prefilterMap;
     brdf_lut brdf;
-    glshaderprogram *envProgram,*irradianceProgram,*prefilterProgram,*precomputeBRDF;
+    glshaderprogram *envProgram;
+	glshaderprogram *irradianceProgram;
+	glshaderprogram *prefilterProgram;
+	glshaderprogram *precomputeBRDF;
+	glshaderprogram *lightRender;
     public:
     SceneLight(bool envLight = false);
     ~SceneLight();
     void setEnvmap(GLuint &envMap);
     void PrecomputeIndirectLighting();
-    void addDirectionalLight(DirectionalLight dl);
-    void addPointLight(PointLight pl);
-    void addSpotLight(SpotLight sl);
+    void addDirectionalLights(std::vector<DirectionalLight> dl);
+    void addPointLights(std::vector<PointLight> pl);
+    void addSpotLights(std::vector<SpotLight> sl);
     void setLightUniform(glshaderprogram* program, bool useIndirectLight = true);
-    void renderSceneLights(glshaderprogram* program);
+    void renderSceneLights();
     void SceneLightKeyBoardFunc(int key);
-    friend std::ostream& operator<<(std::ostream &out, SceneLight* s);
+    void setAmbient(vmath::vec3 ambient);
+	void setDirectionalLightColor(int i, vmath::vec3 color);
+	void setDirectionalLightDirection(int i, vmath::vec3 direction);
+	void setPointLightColor(int i, vmath::vec3 color);
+	void setSpotLightPosition(int i, vmath::vec3 position);
+	friend std::ostream& operator<<(std::ostream &out, SceneLight* s);
 };

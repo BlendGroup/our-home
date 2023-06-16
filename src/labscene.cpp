@@ -73,7 +73,9 @@ enum tvalues {
 	DOOR_T,
 	HOLOGRAM_T,
 	CROSSIN_T,
-	CROSSOUT_T
+	CROSSOUT_T,
+	LIGHTRED1_T,
+	LIGHTRED2_T,
 };
 
 static eventmanager* labevents;
@@ -140,6 +142,8 @@ void labscene::init() {
 		{CAMERA_T, { 3.36f, 40.0f }},
 		{ROBOT_T, { 20.5f, 19.5f }},
 		{SFX_ROBOT_THUMP_T, { 20.5f, 16.5f }},
+		{LIGHTRED1_T, {38.5f, 1.0f}},
+		{LIGHTRED2_T, {40.5f, 1.0f}},
 		{DOOR_T, { 41.0f, 7.0f }},
 		{CROSSOUT_T, { 47.5f, 2.5f }},
 	});
@@ -153,7 +157,8 @@ void labscene::init() {
 	modelDoor = new glmodel("resources/models/spaceship/door.fbx", aiProcessPreset_TargetRealtime_Quality, true);
 	modelMug = new glmodel("resources/models/mug/mug.glb", aiProcessPreset_TargetRealtime_Quality, true);
 	modelRobot = new glmodel("resources/models/robot/robot.fbx", aiProcessPreset_TargetRealtime_Quality, true);
-	modelAstro = new glmodel("resources/models/astronaut/MCAnim.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelAstro = new glmodel("resources/models/astronaut/MCFinal.glb", aiProcessPreset_TargetRealtime_Quality, true);
+	modelAstro->update(0.0f, 1);
 	modelBLEND = new glmodel("resources/models/blendlogo/BLEND.glb",aiProcessPreset_TargetRealtime_Quality,false);
 
 	godraysDoor = new godrays();
@@ -184,13 +189,10 @@ void labscene::init() {
 	envMapper->setPosition(vec3(0.0f, 0.0f, 0.0f));
 	
 	sceneLightManager = new SceneLight(true);
-	sceneLightManager->addDirectionalLight(DirectionalLight(vec3(0.1f),10.0f,vec3(0.0,0.0,-1.0f)));
-	sceneLightManager->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(-5.0f,5.0f,-5.0f),25.0f));
-	sceneLightManager->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,-5.0f),25.0f));
-	sceneLightManager->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(5.0f,5.0f,5.0f),25.0f));
-	sceneLightManager->addPointLight(PointLight(vec3(1.0f,1.0f,1.0f),100.0f,vec3(-5.0f,5.0f,5.0f),25.0f));
-	sceneLightManager->addSpotLight(SpotLight(vec3(0.0f,1.0f,0.0f),100.0f,vec3(-6.0f,8.0f,3.5f),35.0f,vec3(0.0f,0.0f,-1.0f),30.0f,45.0f));
-
+	sceneLightManager->addPointLights({
+		PointLight(vec3(vec3(1.0f, 1.0f, 1.0f)), 21.0f,vec3(vec3(-3.1f, 1.4f, -0.3f)), 8.0f),
+		PointLight(vec3(vec3(1.0f, 1.0f, 1.0f)), 21.0f,vec3(vec3(2.9f, 1.4f, -1.2f)), 8.0f)
+	});
 	float skybox_positions[] = {
 		// positions          
 		-1.0f,  1.0f, -1.0f,
@@ -279,6 +281,15 @@ void labscene::render() {
 	try {
 		camera1->setT((*labevents)[CAMERA_T]);
 
+		if(((*labevents)[LIGHTRED1_T] > 0.0f && (*labevents)[LIGHTRED1_T] < 1.0f)
+		|| ((*labevents)[LIGHTRED2_T] > 0.0f && (*labevents)[LIGHTRED2_T] < 1.0f)) {
+			sceneLightManager->setPointLightColor(0, vec3(1.0f, 0.1f, 0.1f));
+			sceneLightManager->setPointLightColor(1, vec3(1.0f, 0.1f, 0.1f));
+		} else {
+			sceneLightManager->setPointLightColor(0, vec3(1.0f, 1.0f, 1.0f));
+			sceneLightManager->setPointLightColor(1, vec3(1.0f, 1.0f, 1.0f));	
+		}
+
 		programStaticPBR->use();
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("pMat"),1,GL_FALSE, programglobal::perspective);
 		glUniformMatrix4fv(programStaticPBR->getUniformLocation("vMat"),1,GL_FALSE, programglobal::currentCamera->matrix());
@@ -310,7 +321,7 @@ void labscene::render() {
 		programDynamicPBR->use();
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("pMat"),1,GL_FALSE,programglobal::perspective);
 		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("vMat"),1,GL_FALSE, programglobal::currentCamera->matrix());
-		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(-3.41f, -1.39f, 2.03f) * scale(0.86f));
+		glUniformMatrix4fv(programDynamicPBR->getUniformLocation("mMat"),1,GL_FALSE, translate(-3.41f, 0.0f, 2.03f) * scale(0.86f));
 		glUniform3fv(programDynamicPBR->getUniformLocation("viewPos"),1, programglobal::currentCamera->position());
 		// Lights data
 		glUniform1i(programDynamicPBR->getUniformLocation("specularGloss"),false);
@@ -386,6 +397,8 @@ void labscene::render() {
 			cameraRig->render();
 		} else if(programglobal::debugMode == SPLINE) {
 			robotSpline->render(RED_PINK_COLOR);
+		} else if(programglobal::debugMode == LIGHT) {
+			sceneLightManager->renderSceneLights();
 		}
 	} catch(string errString) {
 		throwErr(errString);
@@ -399,7 +412,7 @@ void labscene::reset() {
 void labscene::update() {
 	labevents->increment();
 	static const float ROBOT_ANIM_SPEED = 0.99f;
-	static const float ASTRO_ANIM_SPEED = 0.1f;
+	static const float ASTRO_ANIM_SPEED = 0.7f;
 	static const float HOLOGRAM_UPDATE_SPEED = 0.5f;
 	static const float STEAM_UPDATE_SPEED = 0.5f;
 	
@@ -425,8 +438,9 @@ void labscene::update() {
 	}
 	hologramT += HOLOGRAM_UPDATE_SPEED * programglobal::deltaTime;
 	steamT += STEAM_UPDATE_SPEED * programglobal::deltaTime;
-	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 0);
-
+	if(labevents->getT() > 36.0f) {
+		modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 1, 0, 0.0f, false);
+	}
 	if((*labevents)[CROSSOUT_T] >= 1.0f) {
 		cout<<"Lab Scene Duration: "<<labevents->getT()<<endl;
 		playNextScene();
@@ -449,6 +463,7 @@ void labscene::keyboardfunc(int key) {
 	} else if(programglobal::debugMode == MODEL) {
 		doorPlacer->keyboardfunc(key);
 	} else if(programglobal::debugMode == LIGHT){
+		sceneLightManager->SceneLightKeyBoardFunc(key);
 	}
 	switch(key) {
 	case XK_Up:
@@ -466,6 +481,9 @@ void labscene::keyboardfunc(int key) {
 		}
 		if(programglobal::debugMode == MODEL) {
 			cout<<doorPlacer<<endl;
+		}
+		if(programglobal::debugMode == LIGHT) {
+			cout<<sceneLightManager<<endl;
 		}
 		break;
 	}
