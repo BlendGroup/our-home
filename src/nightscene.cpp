@@ -942,7 +942,7 @@ void nightscene::render() {
 		postOceanRender();
 	}
 
-	if((*nightevents)[CAMERAMOVE1_T] > 0.2) {
+	if((*nightevents)[CAMERAMOVE1_T] > 0.31) {
 		programOcean->use();
 		glUniformMatrix4fv(programOcean->getUniformLocation("pMat"), 1, false, programglobal::perspective);
 		glUniformMatrix4fv(programOcean->getUniformLocation("vMat"), 1, false, programglobal::currentCamera->matrix());
@@ -1034,11 +1034,19 @@ void nightscene::update() {
 		playNextScene();
 	}
 
-	modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
-	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 1);
-	modelPhoenix->update(PHOENIX_ANIM_SPEED * programglobal::deltaTime, 0);
-	modelFox->update(WOLF_ANIM_SPEED * programglobal::deltaTime, 0);
-	if((*nightevents)[CAMERAMOVE1_T] > 0.18) {
+	if((*nightevents)[CAMERAMOVE1_T] > 0.5f) {
+		modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
+	}
+	if((*nightevents)[CAMERAMOVE1_T] > 0.5f) {
+		modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 1);
+	}
+	if((*nightevents)[PHOENIXFLY_T] > 0.0f) {
+		modelPhoenix->update(PHOENIX_ANIM_SPEED * programglobal::deltaTime, 0);
+	}
+	if((*nightevents)[FOXWALK_T] > 0.0f) {
+		modelFox->update(WOLF_ANIM_SPEED * programglobal::deltaTime, 0);
+	}
+	if((*nightevents)[CAMERAMOVE1_T] > 0.3) {
 		obocean->update(OCEAN_ANIM_SPEED * programglobal::deltaTime);
 	}
 	firefliesA->update();
