@@ -819,7 +819,7 @@ void preOceanRender() {
 		glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("position_ubo"), uboTreePosition);
 		glBindBufferBase(GL_UNIFORM_BUFFER, programStaticInstancedPBR->getUniformLocation("color_ubo"), uboTreeColor);
 		float z = programglobal::currentCamera->position()[2];
-		int count = 120;
+		int count = 102;
 		if(z >= -95.0f) {
 			z += 95.0f;
 			int n = 6 * (int)(z / 10.0f);
@@ -973,19 +973,21 @@ void nightscene::render() {
 		postOceanRender();
 	}
 
-	programOcean->use();
-	glUniformMatrix4fv(programOcean->getUniformLocation("pMat"), 1, false, programglobal::perspective);
-	glUniformMatrix4fv(programOcean->getUniformLocation("vMat"), 1, false, programglobal::currentCamera->matrix());
-	glUniformMatrix4fv(programOcean->getUniformLocation("mMat"), 1, false, translate(0.0f, -7.0f, 1300.0f) * scale(721.0f));
-	glUniform3fv(programOcean->getUniformLocation("cameraPosition"), 1, programglobal::currentCamera->position());
-	glUniform3fv(programOcean->getUniformLocation("oceanColor"), 1, oceanColor);
-	glUniform3fv(programOcean->getUniformLocation("skyColor"), 1, skyColor);
-	glUniform3fv(programOcean->getUniformLocation("sunDirection"), 1, sunDirection);
-	glUniform1i(programOcean->getUniformLocation("displacementMap"), 0);
-	glUniform1i(programOcean->getUniformLocation("normalMap"), 1);
-	glBindTextureUnit(0, obocean->getDisplacementMap());
-	glBindTextureUnit(1, obocean->getNormalMap());
-	obocean->render(programOcean);
+	if((*nightevents)[CAMERAMOVE1_T] > 0.31) {
+		programOcean->use();
+		glUniformMatrix4fv(programOcean->getUniformLocation("pMat"), 1, false, programglobal::perspective);
+		glUniformMatrix4fv(programOcean->getUniformLocation("vMat"), 1, false, programglobal::currentCamera->matrix());
+		glUniformMatrix4fv(programOcean->getUniformLocation("mMat"), 1, false, translate(0.0f, -7.0f, 1300.0f) * scale(721.0f));
+		glUniform3fv(programOcean->getUniformLocation("cameraPosition"), 1, programglobal::currentCamera->position());
+		glUniform3fv(programOcean->getUniformLocation("oceanColor"), 1, oceanColor);
+		glUniform3fv(programOcean->getUniformLocation("skyColor"), 1, skyColor);
+		glUniform3fv(programOcean->getUniformLocation("sunDirection"), 1, sunDirection);
+		glUniform1i(programOcean->getUniformLocation("displacementMap"), 0);
+		glUniform1i(programOcean->getUniformLocation("normalMap"), 1);
+		glBindTextureUnit(0, obocean->getDisplacementMap());
+		glBindTextureUnit(1, obocean->getNormalMap());
+		obocean->render(programOcean);
+	}
 
 	if((*nightevents)[FIREFLIES1BEGIN_T] > 0.0f && (*nightevents)[FIREFLIES1BEGIN_T] < 1.0f) {
 		firefliesA->renderAsSpheres((*nightevents)[FIREFLIES1BEGIN_T], 0.05f);
@@ -1063,11 +1065,21 @@ void nightscene::update() {
 		playNextScene();
 	}
 
-	modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
-	modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 1);
-	modelPhoenix->update(PHOENIX_ANIM_SPEED * programglobal::deltaTime, 0);
-	modelFox->update(WOLF_ANIM_SPEED * programglobal::deltaTime, 0);
-	obocean->update(OCEAN_ANIM_SPEED * programglobal::deltaTime);
+	if((*nightevents)[CAMERAMOVE1_T] > 0.5f) {
+		modelDrone->update(DRONE_ANIM_SPEED * programglobal::deltaTime, 1);
+	}
+	if((*nightevents)[CAMERAMOVE1_T] > 0.5f) {
+		modelAstro->update(ASTRO_ANIM_SPEED * programglobal::deltaTime, 1);
+	}
+	if((*nightevents)[PHOENIXFLY_T] > 0.0f) {
+		modelPhoenix->update(PHOENIX_ANIM_SPEED * programglobal::deltaTime, 0);
+	}
+	if((*nightevents)[FOXWALK_T] > 0.0f) {
+		modelFox->update(WOLF_ANIM_SPEED * programglobal::deltaTime, 0);
+	}
+	if((*nightevents)[CAMERAMOVE1_T] > 0.3) {
+		obocean->update(OCEAN_ANIM_SPEED * programglobal::deltaTime);
+	}
 	firefliesA->update();
 	firefliesB->update();
 	fireT += FIRE_ANIM_SPEED * programglobal::deltaTime;
